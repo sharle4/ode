@@ -1,132 +1,83 @@
 'use client'
 
-import { createClient } from '@/lib/supabase/client'
-import type { User } from '@supabase/supabase-js'
-import { useState, useEffect } from 'react'
-import { useRouter } from 'next/navigation'
-import Rating from './Rating'
+import { StarIcon } from '@heroicons/react/24/solid'
 
 interface Review {
   id: number
   content: string | null
   rating: number | null
+  created_at: string
   profiles: {
     username: string | null
+    avatar_url: string | null
   } | null
 }
 
 interface ReviewSectionProps {
-  poemId: number
-  user: User | null
-  initialReviews: Review[]
+  reviews: Review[]
 }
 
-export default function ReviewSection({ poemId, user, initialReviews }: ReviewSectionProps) {
-  const [reviews, setReviews] = useState(initialReviews)
-  const [isModalOpen, setIsModalOpen] = useState(false)
+const UserIcon = ({ className }: { className: string }) => (
+    <svg xmlns="http://www.w.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+);
+
+export default function ReviewSection({ reviews }: ReviewSectionProps) {
   
-  const [content, setContent] = useState('')
-  const [rating, setRating] = useState<number | null>(null)
-  const [hoverRating, setHoverRating] = useState<number | null>(null)
-  const [isSubmitting, setIsSubmitting] = useState(false)
-  const [error, setError] = useState<string | null>(null)
-
-  const supabase = createClient()
-  const router = useRouter()
-
-  useEffect(() => {
-    if (isModalOpen && user) {
-      const userReview = reviews.find(r => (r as any).user_id === user.id)
-      if (userReview) {
-        setContent(userReview.content || '')
-        setRating(userReview.rating || null)
-      } else {
-        setContent('')
-        setRating(null)
-      }
-    }
-  }, [isModalOpen, user, reviews])
-
-  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault()
-    if (!user || !rating) {
-      setError("Une note est requise.")
-      return
-    }
-    setIsSubmitting(true)
-    setError(null)
-
-    const { error } = await supabase
-      .from('reviews')
-      .upsert(
-        { user_id: user.id, poem_id: poemId, content: content.trim(), rating: rating },
-        { onConflict: 'user_id, poem_id' }
-      )
-
-    if (error) {
-      setError(error.message)
-    } else {
-      setIsModalOpen(false)
-      router.refresh()
-    }
-    setIsSubmitting(false)
+  const formatDate = (dateString: string) => {
+    return new Date(dateString).toLocaleDateString('fr-FR', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric',
+    })
   }
 
   return (
-    <>
-      <div className="mt-12">
-        <div className="flex justify-between items-center mb-6">
-          <h2 className="text-2xl font-bold text-gray-900 dark:text-white">Critiques</h2>
-          {user && (
-            <button
-              onClick={() => setIsModalOpen(true)}
-              className="bg-indigo-600 text-white py-2 px-4 rounded-md hover:bg-indigo-700 text-sm"
-            >
-              Ajouter une critique
-            </button>
-          )}
-        </div>
-
-        <div className="space-y-6">
-          {reviews.length > 0 ? (
-            reviews.map((review) => (
-              <div key={review.id} className="p-4 bg-white dark:bg-gray-800/50 rounded-lg border border-gray-200 dark:border-gray-700">
-                <p className="font-semibold text-gray-800 dark:text-gray-200">
-                  {review.profiles?.username || 'Utilisateur anonyme'}
-                </p>
-                {review.content && <p className="mt-2 text-gray-600 dark:text-gray-400">{review.content}</p>}
+    <div className="mt-12">
+      <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-6">Critiques</h2>
+      <div className="space-y-8">
+        {reviews.length > 0 ? (
+          reviews.map((review) => (
+            <div key={review.id} className="flex space-x-4">
+              <div className="flex-shrink-0">
+                {review.profiles?.avatar_url ? (
+                  <img src={review.profiles.avatar_url} alt={review.profiles.username || ''} className="w-12 h-12 rounded-full" />
+                ) : (
+                  <div className="w-12 h-12 rounded-full bg-gray-200 dark:bg-gray-700 flex items-center justify-center">
+                    <UserIcon className="w-6 h-6 text-gray-500" />
+                  </div>
+                )}
               </div>
-            ))
-          ) : (
-            <p className="text-gray-500 dark:text-gray-400">Aucune critique pour le moment. Soyez le premier !</p>
-          )}
-        </div>
+              <div className="flex-grow">
+                <div className="flex justify-between items-start">
+                  <div>
+                    <p className="font-semibold text-gray-800 dark:text-gray-200">
+                      {review.profiles?.username || 'Utilisateur anonyme'}
+                    </p>
+                    <div className="flex items-center mt-1">
+                      {Array.from({ length: 5 }).map((_, i) => (
+                        <StarIcon
+                          key={i}
+                          className={`w-4 h-4 ${
+                            review.rating && (review.rating / 2) > i
+                              ? 'text-yellow-400'
+                              : 'text-gray-300 dark:text-gray-600'
+                          }`}
+                        />
+                      ))}
+                    </div>
+                  </div>
+                  <p className="text-xs text-gray-500 dark:text-gray-400 flex-shrink-0 ml-4">
+                    {formatDate(review.created_at)}
+                  </p>
+                </div>
+                {review.content && <p className="mt-2 text-gray-600 dark:text-gray-400 text-sm">{review.content}</p>}
+              </div>
+            </div>
+          ))
+        ) : (
+          <p className="text-gray-500 dark:text-gray-400">Aucune critique pour le moment. Soyez le premier !</p>
+        )}
       </div>
-
-      {/* Modal pour ajouter/modifier une critique */}
-      {isModalOpen && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex justify-center items-center">
-          <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-xl w-full max-w-lg">
-            <h3 className="text-lg font-bold mb-4">Votre avis</h3>
-            <form onSubmit={handleSubmit}>
-              <Rating rating={rating} setRating={setRating} hoverRating={hoverRating} setHoverRating={setHoverRating} />
-              <textarea
-                value={content}
-                onChange={(e) => setContent(e.target.value)}
-                placeholder="Écrivez votre critique (optionnel)..."
-                className="mt-4 w-full h-24 p-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-900 focus:outline-none focus:ring-2 focus:ring-indigo-500"
-              />
-              {error && <p className="text-sm text-red-500 mt-2">{error}</p>}
-              <div className="flex justify-end space-x-4 mt-4">
-                <button type="button" onClick={() => setIsModalOpen(false)} className="text-sm text-gray-600 dark:text-gray-400">Annuler</button>
-                <button type="submit" disabled={isSubmitting || !rating} className="bg-indigo-600 text-white py-2 px-4 rounded-md hover:bg-indigo-700 disabled:bg-indigo-400">
-                  {isSubmitting ? 'Enregistrement...' : 'Enregistrer'}
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
-    </>
+    </div>
   )
 }
