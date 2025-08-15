@@ -1,6 +1,7 @@
 import { createClient } from '@/lib/supabase/server';
 import Header from '@/components/Header';
 import { notFound } from 'next/navigation';
+import Rating from '@/components/Rating';
 
 export const dynamic = 'force-dynamic'
 
@@ -8,6 +9,8 @@ export default async function PoemPage({ params }: { params: { id: string } }) {
   const { id } = params;
   const supabase = createClient();
 
+  const { data: { user } } = await supabase.auth.getUser();
+  
   const { data: poem, error } = await supabase
     .from('poems')
     .select(`
@@ -62,10 +65,7 @@ export default async function PoemPage({ params }: { params: { id: string } }) {
                   Votre avis
                 </h2>
                 <div className="mt-4">
-                  <p className="text-sm text-gray-500">Notez ce poème :</p>
-                  <div className="flex items-center text-2xl text-gray-300 dark:text-gray-600">
-                    <span>☆</span><span>☆</span><span>☆</span><span>☆</span><span>☆</span>
-                  </div>
+                  <Rating poemId={parseInt(id)} user={user} />
                 </div>
                 <button className="mt-4 w-full bg-indigo-600 text-white py-2 px-4 rounded-md hover:bg-indigo-700">
                   Ajouter une critique
