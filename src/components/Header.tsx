@@ -22,10 +22,14 @@ export default function Header() {
         <div className="flex items-center justify-between h-16">
           <h1 className="text-2xl font-bold text-gray-900 dark:text-white tracking-tight">Ode</h1>
           <div className="flex-1 flex justify-center px-2 lg:ml-6 lg:justify-center">
-             {/* ... barre de recherche ... */}
+             {/* ... barre de recherche... */}
           </div>
           <div className="flex items-center">
-            <button onClick={toggleTheme} aria-label="Changer de thème" className="p-2 rounded-full text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors duration-200">
+            <button 
+              onClick={toggleTheme} 
+              aria-label="Changer de thème" 
+              className="p-2 rounded-full text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors duration-200"
+            >
               {theme === 'dark' ? <SunIcon className="h-6 w-6" /> : <MoonIcon className="h-6 w-6" />}
             </button>
              {/* ... avatar ... */}

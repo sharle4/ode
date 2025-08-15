@@ -41,7 +41,7 @@ export default async function HomePage() {
         {!error && poems && (
           <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-3">
             {poems.map((poem: Poem) => (
-              <div key={poem.id} className="bg-white dark:bg-gray-800/50 rounded-lg shadow-md p-6 border border-gray-200 dark:border-gray-800 flex flex-col">
+              <div key={poem.id} className="bg-white/80 dark:bg-gray-800/50 backdrop-blur-sm rounded-lg shadow-md p-6 border border-gray-200 dark:border-gray-700 flex flex-col transition-colors duration-300">
                 <div className="flex-grow">
                   <p className="text-xl font-bold text-gray-900 dark:text-white">{poem.title}</p>
                   <p className="mt-1 text-md text-gray-500 dark:text-gray-400">

@@ -3,8 +3,6 @@ import Header from '@/components/Header';
 import { notFound } from 'next/navigation';
 
 export default async function PoemPage({ params }: { params: { id: string } }) {
-  const { id } = params;
-
   const { data: poem, error } = await supabase
     .from('poems')
     .select(`
@@ -14,7 +12,7 @@ export default async function PoemPage({ params }: { params: { id: string } }) {
       source,
       authors ( name )
     `)
-    .eq('id', id)
+    .eq('id', params.id)
     .single();
 
   if (error || !poem) {
@@ -45,7 +43,7 @@ export default async function PoemPage({ params }: { params: { id: string } }) {
           {/* Colonne de Droite : Métadonnées et Actions */}
           <div className="lg:col-span-1">
             <div className="sticky top-24">
-              <div className="bg-white dark:bg-gray-800/50 rounded-lg shadow-md p-6 border border-gray-200 dark:border-gray-800">
+              <div className="bg-white/80 dark:bg-gray-800/50 backdrop-blur-sm rounded-lg shadow-md p-6 border border-gray-200 dark:border-gray-700 transition-colors duration-300">
                 <h2 className="text-lg font-bold text-gray-900 dark:text-white">
                   À propos de ce poème
                 </h2>
