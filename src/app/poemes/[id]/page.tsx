@@ -1,8 +1,8 @@
 import { createClient } from '@/lib/supabase/server';
 import Header from '@/components/Header';
 import { notFound } from 'next/navigation';
-import Rating from '@/components/Rating';
 import ReviewSection from '@/components/ReviewSection';
+import RatingsChart from '@/components/RatingsChart';
 
 export const dynamic = 'force-dynamic'
 
@@ -14,12 +14,14 @@ export default async function PoemPage({ params }: { params: { id: string } }) {
     { data: { user } },
     { data: poem, error: poemError },
     { data: reviews, error: reviewsError },
-    { data: stats, error: statsError }
+    { data: stats, error: statsError },
+    { data: distribution, error: distError }
   ] = await Promise.all([
     supabase.auth.getUser(),
     supabase.from('poems').select('*, authors(name)').eq('id', id).single(),
     supabase.from('reviews').select('*, profiles(username)').eq('poem_id', id).order('created_at', { ascending: false }),
-    supabase.rpc('get_poem_stats', { poem_id_param: parseInt(id) }).single()
+    supabase.rpc('get_poem_stats', { poem_id_param: parseInt(id) }).single(),
+    supabase.rpc('get_poem_rating_distribution', { poem_id_param: parseInt(id) })
   ]);
 
   if (poemError || !poem) {
@@ -66,24 +68,13 @@ export default async function PoemPage({ params }: { params: { id: string } }) {
 
                 <hr className="my-6 border-gray-200 dark:border-gray-700" />
 
-                {/* Section Note Moyenne */}
                 <div className="flex items-center">
                   <span className="text-yellow-400 text-3xl font-bold">{averageRating.toFixed(1)}</span>
                   <span className="text-gray-500 dark:text-gray-400 ml-2 text-sm">({reviewsCount} avis)</span>
                 </div>
                 
-                {/* Placeholder pour le graphique */}
-                <div className="mt-4 h-24 bg-gray-100 dark:bg-gray-700/50 rounded-md flex items-center justify-center">
-                  <p className="text-sm text-gray-500 dark:text-gray-400">Graphique des notes</p>
-                </div>
-
-                <hr className="my-6 border-gray-200 dark:border-gray-700" />
-
-                <h2 className="text-lg font-bold text-gray-900 dark:text-white">
-                  Votre avis
-                </h2>
                 <div className="mt-4">
-                  <Rating poemId={parseInt(id)} user={user} />
+                  <RatingsChart data={distribution || []} totalReviews={reviewsCount} />
                 </div>
                 
               </div>
