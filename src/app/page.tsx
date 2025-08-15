@@ -1,4 +1,4 @@
-import { supabase } from '@/lib/supabase';
+import { createClient } from '@/lib/supabase/server';
 import Header from '@/components/Header';
 import Link from 'next/link'; // Importation du composant Link
 
@@ -14,6 +14,7 @@ type Poem = {
 // La page d'accueil est maintenant une fonction asynchrone !
 // Elle s'exécute sur le serveur.
 export default async function HomePage() {
+  const supabase = createClient();
   
   // On récupère les données directement ici, sur le serveur.
   const { data: poems, error } = await supabase
