@@ -5,6 +5,10 @@
   --foreground: #171717;
 }
 
+@theme {
+  --dark-mode: "class";
+}
+
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
