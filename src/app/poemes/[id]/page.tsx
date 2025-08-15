@@ -18,7 +18,7 @@ export default async function PoemPage({ params }: { params: { id: string } }) {
   ] = await Promise.all([
     supabase.auth.getUser(),
     supabase.from('poems').select('*, authors(name)').eq('id', id).single(),
-    supabase.from('reviews').select('*, profiles(username)').eq('poem_id', id),
+    supabase.from('reviews').select('*, profiles(username)').eq('poem_id', id).order('created_at', { ascending: false }),
     supabase.rpc('get_poem_stats', { poem_id_param: parseInt(id) }).single()
   ]);
 
@@ -42,24 +42,43 @@ export default async function PoemPage({ params }: { params: { id: string } }) {
             <p className="mt-2 text-xl text-gray-500 dark:text-gray-400">
               par {poem.authors?.name || 'Auteur inconnu'}
             </p>
-            {/* Affichage de la note moyenne */}
-            <div className="flex items-center mt-4">
-              <span className="text-yellow-400 text-2xl font-bold">{averageRating.toFixed(1)}</span>
-              <span className="text-gray-500 dark:text-gray-400 ml-2">({reviewsCount} avis)</span>
-            </div>
             <div className="mt-8 prose prose-lg dark:prose-invert max-w-none">
               <p className="whitespace-pre-wrap">
                 {poem.content}
               </p>
             </div>
             
-            {/* On déplace la section des critiques ici, dans la colonne principale */}
             <ReviewSection poemId={parseInt(id)} user={user} initialReviews={reviews || []} />
           </div>
 
           <div className="lg:col-span-1">
             <div className="sticky top-24">
               <div className="bg-white dark:bg-gray-800/50 rounded-lg shadow-md p-6 border border-gray-200 dark:border-gray-800">
+                
+                <h2 className="text-lg font-bold text-gray-900 dark:text-white">
+                  À propos de ce poème
+                </h2>
+                <ul className="mt-4 space-y-2 text-gray-600 dark:text-gray-400 text-sm">
+                  <li><strong>Auteur:</strong> {poem.authors?.name || 'N/A'}</li>
+                  <li><strong>Recueil:</strong> {poem.source || 'N/A'}</li>
+                  <li><strong>Publié en:</strong> {poem.publication_date || 'N/A'}</li>
+                </ul>
+
+                <hr className="my-6 border-gray-200 dark:border-gray-700" />
+
+                {/* Section Note Moyenne */}
+                <div className="flex items-center">
+                  <span className="text-yellow-400 text-3xl font-bold">{averageRating.toFixed(1)}</span>
+                  <span className="text-gray-500 dark:text-gray-400 ml-2 text-sm">({reviewsCount} avis)</span>
+                </div>
+                
+                {/* Placeholder pour le graphique */}
+                <div className="mt-4 h-24 bg-gray-100 dark:bg-gray-700/50 rounded-md flex items-center justify-center">
+                  <p className="text-sm text-gray-500 dark:text-gray-400">Graphique des notes</p>
+                </div>
+
+                <hr className="my-6 border-gray-200 dark:border-gray-700" />
+
                 <h2 className="text-lg font-bold text-gray-900 dark:text-white">
                   Votre avis
                 </h2>
@@ -67,16 +86,6 @@ export default async function PoemPage({ params }: { params: { id: string } }) {
                   <Rating poemId={parseInt(id)} user={user} />
                 </div>
                 
-                <hr className="my-6 border-gray-200 dark:border-gray-700" />
-
-                <h2 className="text-lg font-bold text-gray-900 dark:text-white">
-                  À propos de ce poème
-                </h2>
-                <ul className="mt-4 space-y-2 text-gray-600 dark:text-gray-400">
-                  <li><strong>Auteur:</strong> {poem.authors?.name || 'N/A'}</li>
-                  <li><strong>Recueil:</strong> {poem.source || 'N/A'}</li>
-                  <li><strong>Publié en:</strong> {poem.publication_date || 'N/A'}</li>
-                </ul>
               </div>
             </div>
           </div>

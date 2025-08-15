@@ -34,32 +34,39 @@ export default function ReviewSection({ poemId, user, initialReviews }: ReviewSe
     setIsSubmitting(true)
     setError(null)
 
-    // On met à jour la critique existante (upsert)
     const { data, error } = await supabase
       .from('reviews')
       .upsert(
         { user_id: user.id, poem_id: poemId, content: content.trim() },
         { onConflict: 'user_id, poem_id' }
       )
-      .select('*, profiles(username)')
+      .select('id, content')
       .single()
 
     if (error) {
       setError(error.message)
       console.error("Erreur lors de la soumission de la critique:", error)
     } else {
-      // On met à jour la liste des critiques localement pour un retour immédiat
+      const newReview = {
+        id: data.id,
+        content: data.content,
+        profiles: {
+          username: user.user_metadata.username || 'Anonyme'
+        }
+      }
+
       setReviews(currentReviews => {
-        const existingReviewIndex = currentReviews.findIndex(r => r.id === data.id)
+        const existingReviewIndex = currentReviews.findIndex(r => r.id === newReview.id)
         if (existingReviewIndex > -1) {
           const updatedReviews = [...currentReviews]
-          updatedReviews[existingReviewIndex] = data
+          updatedReviews[existingReviewIndex] = newReview
           return updatedReviews
         }
-        return [data, ...currentReviews]
+        return [newReview, ...currentReviews]
       })
+      
       setContent('')
-      router.refresh() // Rafraîchit les données du serveur en arrière-plan
+      router.refresh()
     }
     setIsSubmitting(false)
   }
