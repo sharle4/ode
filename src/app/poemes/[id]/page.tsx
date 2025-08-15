@@ -1,8 +1,13 @@
-import { supabase } from '@/lib/supabase';
+import { createClient } from '@/lib/supabase/server';
 import Header from '@/components/Header';
 import { notFound } from 'next/navigation';
 
+export const dynamic = 'force-dynamic'
+
 export default async function PoemPage({ params }: { params: { id: string } }) {
+  const { id } = params;
+  const supabase = createClient();
+
   const { data: poem, error } = await supabase
     .from('poems')
     .select(`
@@ -12,7 +17,7 @@ export default async function PoemPage({ params }: { params: { id: string } }) {
       source,
       authors ( name )
     `)
-    .eq('id', params.id)
+    .eq('id', id)
     .single();
 
   if (error || !poem) {
@@ -25,7 +30,6 @@ export default async function PoemPage({ params }: { params: { id: string } }) {
       <main className="container mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 lg:gap-12">
           
-          {/* Colonne de Gauche : Le Poème */}
           <div className="lg:col-span-2">
             <h1 className="text-4xl font-extrabold text-gray-900 dark:text-white tracking-tight">
               {poem.title}
@@ -40,10 +44,9 @@ export default async function PoemPage({ params }: { params: { id: string } }) {
             </div>
           </div>
 
-          {/* Colonne de Droite : Métadonnées et Actions */}
           <div className="lg:col-span-1">
             <div className="sticky top-24">
-              <div className="bg-white/80 dark:bg-gray-800/50 backdrop-blur-sm rounded-lg shadow-md p-6 border border-gray-200 dark:border-gray-700 transition-colors duration-300">
+              <div className="bg-white dark:bg-gray-800/50 rounded-lg shadow-md p-6 border border-gray-200 dark:border-gray-800">
                 <h2 className="text-lg font-bold text-gray-900 dark:text-white">
                   À propos de ce poème
                 </h2>

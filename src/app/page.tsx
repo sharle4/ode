@@ -1,22 +1,20 @@
 import { createClient } from '@/lib/supabase/server';
 import Header from '@/components/Header';
-import Link from 'next/link'; // Importation du composant Link
+import Link from 'next/link';
 
-// Définition du type pour un poème, pour la sécurité de notre code
+export const dynamic = 'force-dynamic'
+
 type Poem = {
   id: number;
   title: string;
   authors: {
     name: string;
-  } | null; // L'auteur peut être nul
+  } | null;
 };
 
-// La page d'accueil est maintenant une fonction asynchrone !
-// Elle s'exécute sur le serveur.
 export default async function HomePage() {
   const supabase = createClient();
   
-  // On récupère les données directement ici, sur le serveur.
   const { data: poems, error } = await supabase
     .from('poems')
     .select(`
@@ -42,7 +40,7 @@ export default async function HomePage() {
         {!error && poems && (
           <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-3">
             {poems.map((poem: Poem) => (
-              <div key={poem.id} className="bg-white/80 dark:bg-gray-800/50 backdrop-blur-sm rounded-lg shadow-md p-6 border border-gray-200 dark:border-gray-700 flex flex-col transition-colors duration-300">
+              <div key={poem.id} className="bg-white dark:bg-gray-800/50 rounded-lg shadow-md p-6 border border-gray-200 dark:border-gray-800 flex flex-col">
                 <div className="flex-grow">
                   <p className="text-xl font-bold text-gray-900 dark:text-white">{poem.title}</p>
                   <p className="mt-1 text-md text-gray-500 dark:text-gray-400">
