@@ -1,4 +1,27 @@
 @import "tailwindcss";
+@custom-variant dark (&:where([data-theme=dark], [data-theme=dark] *));
+
+/* Configuration pour le mode sombre forcé avec data-theme */
+@media (prefers-color-scheme: dark) {
+  :root {
+    color-scheme: dark;
+  }
+}
+
+@media (prefers-color-scheme: light) {
+  :root {
+    color-scheme: light;
+  }
+}
+
+/* Support pour le toggle manuel avec data-theme */
+[data-theme="dark"] {
+  color-scheme: dark;
+}
+
+[data-theme="light"] {  
+  color-scheme: light;
+}
 
 body {
   font-family: Arial, Helvetica, sans-serif;
