@@ -1,16 +1,21 @@
 import { supabase } from '@/lib/supabase';
 import Header from '@/components/Header';
+import Link from 'next/link'; // Importation du composant Link
 
+// Définition du type pour un poème, pour la sécurité de notre code
 type Poem = {
   id: number;
   title: string;
   authors: {
     name: string;
-  } | null;
+  } | null; // L'auteur peut être nul
 };
 
+// La page d'accueil est maintenant une fonction asynchrone !
+// Elle s'exécute sur le serveur.
 export default async function HomePage() {
   
+  // On récupère les données directement ici, sur le serveur.
   const { data: poems, error } = await supabase
     .from('poems')
     .select(`
@@ -43,9 +48,9 @@ export default async function HomePage() {
                     par {poem.authors?.name || 'Auteur inconnu'}
                   </p>
                 </div>
-                <button className="mt-4 w-full bg-indigo-600 text-white py-2 px-4 rounded-md hover:bg-indigo-700">
+                <Link href={`/poemes/${poem.id}`} className="mt-4 w-full bg-indigo-600 text-white text-center py-2 px-4 rounded-md hover:bg-indigo-700">
                   Lire le poème
-                </button>
+                </Link>
               </div>
             ))}
           </div>
