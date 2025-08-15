@@ -35,8 +35,7 @@ export default async function PoemPage({ params }: { params: { id: string } }) {
               par {poem.authors?.name || 'Auteur inconnu'}
             </p>
             <div className="mt-8 prose prose-lg dark:prose-invert max-w-none">
-              {/* La classe "whitespace-pre-wrap" est cruciale pour respecter les sauts de ligne du poème */}
-              <p className="whitespace-pre-wrap font-serif">
+              <p className="whitespace-pre-wrap">
                 {poem.content}
               </p>
             </div>

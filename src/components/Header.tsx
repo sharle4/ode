@@ -25,7 +25,7 @@ export default function Header() {
              {/* ... barre de recherche ... */}
           </div>
           <div className="flex items-center">
-            <button onClick={toggleTheme} aria-label="Changer de thème" className="p-2 rounded-full text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800">
+            <button onClick={toggleTheme} aria-label="Changer de thème" className="p-2 rounded-full text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors duration-200">
               {theme === 'dark' ? <SunIcon className="h-6 w-6" /> : <MoonIcon className="h-6 w-6" />}
             </button>
              {/* ... avatar ... */}
