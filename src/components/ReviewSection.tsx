@@ -1,6 +1,7 @@
 'use client'
 
 import { StarIcon } from '@heroicons/react/24/solid'
+import Link from 'next/link'
 
 interface Review {
   id: number
@@ -38,7 +39,7 @@ export default function ReviewSection({ reviews }: ReviewSectionProps) {
         {reviews.length > 0 ? (
           reviews.map((review) => (
             <div key={review.id} className="flex space-x-4">
-              <div className="flex-shrink-0">
+              <Link href={`/profil/${review.profiles?.username}`} className="flex-shrink-0">
                 {review.profiles?.avatar_url ? (
                   <img src={review.profiles.avatar_url} alt={review.profiles.username || ''} className="w-12 h-12 rounded-full" />
                 ) : (
@@ -46,13 +47,15 @@ export default function ReviewSection({ reviews }: ReviewSectionProps) {
                     <UserIcon className="w-6 h-6 text-gray-500" />
                   </div>
                 )}
-              </div>
+              </Link>
               <div className="flex-grow">
                 <div className="flex justify-between items-start">
                   <div>
-                    <p className="font-semibold text-gray-800 dark:text-gray-200">
-                      {review.profiles?.username || 'Utilisateur anonyme'}
-                    </p>
+                    <Link href={`/profil/${review.profiles?.username}`}>
+                      <p className="font-semibold text-gray-800 dark:text-gray-200 hover:text-indigo-600 dark:hover:text-indigo-400">
+                        {review.profiles?.username || 'Utilisateur anonyme'}
+                      </p>
+                    </Link>
                     <div className="flex items-center mt-1">
                       {Array.from({ length: 5 }).map((_, i) => (
                         <StarIcon

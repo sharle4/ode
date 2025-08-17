@@ -50,26 +50,7 @@ export default async function ProfilePage({ params }: { params: { username: stri
           </div>
         </div>
 
-        {/* Section des Listes */}
         <div className="mb-12">
-          <h2 className="text-xl font-semibold text-gray-800 dark:text-gray-200 mb-4">
-            Listes
-          </h2>
-          {lists && lists.length > 0 ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-              {lists.map((list) => (
-                <ListCard key={list.id} list={list} />
-              ))}
-            </div>
-          ) : (
-            <p className="text-gray-500 dark:text-gray-400">
-              {profile.username} n'a pas encore créé de liste.
-            </p>
-          )}
-        </div>
-
-        {/* Section des Critiques */}
-        <div>
           <h2 className="text-xl font-semibold text-gray-800 dark:text-gray-200 mb-4">
             Dernières critiques
           </h2>
@@ -82,6 +63,23 @@ export default async function ProfilePage({ params }: { params: { username: stri
           ) : (
             <p className="text-gray-500 dark:text-gray-400">
               {profile.username} n'a pas encore écrit de critique.
+            </p>
+          )}
+        </div>
+
+        <div>
+          <h2 className="text-xl font-semibold text-gray-800 dark:text-gray-200 mb-4">
+            Listes
+          </h2>
+          {lists && lists.length > 0 ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+              {lists.map((list) => (
+                <ListCard key={list.id} list={list} />
+              ))}
+            </div>
+          ) : (
+            <p className="text-gray-500 dark:text-gray-400">
+              {profile.username} n'a pas encore créé de liste.
             </p>
           )}
         </div>

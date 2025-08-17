@@ -43,7 +43,7 @@ export default function Header() {
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       setUser(session?.user ?? null);
       if (session?.user) {
-        fetchUser(); // Refetch profile info on auth change
+        fetchUser();
       } else {
         setUsername(null);
       }
@@ -61,9 +61,6 @@ export default function Header() {
              {/* ... barre de recherche ... */}
           </div>
           <div className="flex items-center space-x-4">
-            <button onClick={toggleTheme} aria-label="Changer de thème" className="p-2 rounded-full text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors duration-200">
-              {theme === 'dark' ? <SunIcon className="h-6 w-6" /> : <MoonIcon className="h-6 w-6" />}
-            </button>
             {user && username ? (
               <Link href={`/profil/${username}`} className="p-2 rounded-full text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800">
                 <UserIcon className="h-6 w-6" />
@@ -73,6 +70,9 @@ export default function Header() {
                 Connexion
               </Link>
             )}
+            <button onClick={toggleTheme} aria-label="Changer de thème" className="p-2 rounded-full text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors duration-200">
+              {theme === 'dark' ? <SunIcon className="h-6 w-6" /> : <MoonIcon className="h-6 w-6" />}
+            </button>
           </div>
         </div>
       </div>

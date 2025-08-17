@@ -10,7 +10,7 @@ import ReviewSection from './ReviewSection'
 import AddToListModal from './AddToListModal'
 import { XMarkIcon } from '@heroicons/react/24/solid'
 
-interface PoemData { title: string; authors: { name: string | null } | null; publication_date: string | null; source: string | null; content: string; }
+interface PoemData { title: string; authors: { name: string | null } | null; publication_date: string | null; source: string | null; content: string; categories: string[] | null; }
 interface ReviewData { id: number; content: string | null; rating: number | null; created_at: string; profiles: { username: string | null; avatar_url: string | null; } | null; }
 interface StatsData { average_rating: number | null; reviews_count: number | null; }
 interface DistributionData { rating_value: number; count: number; }
@@ -108,8 +108,8 @@ export default function PoemInteractiveContent({ poemId, initialUser, initialPoe
 
   return (
     <>
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 lg:gap-12 w-full">
-        <div className={`lg:col-span-2 transition-filter duration-300 ${isModalActive ? 'blur-sm' : ''}`}>
+      <div className={`grid grid-cols-1 lg:grid-cols-3 gap-8 lg:gap-12 w-full transition-filter duration-300 ${isModalActive ? 'blur-sm' : ''}`}>
+        <div className="lg:col-span-2">
           <h1 className="text-4xl font-extrabold text-gray-900 dark:text-white tracking-tight">{initialPoem.title}</h1>
           <p className="mt-2 text-xl text-gray-500 dark:text-gray-400">par {initialPoem.authors?.name || 'Auteur inconnu'}</p>
           <div className="mt-8 prose prose-lg dark:prose-invert max-w-none">
@@ -118,14 +118,27 @@ export default function PoemInteractiveContent({ poemId, initialUser, initialPoe
           <ReviewSection reviews={initialReviews} />
         </div>
 
-        <div className={`lg:col-span-1 transition-filter duration-300 ${isModalActive ? 'blur-sm' : ''}`}>
+        <div className="lg:col-span-1">
           <div className="sticky top-24">
             <div className="bg-white dark:bg-gray-800/50 rounded-lg shadow-md p-6 border border-gray-200 dark:border-gray-800">
-              <h2 className="text-lg font-bold text-gray-900 dark:text-white">À propos</h2>
+              <h2 className="text-lg font-bold text-gray-900 dark:text-white truncate">
+                {initialPoem.title}
+              </h2>
               <ul className="mt-4 space-y-2 text-gray-600 dark:text-gray-400 text-sm">
                 <li><strong>Auteur:</strong> {initialPoem.authors?.name || 'N/A'}</li>
                 <li><strong>Recueil:</strong> {initialPoem.source || 'N/A'}</li>
-                <li><strong>Publié en:</strong> {initialPoem.publication_date || 'N/A'}</li>
+                {initialPoem.categories && initialPoem.categories.length > 0 && (
+                  <li>
+                    <strong>Catégories:</strong>
+                    <div className="flex flex-wrap gap-1 mt-1">
+                      {initialPoem.categories.map(cat => (
+                        <span key={cat} className="px-2 py-0.5 bg-gray-100 dark:bg-gray-700 text-xs rounded-full">
+                          {cat}
+                        </span>
+                      ))}
+                    </div>
+                  </li>
+                )}
               </ul>
               <hr className="my-6 border-gray-200 dark:border-gray-700" />
               <div className="flex items-center">
