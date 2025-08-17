@@ -7,7 +7,7 @@ type Theme = 'light' | 'dark' | 'system';
 interface ThemeContextType {
   theme: Theme;
   toggleTheme: () => void;
-  effectiveTheme: 'light' | 'dark'; // Le thème réellement appliqué
+  effectiveTheme: 'light' | 'dark';
 }
 
 const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
@@ -36,14 +36,11 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
       
       setEffectiveTheme(newEffectiveTheme);
       
-      // Pour Tailwind v4, on utilise data-theme au lieu de classe
       const htmlElement = document.documentElement;
       
       if (theme === 'system') {
-        // Supprime l'attribut pour laisser Tailwind utiliser prefers-color-scheme
         htmlElement.removeAttribute('data-theme');
       } else {
-        // Force le thème spécifique
         htmlElement.setAttribute('data-theme', newEffectiveTheme);
       }
       
@@ -53,7 +50,6 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
 
     updateEffectiveTheme();
 
-    // Écoute les changements de préférence système
     const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
     const handleChange = () => {
       if (theme === 'system') {
@@ -67,10 +63,9 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
 
   const toggleTheme = () => {
     setTheme(prevTheme => {
-      // Cycle: system -> light -> dark -> system
       if (prevTheme === 'system') return 'light';
       if (prevTheme === 'light') return 'dark';
-      return 'system';
+      return 'light';
     });
   };
 

@@ -8,12 +8,16 @@ import RatingsChart from './RatingsChart'
 import Rating from './Rating'
 import ReviewSection from './ReviewSection'
 import AddToListModal from './AddToListModal'
+import UserListTags from './UserListTags'
+import PublicListsSection from './PublicListsSection'
 import { XMarkIcon } from '@heroicons/react/24/solid'
 
 interface PoemData { title: string; authors: { name: string | null } | null; publication_date: string | null; source: string | null; content: string; categories: string[] | null; }
 interface ReviewData { id: number; content: string | null; rating: number | null; created_at: string; profiles: { username: string | null; avatar_url: string | null; } | null; }
 interface StatsData { average_rating: number | null; reviews_count: number | null; }
 interface DistributionData { rating_value: number; count: number; }
+interface UserListData { id: number; name: string; }
+interface PublicListData { id: number; name: string; username: string | null; }
 
 interface PoemInteractiveContentProps {
   poemId: number
@@ -22,9 +26,11 @@ interface PoemInteractiveContentProps {
   initialReviews: ReviewData[]
   initialStats: StatsData | null
   initialDistribution: DistributionData[]
+  initialUserLists: UserListData[]
+  initialPublicLists: PublicListData[]
 }
 
-export default function PoemInteractiveContent({ poemId, initialUser, initialPoem, initialReviews, initialStats, initialDistribution }: PoemInteractiveContentProps) {
+export default function PoemInteractiveContent({ poemId, initialUser, initialPoem, initialReviews, initialStats, initialDistribution, initialUserLists, initialPublicLists }: PoemInteractiveContentProps) {
   const supabase = createClient()
   const router = useRouter()
 
@@ -108,22 +114,21 @@ export default function PoemInteractiveContent({ poemId, initialUser, initialPoe
 
   return (
     <>
-      <div className={`grid grid-cols-1 lg:grid-cols-3 gap-8 lg:gap-12 w-full transition-filter duration-300 ${isModalActive ? 'blur-sm' : ''}`}>
-        <div className="lg:col-span-2">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 lg:gap-12 w-full">
+        <div className={`lg:col-span-2 transition-filter duration-300 ${isModalActive ? 'blur-sm' : ''}`}>
           <h1 className="text-4xl font-extrabold text-gray-900 dark:text-white tracking-tight">{initialPoem.title}</h1>
           <p className="mt-2 text-xl text-gray-500 dark:text-gray-400">par {initialPoem.authors?.name || 'Auteur inconnu'}</p>
           <div className="mt-8 prose prose-lg dark:prose-invert max-w-none">
             <p className="whitespace-pre-wrap">{initialPoem.content}</p>
           </div>
           <ReviewSection reviews={initialReviews} />
+          <PublicListsSection lists={initialPublicLists} />
         </div>
 
-        <div className="lg:col-span-1">
+        <div className={`lg:col-span-1 transition-filter duration-300 ${isModalActive ? 'blur-sm' : ''}`}>
           <div className="sticky top-24">
             <div className="bg-white dark:bg-gray-800/50 rounded-lg shadow-md p-6 border border-gray-200 dark:border-gray-800">
-              <h2 className="text-lg font-bold text-gray-900 dark:text-white truncate">
-                {initialPoem.title}
-              </h2>
+              <h2 className="text-lg font-bold text-gray-900 dark:text-white truncate">{initialPoem.title}</h2>
               <ul className="mt-4 space-y-2 text-gray-600 dark:text-gray-400 text-sm">
                 <li><strong>Auteur:</strong> {initialPoem.authors?.name || 'N/A'}</li>
                 <li><strong>Recueil:</strong> {initialPoem.source || 'N/A'}</li>
@@ -153,6 +158,7 @@ export default function PoemInteractiveContent({ poemId, initialUser, initialPoe
               <div className="mt-4">
                 <Rating rating={rating} setRating={handleRatingOnly} hoverRating={hoverRating} setHoverRating={setHoverRating} />
               </div>
+              <UserListTags lists={initialUserLists} />
               {user && (
                 <div className="flex space-x-2 mt-4">
                   <button onClick={() => setIsReviewModalOpen(true)} className="w-full bg-transparent border border-indigo-600 text-indigo-600 dark:border-indigo-400 dark:text-indigo-400 py-2 px-4 rounded-md hover:bg-indigo-50 dark:hover:bg-indigo-900/20 text-sm">
