@@ -21,15 +21,36 @@ const UserIcon = ({ className }: { className: string }) => (
 export default function Header() {
   const { theme, toggleTheme } = useTheme();
   const [user, setUser] = useState<User | null>(null);
+  const [username, setUsername] = useState<string | null>(null);
   const supabase = createClient();
 
   useEffect(() => {
+    const fetchUser = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      setUser(session?.user ?? null);
+      if (session?.user) {
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('username')
+          .eq('id', session.user.id)
+          .single();
+        setUsername(profile?.username || null);
+      }
+    };
+
+    fetchUser();
+
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       setUser(session?.user ?? null);
+      if (session?.user) {
+        fetchUser(); // Refetch profile info on auth change
+      } else {
+        setUsername(null);
+      }
     });
 
     return () => subscription.unsubscribe();
-  }, [supabase.auth]);
+  }, [supabase]);
 
   return (
     <header className="bg-white/80 dark:bg-gray-900/80 backdrop-blur-sm border-b border-gray-200 dark:border-gray-800 sticky top-0 z-50">
@@ -43,8 +64,8 @@ export default function Header() {
             <button onClick={toggleTheme} aria-label="Changer de thème" className="p-2 rounded-full text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors duration-200">
               {theme === 'dark' ? <SunIcon className="h-6 w-6" /> : <MoonIcon className="h-6 w-6" />}
             </button>
-            {user ? (
-              <Link href="/profil" className="p-2 rounded-full text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800">
+            {user && username ? (
+              <Link href={`/profil/${username}`} className="p-2 rounded-full text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800">
                 <UserIcon className="h-6 w-6" />
               </Link>
             ) : (
