@@ -8,6 +8,7 @@ import RatingsChart from './RatingsChart'
 import Rating from './Rating'
 import ReviewSection from './ReviewSection'
 import AddToListModal from './AddToListModal'
+import { XMarkIcon } from '@heroicons/react/24/solid'
 
 interface PoemData { title: string; authors: { name: string | null } | null; publication_date: string | null; source: string | null; content: string; }
 interface ReviewData { id: number; content: string | null; rating: number | null; created_at: string; profiles: { username: string | null; avatar_url: string | null; } | null; }
@@ -37,6 +38,17 @@ export default function PoemInteractiveContent({ poemId, initialUser, initialPoe
   const [content, setContent] = useState('')
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
+
+  useEffect(() => {
+    if (isReviewModalOpen || isListModalOpen) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = 'auto';
+    }
+    return () => {
+      document.body.style.overflow = 'auto';
+    };
+  }, [isReviewModalOpen, isListModalOpen]);
 
   useEffect(() => {
     if (user) {
@@ -91,7 +103,8 @@ export default function PoemInteractiveContent({ poemId, initialUser, initialPoe
 
   return (
     <>
-      <div className={`transition-filter duration-300 ${isModalActive ? 'blur-sm' : ''}`}>
+      {/* Contenu principal de la page, avec effet de flou si un modal est actif */}
+      <div className={`grid grid-cols-1 lg:grid-cols-3 gap-8 lg:gap-12 w-full transition-filter duration-300 ${isModalActive ? 'blur-sm' : ''}`}>
         <div className="lg:col-span-2">
           <h1 className="text-4xl font-extrabold text-gray-900 dark:text-white tracking-tight">{initialPoem.title}</h1>
           <p className="mt-2 text-xl text-gray-500 dark:text-gray-400">par {initialPoem.authors?.name || 'Auteur inconnu'}</p>
@@ -139,14 +152,40 @@ export default function PoemInteractiveContent({ poemId, initialUser, initialPoe
       </div>
 
       {/* Section des Modals */}
-      <div className={`fixed inset-0 z-50 flex justify-center items-center p-4 transition-opacity duration-300 ${isModalActive ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}>
-        {isReviewModalOpen && (
-          <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-xl w-full max-w-lg">
-            {/* ... contenu du modal de critique ... */}
+      {isReviewModalOpen && (
+        <div 
+          className="fixed inset-0 bg-black bg-opacity-75 z-50 flex justify-center items-center p-4"
+          onClick={() => setIsReviewModalOpen(false)}
+        >
+          <div 
+            className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-xl w-full max-w-lg relative"
+            onClick={e => e.stopPropagation()}
+          >
+            <button onClick={() => setIsReviewModalOpen(false)} className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200">
+              <XMarkIcon className="w-6 h-6" />
+            </button>
+            <h3 className="text-lg font-bold mb-4">Votre avis sur "{initialPoem.title}"</h3>
+            <form onSubmit={handleSubmitReview}>
+              <Rating rating={rating} setRating={setRating} hoverRating={hoverRating} setHoverRating={setHoverRating} />
+              <textarea
+                value={content}
+                onChange={(e) => setContent(e.target.value)}
+                placeholder="Écrivez votre critique (optionnel)..."
+                className="mt-4 w-full h-24 p-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-900 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              />
+              {error && <p className="text-sm text-red-500 mt-2">{error}</p>}
+              <div className="flex justify-end space-x-4 mt-4">
+                <button type="button" onClick={() => setIsReviewModalOpen(false)} className="text-sm text-gray-600 dark:text-gray-400">Annuler</button>
+                <button type="submit" disabled={isSubmitting || !rating} className="bg-indigo-600 text-white py-2 px-4 rounded-md hover:bg-indigo-700 disabled:bg-indigo-400">
+                  {isSubmitting ? 'Enregistrement...' : 'Enregistrer'}
+                </button>
+              </div>
+            </form>
           </div>
-        )}
-        {isListModalOpen && <AddToListModal poemId={poemId} poemTitle={initialPoem.title} onClose={() => setIsListModalOpen(false)} />}
-      </div>
+        </div>
+      )}
+
+      {isListModalOpen && <AddToListModal poemId={poemId} poemTitle={initialPoem.title} onClose={() => setIsListModalOpen(false)} />}
     </>
   )
 }
