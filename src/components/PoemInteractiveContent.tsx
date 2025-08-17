@@ -7,8 +7,8 @@ import type { User } from '@supabase/supabase-js'
 import RatingsChart from './RatingsChart'
 import Rating from './Rating'
 import ReviewSection from './ReviewSection'
+import AddToListModal from './AddToListModal'
 
-// On regroupe tous les types de données ici
 interface PoemData { title: string; authors: { name: string | null } | null; publication_date: string | null; source: string | null; }
 interface ReviewData { id: number; content: string | null; rating: number | null; created_at: string; profiles: { username: string | null; avatar_url: string | null; } | null; }
 interface StatsData { average_rating: number | null; reviews_count: number | null; }
@@ -27,30 +27,28 @@ export default function PoemInteractiveContent({ poemId, initialUser, initialPoe
   const supabase = createClient()
   const router = useRouter()
 
-  // On initialise les états avec les données reçues du serveur
   const [user] = useState(initialUser)
-  const [reviews, setReviews] = useState(initialReviews)
   
-  // États pour le modal et la notation
-  const [isModalOpen, setIsModalOpen] = useState(false)
+  const [isReviewModalOpen, setIsReviewModalOpen] = useState(false)
   const [rating, setRating] = useState<number | null>(null)
   const [hoverRating, setHoverRating] = useState<number | null>(null)
   const [content, setContent] = useState('')
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
-  // On pré-remplit la note de l'utilisateur
+  const [isListModalOpen, setIsListModalOpen] = useState(false)
+
   useEffect(() => {
     if (user) {
-      const userReview = reviews.find(r => (r as any).user_id === user.id)
+      const userReview = initialReviews.find(r => (r as any).user_id === user.id)
       setRating(userReview?.rating || null)
       setContent(userReview?.content || '')
     }
-  }, [user, reviews])
+  }, [user, initialReviews])
 
   const handleRatingOnly = async (newRating: number) => {
     if (!user) return;
-    setRating(newRating); // Mise à jour visuelle immédiate
+    setRating(newRating);
 
     const { error } = await supabase.from('reviews').upsert({
       user_id: user.id,
@@ -58,11 +56,8 @@ export default function PoemInteractiveContent({ poemId, initialUser, initialPoe
       rating: newRating,
     }, { onConflict: 'user_id, poem_id' });
 
-    if (error) {
-      console.error("Erreur lors de la notation :", error);
-    } else {
-      router.refresh(); // Met à jour les stats (note moyenne, etc.)
-    }
+    if (error) console.error("Erreur lors de la notation :", error);
+    else router.refresh();
   };
 
   const handleSubmitReview = async (e: React.FormEvent<HTMLFormElement>) => {
@@ -81,10 +76,9 @@ export default function PoemInteractiveContent({ poemId, initialUser, initialPoe
       rating: rating,
     }, { onConflict: 'user_id, poem_id' });
 
-    if (error) {
-      setError(error.message);
-    } else {
-      setIsModalOpen(false);
+    if (error) setError(error.message);
+    else {
+      setIsReviewModalOpen(false);
       router.refresh();
     }
     setIsSubmitting(false);
@@ -101,7 +95,7 @@ export default function PoemInteractiveContent({ poemId, initialUser, initialPoe
         <div className="mt-8 prose prose-lg dark:prose-invert max-w-none">
           <p className="whitespace-pre-wrap">{initialPoem.content}</p>
         </div>
-        <ReviewSection reviews={reviews} />
+        <ReviewSection reviews={initialReviews} />
       </div>
 
       <div className="lg:col-span-1">
@@ -127,15 +121,21 @@ export default function PoemInteractiveContent({ poemId, initialUser, initialPoe
               <Rating rating={rating} setRating={handleRatingOnly} hoverRating={hoverRating} setHoverRating={setHoverRating} />
             </div>
             {user && (
-              <button onClick={() => setIsModalOpen(true)} className="mt-4 w-full bg-transparent border border-indigo-600 text-indigo-600 dark:border-indigo-400 dark:text-indigo-400 py-2 px-4 rounded-md hover:bg-indigo-50 dark:hover:bg-indigo-900/20 text-sm">
-                {reviews.some(r => (r as any).user_id === user.id && r.content) ? 'Modifier la critique' : 'Ajouter une critique'}
-              </button>
+              <div className="flex space-x-2 mt-4">
+                <button onClick={() => setIsReviewModalOpen(true)} className="w-full bg-transparent border border-indigo-600 text-indigo-600 dark:border-indigo-400 dark:text-indigo-400 py-2 px-4 rounded-md hover:bg-indigo-50 dark:hover:bg-indigo-900/20 text-sm">
+                  Critiquer
+                </button>
+                <button onClick={() => setIsListModalOpen(true)} className="w-full bg-transparent border border-gray-400 text-gray-600 dark:border-gray-500 dark:text-gray-300 py-2 px-4 rounded-md hover:bg-gray-50 dark:hover:bg-gray-700/50 text-sm">
+                  Ajouter à une liste
+                </button>
+              </div>
             )}
           </div>
         </div>
       </div>
 
-      {isModalOpen && (
+      {/* Modal pour la critique */}
+      {isReviewModalOpen && (
         <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex justify-center items-center p-4">
           <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-xl w-full max-w-lg">
             <h3 className="text-lg font-bold mb-4">Votre avis sur "{initialPoem.title}"</h3>
@@ -149,7 +149,7 @@ export default function PoemInteractiveContent({ poemId, initialUser, initialPoe
               />
               {error && <p className="text-sm text-red-500 mt-2">{error}</p>}
               <div className="flex justify-end space-x-4 mt-4">
-                <button type="button" onClick={() => setIsModalOpen(false)} className="text-sm text-gray-600 dark:text-gray-400">Annuler</button>
+                <button type="button" onClick={() => setIsReviewModalOpen(false)} className="text-sm text-gray-600 dark:text-gray-400">Annuler</button>
                 <button type="submit" disabled={isSubmitting || !rating} className="bg-indigo-600 text-white py-2 px-4 rounded-md hover:bg-indigo-700 disabled:bg-indigo-400">
                   {isSubmitting ? 'Enregistrement...' : 'Enregistrer'}
                 </button>
@@ -158,6 +158,9 @@ export default function PoemInteractiveContent({ poemId, initialUser, initialPoe
           </div>
         </div>
       )}
+
+      {/* Modal pour les listes */}
+      {isListModalOpen && <AddToListModal poemId={poemId} onClose={() => setIsListModalOpen(false)} />}
     </>
   )
 }
