@@ -1,0 +1,41 @@
+import Link from 'next/link'
+import { LockClosedIcon, GlobeAltIcon } from '@heroicons/react/24/solid'
+
+interface List {
+  id: number
+  name: string
+  description: string | null
+  is_public: boolean
+}
+
+interface ListCardProps {
+  list: List
+}
+
+export default function ListCard({ list }: ListCardProps) {
+  return (
+    <Link href={`/listes/${list.id}`}>
+      <div className="bg-white dark:bg-gray-800/50 rounded-lg border border-gray-200 dark:border-gray-700 p-4 h-full flex flex-col hover:border-indigo-500 dark:hover:border-indigo-400 transition-colors">
+        <div className="flex-grow">
+          <div className="flex items-center space-x-2">
+            {list.is_public ? (
+              <GlobeAltIcon className="w-4 h-4 text-gray-400" />
+            ) : (
+              <LockClosedIcon className="w-4 h-4 text-gray-400" />
+            )}
+            <h3 className="font-bold text-lg text-gray-900 dark:text-white">
+              {list.name}
+            </h3>
+          </div>
+          <p className="mt-2 text-sm text-gray-500 dark:text-gray-400">
+            {list.description || "Aucune description"}
+          </p>
+        </div>
+        {/* Un placeholder pour le nombre de poèmes, à implémenter plus tard */}
+        <p className="mt-4 text-xs text-gray-400 dark:text-gray-500">
+          0 poèmes
+        </p>
+      </div>
+    </Link>
+  )
+}
