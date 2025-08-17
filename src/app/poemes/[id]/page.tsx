@@ -31,17 +31,15 @@ export default async function PoemPage({ params }: { params: { id: string } }) {
     <>
       <Header />
       <main className="container mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 lg:gap-12">
-          {/* On passe toutes les données au composant client qui gère l'interactivité */}
-          <PoemInteractiveContent
-            poemId={parseInt(id)}
-            initialUser={user}
-            initialPoem={poem}
-            initialReviews={reviews || []}
-            initialStats={stats}
-            initialDistribution={distribution || []}
-          />
-        </div>
+        {/* Le composant enfant gère maintenant sa propre grille interne */}
+        <PoemInteractiveContent
+          poemId={parseInt(id)}
+          initialUser={user}
+          initialPoem={poem}
+          initialReviews={reviews || []}
+          initialStats={stats}
+          initialDistribution={distribution || []}
+        />
       </main>
     </>
   );

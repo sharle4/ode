@@ -101,11 +101,15 @@ export default function PoemInteractiveContent({ poemId, initialUser, initialPoe
 
   const isModalActive = isReviewModalOpen || isListModalOpen;
 
+  const closeModal = () => {
+    setIsReviewModalOpen(false);
+    setIsListModalOpen(false);
+  }
+
   return (
     <>
-      {/* Contenu principal de la page, avec effet de flou si un modal est actif */}
-      <div className={`grid grid-cols-1 lg:grid-cols-3 gap-8 lg:gap-12 w-full transition-filter duration-300 ${isModalActive ? 'blur-sm' : ''}`}>
-        <div className="lg:col-span-2">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 lg:gap-12 w-full">
+        <div className={`lg:col-span-2 transition-filter duration-300 ${isModalActive ? 'blur-sm' : ''}`}>
           <h1 className="text-4xl font-extrabold text-gray-900 dark:text-white tracking-tight">{initialPoem.title}</h1>
           <p className="mt-2 text-xl text-gray-500 dark:text-gray-400">par {initialPoem.authors?.name || 'Auteur inconnu'}</p>
           <div className="mt-8 prose prose-lg dark:prose-invert max-w-none">
@@ -114,7 +118,7 @@ export default function PoemInteractiveContent({ poemId, initialUser, initialPoe
           <ReviewSection reviews={initialReviews} />
         </div>
 
-        <div className="lg:col-span-1">
+        <div className={`lg:col-span-1 transition-filter duration-300 ${isModalActive ? 'blur-sm' : ''}`}>
           <div className="sticky top-24">
             <div className="bg-white dark:bg-gray-800/50 rounded-lg shadow-md p-6 border border-gray-200 dark:border-gray-800">
               <h2 className="text-lg font-bold text-gray-900 dark:text-white">À propos</h2>
@@ -152,11 +156,11 @@ export default function PoemInteractiveContent({ poemId, initialUser, initialPoe
       </div>
 
       {/* Section des Modals */}
-      {isReviewModalOpen && (
-        <div 
-          className="fixed inset-0 bg-black bg-opacity-75 z-50 flex justify-center items-center p-4"
-          onClick={() => setIsReviewModalOpen(false)}
-        >
+      <div 
+        className={`fixed inset-0 z-50 flex justify-center items-center p-4 transition-opacity duration-300 ${isModalActive ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}
+        onClick={closeModal}
+      >
+        {isReviewModalOpen && (
           <div 
             className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-xl w-full max-w-lg relative"
             onClick={e => e.stopPropagation()}
@@ -182,10 +186,9 @@ export default function PoemInteractiveContent({ poemId, initialUser, initialPoe
               </div>
             </form>
           </div>
-        </div>
-      )}
-
-      {isListModalOpen && <AddToListModal poemId={poemId} poemTitle={initialPoem.title} onClose={() => setIsListModalOpen(false)} />}
+        )}
+        {isListModalOpen && <AddToListModal poemId={poemId} poemTitle={initialPoem.title} onClose={() => setIsListModalOpen(false)} />}
+      </div>
     </>
   )
 }
