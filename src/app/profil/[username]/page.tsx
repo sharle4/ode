@@ -25,11 +25,11 @@ export default async function ProfilePage({ params }: { params: { username: stri
 
   const isOwnProfile = loggedInUser?.id === profile.id
 
-  let listsQuery = supabase.from('lists').select('*').eq('user_id', profile.id)
-  if (!isOwnProfile) {
-    listsQuery = listsQuery.eq('is_public', true)
-  }
-  const { data: lists } = await listsQuery.order('created_at', { ascending: false })
+  const { data: listsData } = await supabase.rpc('get_lists_with_poem_count', {
+    profile_id_param: profile.id,
+  })
+  
+  const lists = isOwnProfile ? listsData : listsData?.filter(list => list.is_public)
 
   const { data: reviews } = await supabase
     .from('reviews')

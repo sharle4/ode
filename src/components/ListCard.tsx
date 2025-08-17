@@ -6,6 +6,7 @@ interface List {
   name: string
   description: string | null
   is_public: boolean
+  poem_count: number
 }
 
 interface ListCardProps {
@@ -13,6 +14,8 @@ interface ListCardProps {
 }
 
 export default function ListCard({ list }: ListCardProps) {
+  const poemCountText = `${list.poem_count} poème${list.poem_count > 1 ? 's' : ''}`
+
   return (
     <Link href={`/listes/${list.id}`}>
       <div className="bg-white dark:bg-gray-800/50 rounded-lg border border-gray-200 dark:border-gray-700 p-4 h-full flex flex-col hover:border-indigo-500 dark:hover:border-indigo-400 transition-colors">
@@ -27,13 +30,12 @@ export default function ListCard({ list }: ListCardProps) {
               {list.name}
             </h3>
           </div>
-          <p className="mt-2 text-sm text-gray-500 dark:text-gray-400">
+          <p className="mt-2 text-sm text-gray-500 dark:text-gray-400 line-clamp-2">
             {list.description || "Aucune description"}
           </p>
         </div>
-        {/* Un placeholder pour le nombre de poèmes, à implémenter plus tard */}
         <p className="mt-4 text-xs text-gray-400 dark:text-gray-500">
-          0 poèmes
+          {poemCountText}
         </p>
       </div>
     </Link>
