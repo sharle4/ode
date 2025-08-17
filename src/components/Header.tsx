@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { useTheme } from './ThemeProvider';
 import { createClient } from '@/lib/supabase/client';
 import type { User } from '@supabase/supabase-js';
+import { useRouter } from 'next/navigation';
 
 // --- Icônes ---
 const SunIcon = ({ className }: { className: string }) => (
@@ -16,13 +17,16 @@ const MoonIcon = ({ className }: { className: string }) => (
 const UserIcon = ({ className }: { className: string }) => (
   <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
 );
-
+const SearchIcon = ({ className }: { className: string }) => (
+    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+);
 
 export default function Header() {
   const { theme, toggleTheme } = useTheme();
   const [user, setUser] = useState<User | null>(null);
   const [username, setUsername] = useState<string | null>(null);
   const supabase = createClient();
+  const router = useRouter();
 
   useEffect(() => {
     const fetchUser = async () => {
@@ -52,14 +56,37 @@ export default function Header() {
     return () => subscription.unsubscribe();
   }, [supabase]);
 
+  const handleSearch = (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    const formData = new FormData(event.currentTarget);
+    const searchQuery = formData.get('search') as string;
+    router.push(`/recherche?q=${encodeURIComponent(searchQuery)}`);
+  };
+
   return (
     <header className="bg-white/80 dark:bg-gray-900/80 backdrop-blur-sm border-b border-gray-200 dark:border-gray-800 sticky top-0 z-50">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
           <Link href="/" className="text-2xl font-bold text-gray-900 dark:text-white tracking-tight">Ode</Link>
+          
           <div className="flex-1 flex justify-center px-2 lg:ml-6 lg:justify-center">
-             {/* ... barre de recherche ... */}
+            <form onSubmit={handleSearch} className="max-w-md w-full lg:max-w-lg">
+              <label htmlFor="search" className="sr-only">Rechercher</label>
+              <div className="relative text-gray-400 focus-within:text-gray-600">
+                <div className="pointer-events-none absolute inset-y-0 left-0 pl-3 flex items-center">
+                  <SearchIcon className="h-5 w-5" />
+                </div>
+                <input
+                  id="search"
+                  name="search"
+                  className="block w-full bg-white dark:bg-gray-800 py-2 pl-10 pr-3 border border-gray-300 dark:border-gray-700 rounded-md leading-5 text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:placeholder-gray-400 focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                  placeholder="Rechercher un poème, un auteur..."
+                  type="search"
+                />
+              </div>
+            </form>
           </div>
+
           <div className="flex items-center space-x-4">
             {user && username ? (
               <Link href={`/profil/${username}`} className="p-2 rounded-full text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800">
