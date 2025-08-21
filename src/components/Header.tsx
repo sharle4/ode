@@ -44,7 +44,7 @@ export default function Header() {
   const [searchQuery, setSearchQuery] = useState('');
   const [searchResults, setSearchResults] = useState<any[]>([]);
   const [isSearching, setIsSearching] = useState(false);
-  const debouncedSearchQuery = useDebounce(searchQuery, 300);
+  const debouncedSearchQuery = useDebounce(searchQuery, 100);
 
   useEffect(() => {
     const fetchUser = async () => {

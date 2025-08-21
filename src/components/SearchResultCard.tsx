@@ -3,7 +3,7 @@ import Link from 'next/link'
 interface SearchResult {
   id: number
   title: string
-  content: string
+  snippet: string 
   author_name: string
 }
 
@@ -12,8 +12,6 @@ interface SearchResultCardProps {
 }
 
 export default function SearchResultCard({ result }: SearchResultCardProps) {
-  const snippet = result.content?.substring(0, 150) + '...'
-
   return (
     <div className="bg-white dark:bg-gray-800/50 rounded-lg border border-gray-200 dark:border-gray-700 p-4">
       <Link href={`/poemes/${result.id}`}>
@@ -24,9 +22,10 @@ export default function SearchResultCard({ result }: SearchResultCardProps) {
       <p className="text-sm text-gray-500 dark:text-gray-400">
         par {result.author_name}
       </p>
-      <p className="mt-3 text-gray-600 dark:text-gray-400 text-sm">
-        {snippet}
-      </p>
+      <p 
+        className="mt-3 text-gray-600 dark:text-gray-400 text-sm"
+        dangerouslySetInnerHTML={{ __html: result.snippet || '' }} 
+      />
     </div>
   )
 }
