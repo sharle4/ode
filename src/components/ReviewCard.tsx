@@ -1,5 +1,5 @@
 import Link from 'next/link'
-import { StarIcon } from '@heroicons/react/24/solid'
+import StaticRating from './StaticRating'
 
 interface Review {
   rating: number | null
@@ -33,17 +33,8 @@ export default function ReviewCard({ review }: ReviewCardProps) {
         {review.poems.authors?.name || 'Auteur inconnu'}
       </p>
       
-      <div className="flex items-center mt-2">
-        {review.rating && Array.from({ length: 5 }).map((_, i) => (
-          <StarIcon
-            key={i}
-            className={`w-5 h-5 ${
-              (review.rating! / 2) > i
-                ? 'text-yellow-400'
-                : 'text-gray-300 dark:text-gray-600'
-            }`}
-          />
-        ))}
+      <div className="mt-2">
+        <StaticRating rating={review.rating} size="md" />
       </div>
 
       {review.content && (

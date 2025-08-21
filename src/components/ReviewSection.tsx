@@ -1,7 +1,7 @@
 'use client'
 
-import { StarIcon } from '@heroicons/react/24/solid'
 import Link from 'next/link'
+import StaticRating from './StaticRating'
 
 interface Review {
   id: number
@@ -56,17 +56,8 @@ export default function ReviewSection({ reviews }: ReviewSectionProps) {
                         {review.profiles?.username || 'Utilisateur anonyme'}
                       </p>
                     </Link>
-                    <div className="flex items-center mt-1">
-                      {Array.from({ length: 5 }).map((_, i) => (
-                        <StarIcon
-                          key={i}
-                          className={`w-4 h-4 ${
-                            review.rating && (review.rating / 2) > i
-                              ? 'text-yellow-400'
-                              : 'text-gray-300 dark:text-gray-600'
-                          }`}
-                        />
-                      ))}
+                    <div className="mt-1">
+                      <StaticRating rating={review.rating} />
                     </div>
                   </div>
                   <p className="text-xs text-gray-500 dark:text-gray-400 flex-shrink-0 ml-4">
