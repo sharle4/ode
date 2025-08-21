@@ -24,7 +24,7 @@ export default function SearchResultCard({ result }: SearchResultCardProps) {
       </p>
       <p 
         className="mt-3 text-gray-600 dark:text-gray-400 text-sm"
-        dangerouslySetInnerHTML={{ __html: result.snippet || '' }} 
+        dangerouslySetInnerHTML={{ __html: (result.snippet || '') + '...' }} 
       />
     </div>
   )
