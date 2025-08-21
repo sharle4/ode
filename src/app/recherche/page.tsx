@@ -1,10 +1,10 @@
 import { createClient } from '@/lib/supabase/server'
 import Header from '@/components/Header'
 import SearchResultCard from '@/components/SearchResultCard'
+import AuthorSearchResultCard from '@/components/AuthorSearchResultCard'
 
 export const dynamic = 'force-dynamic'
 
-// La page reçoit les paramètres de recherche depuis l'URL
 export default async function SearchPage({
   searchParams,
 }: {
@@ -17,21 +17,44 @@ export default async function SearchPage({
     search_term: query,
   })
 
+  const authors = results?.filter(r => r.type === 'author') || []
+  const poems = results?.filter(r => r.type === 'poem') || []
+
   return (
     <>
       <Header />
       <main className="container mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-6">
+        <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-8">
           Résultats de recherche pour "{query}"
         </h1>
 
         {error && <p className="text-red-500">Une erreur est survenue lors de la recherche.</p>}
 
-        {results && results.length > 0 ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {results.map(result => (
-              <SearchResultCard key={result.id} result={result} />
-            ))}
+        {!error && results && results.length > 0 ? (
+          <div className="space-y-12">
+            {/* Section Auteurs */}
+            {authors.length > 0 && (
+              <section>
+                <h2 className="text-2xl font-semibold text-gray-800 dark:text-gray-200 mb-4">Artistes</h2>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                  {authors.map(result => (
+                    <AuthorSearchResultCard key={result.id} result={result} />
+                  ))}
+                </div>
+              </section>
+            )}
+
+            {/* Section Poèmes */}
+            {poems.length > 0 && (
+              <section>
+                <h2 className="text-2xl font-semibold text-gray-800 dark:text-gray-200 mb-4">Poèmes</h2>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                  {poems.map(result => (
+                    <SearchResultCard key={result.id} result={result} />
+                  ))}
+                </div>
+              </section>
+            )}
           </div>
         ) : (
           <p className="text-gray-500 dark:text-gray-400">

@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import Link from 'next/link';
 import { useTheme } from './ThemeProvider';
 import { createClient } from '@/lib/supabase/client';
@@ -21,6 +21,19 @@ const SearchIcon = ({ className }: { className: string }) => (
     <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
 );
 
+function useDebounce(value: string, delay: number) {
+  const [debouncedValue, setDebouncedValue] = useState(value);
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      setDebouncedValue(value);
+    }, delay);
+    return () => {
+      clearTimeout(handler);
+    };
+  }, [value, delay]);
+  return debouncedValue;
+}
+
 export default function Header() {
   const { theme, toggleTheme } = useTheme();
   const [user, setUser] = useState<User | null>(null);
@@ -28,39 +41,47 @@ export default function Header() {
   const supabase = createClient();
   const router = useRouter();
 
+  const [searchQuery, setSearchQuery] = useState('');
+  const [searchResults, setSearchResults] = useState<any[]>([]);
+  const [isSearching, setIsSearching] = useState(false);
+  const debouncedSearchQuery = useDebounce(searchQuery, 300);
+
   useEffect(() => {
     const fetchUser = async () => {
       const { data: { session } } = await supabase.auth.getSession();
       setUser(session?.user ?? null);
       if (session?.user) {
-        const { data: profile } = await supabase
-          .from('profiles')
-          .select('username')
-          .eq('id', session.user.id)
-          .single();
+        const { data: profile } = await supabase.from('profiles').select('username').eq('id', session.user.id).single();
         setUsername(profile?.username || null);
       }
     };
-
     fetchUser();
-
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       setUser(session?.user ?? null);
-      if (session?.user) {
-        fetchUser();
-      } else {
-        setUsername(null);
-      }
+      if (session?.user) fetchUser();
+      else setUsername(null);
     });
-
     return () => subscription.unsubscribe();
   }, [supabase]);
 
-  const handleSearch = (event: React.FormEvent<HTMLFormElement>) => {
+  useEffect(() => {
+    const performSearch = async () => {
+      if (debouncedSearchQuery.length > 1) {
+        setIsSearching(true);
+        const { data } = await supabase.rpc('search_poems', { search_term: debouncedSearchQuery }).limit(5);
+        setSearchResults(data || []);
+        setIsSearching(false);
+      } else {
+        setSearchResults([]);
+      }
+    };
+    performSearch();
+  }, [debouncedSearchQuery, supabase]);
+
+  const handleSearchSubmit = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    const formData = new FormData(event.currentTarget);
-    const searchQuery = formData.get('search') as string;
     router.push(`/recherche?q=${encodeURIComponent(searchQuery)}`);
+    setSearchQuery('');
   };
 
   return (
@@ -70,21 +91,44 @@ export default function Header() {
           <Link href="/" className="text-2xl font-bold text-gray-900 dark:text-white tracking-tight">Ode</Link>
           
           <div className="flex-1 flex justify-center px-2 lg:ml-6 lg:justify-center">
-            <form onSubmit={handleSearch} className="max-w-md w-full lg:max-w-lg">
-              <label htmlFor="search" className="sr-only">Rechercher</label>
-              <div className="relative text-gray-400 focus-within:text-gray-600">
-                <div className="pointer-events-none absolute inset-y-0 left-0 pl-3 flex items-center">
-                  <SearchIcon className="h-5 w-5" />
+            <div className="relative max-w-md w-full lg:max-w-lg">
+              <form onSubmit={handleSearchSubmit}>
+                <label htmlFor="search" className="sr-only">Rechercher</label>
+                <div className="relative text-gray-400 focus-within:text-gray-600">
+                  <div className="pointer-events-none absolute inset-y-0 left-0 pl-3 flex items-center">
+                    <SearchIcon className="h-5 w-5" />
+                  </div>
+                  <input
+                    id="search"
+                    name="search"
+                    className="block w-full bg-white dark:bg-gray-800 py-2 pl-10 pr-3 border border-gray-300 dark:border-gray-700 rounded-md leading-5 text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:placeholder-gray-400 focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                    placeholder="Rechercher un poème, un auteur..."
+                    type="search"
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    autoComplete="off"
+                  />
                 </div>
-                <input
-                  id="search"
-                  name="search"
-                  className="block w-full bg-white dark:bg-gray-800 py-2 pl-10 pr-3 border border-gray-300 dark:border-gray-700 rounded-md leading-5 text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:placeholder-gray-400 focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-                  placeholder="Rechercher un poème, un auteur..."
-                  type="search"
-                />
-              </div>
-            </form>
+              </form>
+              {searchResults.length > 0 && (
+                <div className="absolute mt-1 w-full bg-white dark:bg-gray-800 rounded-md shadow-lg border border-gray-200 dark:border-gray-700 z-10">
+                  <ul>
+                    {searchResults.map((result) => (
+                      <li key={`${result.type}-${result.id}`}>
+                        <Link 
+                          href={result.type === 'author' ? `/profil/${result.title}` : `/poemes/${result.id}`}
+                          className="block p-3 hover:bg-gray-100 dark:hover:bg-gray-700"
+                          onClick={() => setSearchQuery('')}
+                        >
+                          <p className="font-semibold text-gray-900 dark:text-white">{result.title}</p>
+                          <p className="text-sm text-gray-500 dark:text-gray-400">{result.type === 'author' ? 'Artiste' : `par ${result.author_name}`}</p>
+                        </Link>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+            </div>
           </div>
 
           <div className="flex items-center space-x-4">
