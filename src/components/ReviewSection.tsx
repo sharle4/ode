@@ -41,7 +41,7 @@ export default function ReviewSection({ reviews }: ReviewSectionProps) {
             <div key={review.id} className="flex space-x-4">
               <Link href={`/profil/${review.profiles?.username}`} className="flex-shrink-0">
                 {review.profiles?.avatar_url ? (
-                  <img src={review.profiles.avatar_url} alt={review.profiles.username || ''} className="w-12 h-12 rounded-full" />
+                  <img src={review.profiles.avatar_url} alt={review.profiles.username || ''} className="w-12 h-12 rounded-full object-cover" />
                 ) : (
                   <div className="w-12 h-12 rounded-full bg-gray-200 dark:bg-gray-700 flex items-center justify-center">
                     <UserIcon className="w-6 h-6 text-gray-500" />

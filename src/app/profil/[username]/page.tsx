@@ -3,6 +3,7 @@ import { notFound } from 'next/navigation'
 import Header from '@/components/Header'
 import ReviewCard from '@/components/ReviewCard'
 import ListCard from '@/components/ListCard'
+import AvatarUploader from '@/components/AvatarUploader'
 import { UserIcon } from '@heroicons/react/24/solid'
 
 export const dynamic = 'force-dynamic'
@@ -42,9 +43,17 @@ export default async function ProfilePage({ params }: { params: { username: stri
       <Header />
       <main className="container mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="flex items-center space-x-4 mb-12">
-          <div className="w-20 h-20 rounded-full bg-gray-200 dark:bg-gray-700 flex items-center justify-center">
-            <UserIcon className="w-12 h-12 text-gray-500" />
-          </div>
+          {isOwnProfile && loggedInUser ? (
+            <AvatarUploader user={loggedInUser} initialAvatarUrl={profile.avatar_url} />
+          ) : (
+            profile.avatar_url ? (
+              <img src={profile.avatar_url} alt={profile.username || ''} className="w-20 h-20 rounded-full object-cover" />
+            ) : (
+              <div className="w-20 h-20 rounded-full bg-gray-200 dark:bg-gray-700 flex items-center justify-center">
+                <UserIcon className="w-12 h-12 text-gray-500" />
+              </div>
+            )
+          )}
           <div>
             <h1 className="text-3xl font-bold text-gray-900 dark:text-white">{profile.username}</h1>
           </div>
