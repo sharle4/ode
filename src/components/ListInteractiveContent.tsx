@@ -37,6 +37,10 @@ export default function ListInteractiveContent({ initialList, initialPoems, init
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false)
   const router = useRouter()
 
+  useEffect(() => {
+    setList(initialList)
+  }, [initialList])
+
   const isOwner = initialUser?.id === list.user_id
   const isModalOpen = isEditModalOpen || isDeleteModalOpen
 
