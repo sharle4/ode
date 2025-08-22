@@ -1,156 +1,41 @@
-'use client'
-
-import { createClient } from '@/lib/supabase/client'
+import { createClient } from '@/lib/supabase/server'
+import { notFound } from 'next/navigation'
 import Header from '@/components/Header'
-import Link from 'next/link'
-import PoemListCard from '@/components/PoemListCard'
-import EditListModal from '@/components/EditListModal'
-import ConfirmationModal from '@/components/ConfirmationModal'
-import { deleteList } from '@/app/actions'
-import { GlobeAltIcon, LockClosedIcon, PencilIcon, TrashIcon } from '@heroicons/react/24/solid'
-import { useEffect, useState } from 'react'
-import type { User } from '@supabase/supabase-js'
-import { useRouter, useParams } from 'next/navigation'
+import ListInteractiveContent from '@/components/ListInteractiveContent'
 
-interface ListData {
-  id: number;
-  name: string;
-  description: string | null;
-  is_public: boolean;
-  user_id: string;
-  profiles: { username: string | null; } | null;
-}
-interface PoemItem {
-  poems: { id: number; title: string | null; content: string | null; authors: { name: string | null; } | null; } | null;
-}
+export const dynamic = 'force-dynamic'
 
-export default function ListPage() {
-  const params = useParams();
-  const id = params.id as string;
-  
-  const [list, setList] = useState<ListData | null>(null)
-  const [poems, setPoems] = useState<any[]>([])
-  const [user, setUser] = useState<User | null>(null)
-  const [isLoading, setIsLoading] = useState(true)
-  const [isEditModalOpen, setIsEditModalOpen] = useState(false)
-  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false) // Nouvel état
+export default async function ListPage({ params }: { params: { id: string } }) {
   const supabase = createClient()
-  const router = useRouter()
+  const { id } = params
 
-  useEffect(() => {
-    const fetchData = async () => {
-      setIsLoading(true)
-      const { data: { user } } = await supabase.auth.getUser()
-      setUser(user)
+  const { data: { user } } = await supabase.auth.getUser()
+  const { data: list } = await supabase
+    .from('lists')
+    .select('*, profiles(username)')
+    .eq('id', id)
+    .single()
 
-      const { data: listData } = await supabase
-        .from('lists')
-        .select('*, profiles(username)')
-        .eq('id', id)
-        .single()
-      
-      if (!listData || (!listData.is_public && user?.id !== listData.user_id)) {
-        setList(null)
-        setIsLoading(false)
-        return
-      }
-      setList(listData)
-
-      const { data: listItems } = await supabase
-        .from('list_items')
-        .select('poems(*, authors(name))')
-        .eq('list_id', id)
-        .order('added_at', { ascending: true })
-      
-      setPoems(listItems?.map(item => item.poems).filter(Boolean) || [])
-      setIsLoading(false)
-    }
-    if (id) {
-      fetchData()
-    }
-  }, [id, supabase, router]);
-
-  const isModalOpen = isEditModalOpen || isDeleteModalOpen;
-  useEffect(() => {
-    if (isModalOpen) document.body.style.overflow = 'hidden';
-    else document.body.style.overflow = 'auto';
-    return () => { document.body.style.overflow = 'auto'; };
-  }, [isModalOpen]);
-
-  const handleDelete = async () => {
-    if (list) {
-      await deleteList(list.id)
-    }
+  if (!list || (!list.is_public && user?.id !== list.user_id)) {
+    notFound()
   }
 
-  const handleCloseEditModal = () => {
-    setIsEditModalOpen(false)
-    router.refresh()
-  }
-
-  if (isLoading) return <div>Chargement...</div>
-  if (!list) return <div>Liste non trouvée ou accès refusé.</div>
-
-  const isOwner = user?.id === list.user_id
+  const { data: listItems } = await supabase
+    .from('list_items')
+    .select('poems(*, authors(name))')
+    .eq('list_id', id)
+    .order('added_at', { ascending: true })
+  
+  const poems = listItems?.map(item => item.poems).filter(Boolean) || []
 
   return (
     <>
       <Header />
-      <div className={`transition-filter duration-300 ${isModalOpen ? 'blur-sm' : ''}`}>
-        <main className="container mx-auto px-4 sm:px-6 lg:px-8 py-8">
-          <div className="mb-8">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center space-x-3">
-                {list.is_public ? <GlobeAltIcon className="w-6 h-6 text-gray-400" /> : <LockClosedIcon className="w-6 h-6 text-gray-400" />}
-                <h1 className="text-3xl font-bold text-gray-900 dark:text-white">{list.name}</h1>
-              </div>
-              {isOwner && (
-                <div className="flex items-center space-x-2">
-                  <button onClick={() => setIsEditModalOpen(true)} className="p-2 text-gray-500 hover:text-indigo-600 dark:hover:text-indigo-400">
-                    <PencilIcon className="w-5 h-5" />
-                  </button>
-                  <button onClick={() => setIsDeleteModalOpen(true)} className="p-2 text-gray-500 hover:text-red-600 dark:hover:text-red-500">
-                    <TrashIcon className="w-5 h-5" />
-                  </button>
-                </div>
-              )}
-            </div>
-            <p className="mt-2 text-gray-600 dark:text-gray-400">
-              Une liste par{' '}
-              <Link href={`/profil/${list.profiles?.username}`} className="font-semibold hover:underline">
-                {list.profiles?.username}
-              </Link>
-            </p>
-            {list.description && <p className="mt-4 text-gray-500 dark:text-gray-300 max-w-2xl">{list.description}</p>}
-          </div>
-
-          {poems.length > 0 ? (
-            <div className="space-y-6">
-              {poems.map((poem, index) => (
-                <PoemListCard key={poem!.id} poem={poem as any} index={index} />
-              ))}
-            </div>
-          ) : (
-            <p className="text-gray-500 dark:text-gray-400">Cette liste est vide pour le moment.</p>
-          )}
-        </main>
-      </div>
-
-      {isEditModalOpen && (
-        <div className="fixed inset-0 z-50 flex justify-center items-center p-4">
-          <EditListModal list={list} onClose={handleCloseEditModal} />
-        </div>
-      )}
-      {isDeleteModalOpen && (
-        <div className="fixed inset-0 z-50 flex justify-center items-center p-4">
-          <ConfirmationModal
-            title="Supprimer la liste"
-            message={`Êtes-vous sûr de vouloir supprimer la liste "${list.name}" ? Cette action est irréversible.`}
-            onConfirm={handleDelete}
-            onClose={() => setIsDeleteModalOpen(false)}
-          />
-        </div>
-      )}
+      <ListInteractiveContent
+        initialList={list}
+        initialPoems={poems as any}
+        initialUser={user}
+      />
     </>
   )
 }
