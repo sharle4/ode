@@ -1,67 +1,95 @@
-import { createClient } from '@/lib/supabase/server'
-import { notFound } from 'next/navigation'
+'use client'
+
+import { createClient } from '@/lib/supabase/client'
 import Header from '@/components/Header'
 import Link from 'next/link'
 import PoemListCard from '@/components/PoemListCard'
-import { GlobeAltIcon, LockClosedIcon } from '@heroicons/react/24/solid'
+import EditListModal from '@/components/EditListModal'
+import { deleteList } from '@/app/actions'
+import { GlobeAltIcon, LockClosedIcon, PencilIcon, TrashIcon } from '@heroicons/react/24/solid'
+import { useEffect, useState } from 'react'
+import type { User } from '@supabase/supabase-js'
 
-export const dynamic = 'force-dynamic'
+interface ListData {
+  id: number;
+  name: string;
+  description: string | null;
+  is_public: boolean;
+  user_id: string;
+  profiles: { username: string | null; } | null;
+}
+interface PoemItem {
+  poems: { id: number; title: string | null; content: string | null; authors: { name: string | null; } | null; } | null;
+}
 
-export default async function ListPage({ params }: { params: { id: string } }) {
+export default function ListPage({ params }: { params: { id: string } }) {
+  const [list, setList] = useState<ListData | null>(null)
+  const [poems, setPoems] = useState<any[]>([])
+  const [user, setUser] = useState<User | null>(null)
+  const [isLoading, setIsLoading] = useState(true)
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false)
   const supabase = createClient()
-  const { id } = params
 
-  const { data: list } = await supabase
-    .from('lists')
-    .select(`
-      name,
-      description,
-      is_public,
-      user_id,
-      profiles ( username )
-    `)
-    .eq('id', id)
-    .single()
+  useEffect(() => {
+    const fetchData = async () => {
+      const { data: { user } } = await supabase.auth.getUser()
+      setUser(user)
 
-  if (!list) {
-    notFound()
+      const { data: listData } = await supabase
+        .from('lists')
+        .select('*, profiles(username)')
+        .eq('id', params.id)
+        .single()
+      
+      if (!listData || (!listData.is_public && user?.id !== listData.user_id)) {
+        setIsLoading(false)
+        return
+      }
+      setList(listData)
+
+      const { data: listItems } = await supabase
+        .from('list_items')
+        .select('poems(*, authors(name))')
+        .eq('list_id', params.id)
+        .order('added_at', { ascending: true })
+      
+      setPoems(listItems?.map(item => item.poems).filter(Boolean) || [])
+      setIsLoading(false)
+    }
+    fetchData()
+  }, [params.id, supabase])
+
+  const handleDelete = async () => {
+    if (list && window.confirm(`Êtes-vous sûr de vouloir supprimer la liste "${list.name}" ?`)) {
+      await deleteList(list.id)
+    }
   }
 
-  const { data: { user } } = await supabase.auth.getUser()
+  if (isLoading) return <div>Chargement...</div>
+  if (!list) return <div>Liste non trouvée ou accès refusé.</div>
+
   const isOwner = user?.id === list.user_id
-  
-  if (!list.is_public && !isOwner) {
-    notFound()
-  }
-
-  const { data: listItems } = await supabase
-    .from('list_items')
-    .select(`
-      poems (
-        id,
-        title,
-        content,
-        authors ( name )
-      )
-    `)
-    .eq('list_id', id)
-    .order('added_at', { ascending: true })
-
-  const poems = listItems?.map(item => item.poems).filter(Boolean) || []
 
   return (
     <>
       <Header />
       <main className="container mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* En-tête de la liste */}
         <div className="mb-8">
-          <div className="flex items-center space-x-3">
-            {list.is_public ? (
-              <GlobeAltIcon className="w-6 h-6 text-gray-400" />
-            ) : (
-              <LockClosedIcon className="w-6 h-6 text-gray-400" />
+          <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-3">
+              {list.is_public ? <GlobeAltIcon className="w-6 h-6 text-gray-400" /> : <LockClosedIcon className="w-6 h-6 text-gray-400" />}
+              <h1 className="text-3xl font-bold text-gray-900 dark:text-white">{list.name}</h1>
+            </div>
+            {isOwner && (
+              <div className="flex items-center space-x-2">
+                <button onClick={() => setIsEditModalOpen(true)} className="p-2 text-gray-500 hover:text-indigo-600 dark:hover:text-indigo-400">
+                  <PencilIcon className="w-5 h-5" />
+                </button>
+                <button onClick={handleDelete} className="p-2 text-gray-500 hover:text-red-600 dark:hover:text-red-500">
+                  <TrashIcon className="w-5 h-5" />
+                </button>
+              </div>
             )}
-            <h1 className="text-3xl font-bold text-gray-900 dark:text-white">{list.name}</h1>
           </div>
           <p className="mt-2 text-gray-600 dark:text-gray-400">
             Une liste par{' '}
@@ -69,12 +97,9 @@ export default async function ListPage({ params }: { params: { id: string } }) {
               {list.profiles?.username}
             </Link>
           </p>
-          {list.description && (
-            <p className="mt-4 text-gray-500 dark:text-gray-300 max-w-2xl">{list.description}</p>
-          )}
+          {list.description && <p className="mt-4 text-gray-500 dark:text-gray-300 max-w-2xl">{list.description}</p>}
         </div>
 
-        {/* Contenu de la liste */}
         {poems.length > 0 ? (
           <div className="space-y-6">
             {poems.map((poem, index) => (
@@ -85,6 +110,8 @@ export default async function ListPage({ params }: { params: { id: string } }) {
           <p className="text-gray-500 dark:text-gray-400">Cette liste est vide pour le moment.</p>
         )}
       </main>
+
+      {isEditModalOpen && <EditListModal list={list} onClose={() => setIsEditModalOpen(false)} />}
     </>
   )
 }
