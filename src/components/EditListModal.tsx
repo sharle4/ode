@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { updateListDetails } from '@/app/actions'
-import { XMarkIcon, CheckCircleIcon, GlobeAltIcon, LockClosedIcon, BarsArrowDownIcon } from '@heroicons/react/24/solid'
+import { XMarkIcon, CheckCircleIcon, GlobeAltIcon, LockClosedIcon, ListBulletIcon, QueueListIcon } from '@heroicons/react/24/solid'
 
 interface List {
   id: number
@@ -62,7 +62,7 @@ export default function EditListModal({ list, onClose }: EditListModalProps) {
           <h3 className="text-lg font-bold mb-4">Modifier la liste</h3>
           <form onSubmit={handleSubmit}>
             <input type="hidden" name="listId" value={list.id} />
-            <div className="space-y-4">
+            <div className="space-y-6">
               <div>
                 <label htmlFor="name" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Titre</label>
                 <input
@@ -84,22 +84,22 @@ export default function EditListModal({ list, onClose }: EditListModalProps) {
                   className="mt-1 block w-full p-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-900 focus:outline-none focus:ring-2 focus:ring-indigo-500"
                 />
               </div>
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Visibilité</label>
-                  <button type="button" onClick={() => setIsPublic(!isPublic)} className={`relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 ${isPublic ? 'bg-indigo-600' : 'bg-gray-200 dark:bg-gray-700'}`}>
-                    <span className={`pointer-events-none relative inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${isPublic ? 'translate-x-5' : 'translate-x-0'}`}>
-                      <span className={`absolute inset-0 flex h-full w-full items-center justify-center transition-opacity ${isPublic ? 'opacity-0' : 'opacity-100'}`}><LockClosedIcon className="h-3 w-3 text-gray-400" /></span>
-                      <span className={`absolute inset-0 flex h-full w-full items-center justify-center transition-opacity ${isPublic ? 'opacity-100' : 'opacity-0'}`}><GlobeAltIcon className="h-3 w-3 text-indigo-600" /></span>
+              <div className="flex items-center justify-around pt-2">
+                <div className="flex flex-col items-center space-y-2">
+                  <label className="text-sm font-medium text-gray-700 dark:text-gray-300">Visibilité</label>
+                  <button type="button" onClick={() => setIsPublic(!isPublic)} className={`relative inline-flex h-8 w-14 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 ${isPublic ? 'bg-indigo-600' : 'bg-gray-200 dark:bg-gray-700'}`}>
+                    <span className={`pointer-events-none relative inline-block h-7 w-7 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${isPublic ? 'translate-x-6' : 'translate-x-0'}`}>
+                      <span className={`absolute inset-0 flex h-full w-full items-center justify-center transition-opacity ${isPublic ? 'opacity-0' : 'opacity-100'}`}><LockClosedIcon className="h-4 w-4 text-gray-400" /></span>
+                      <span className={`absolute inset-0 flex h-full w-full items-center justify-center transition-opacity ${isPublic ? 'opacity-100' : 'opacity-0'}`}><GlobeAltIcon className="h-4 w-4 text-indigo-600" /></span>
                     </span>
                   </button>
                 </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Classement</label>
-                  <button type="button" onClick={() => setIsRanked(!isRanked)} className={`relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 ${isRanked ? 'bg-indigo-600' : 'bg-gray-200 dark:bg-gray-700'}`}>
-                    <span className={`pointer-events-none relative inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${isRanked ? 'translate-x-5' : 'translate-x-0'}`}>
-                      <span className={`absolute inset-0 flex h-full w-full items-center justify-center transition-opacity ${isRanked ? 'opacity-0' : 'opacity-100'}`}><span className="text-gray-400 text-xs">A-Z</span></span>
-                      <span className={`absolute inset-0 flex h-full w-full items-center justify-center transition-opacity ${isRanked ? 'opacity-100' : 'opacity-0'}`}><BarsArrowDownIcon className="h-3 w-3 text-indigo-600" /></span>
+                <div className="flex flex-col items-center space-y-2">
+                  <label className="text-sm font-medium text-gray-700 dark:text-gray-300">Liste classée</label>
+                  <button type="button" onClick={() => setIsRanked(!isRanked)} className={`relative inline-flex h-8 w-14 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 ${isRanked ? 'bg-indigo-600' : 'bg-gray-200 dark:bg-gray-700'}`}>
+                    <span className={`pointer-events-none relative inline-block h-7 w-7 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${isRanked ? 'translate-x-6' : 'translate-x-0'}`}>
+                      <span className={`absolute inset-0 flex h-full w-full items-center justify-center transition-opacity ${isRanked ? 'opacity-0' : 'opacity-100'}`}><ListBulletIcon className="h-4 w-4 text-gray-400" /></span>
+                      <span className={`absolute inset-0 flex h-full w-full items-center justify-center transition-opacity ${isRanked ? 'opacity-100' : 'opacity-0'}`}><QueueListIcon className="h-4 w-4 text-indigo-600" /></span>
                     </span>
                   </button>
                 </div>

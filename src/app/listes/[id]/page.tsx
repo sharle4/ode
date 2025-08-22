@@ -20,11 +20,13 @@ export default async function ListPage({ params }: { params: { id: string } }) {
     notFound()
   }
 
+  const orderBy = list.is_ranked ? 'position' : 'added_at'
+
   const { data: listItems } = await supabase
     .from('list_items')
     .select('poems(*, authors(name))')
     .eq('list_id', id)
-    .order('added_at', { ascending: true })
+    .order(orderBy, { ascending: true, nulls: 'last' })
   
   const poems = listItems?.map(item => item.poems).filter(Boolean) || []
 

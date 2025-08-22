@@ -4,17 +4,20 @@ import Link from 'next/link'
 import PoemListCard from '@/components/PoemListCard'
 import EditListModal from '@/components/EditListModal'
 import ConfirmationModal from '@/components/ConfirmationModal'
-import { deleteList } from '@/app/actions'
+import { deleteList, reorderListItems } from '@/app/actions'
 import { GlobeAltIcon, LockClosedIcon, PencilIcon, TrashIcon } from '@heroicons/react/24/solid'
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useTransition } from 'react'
 import type { User } from '@supabase/supabase-js'
 import { useRouter } from 'next/navigation'
+import { DndContext, closestCenter, type DragEndEvent } from '@dnd-kit/core'
+import { SortableContext, verticalListSortingStrategy, arrayMove } from '@dnd-kit/sortable'
 
 interface ListData {
   id: number;
   name: string;
   description: string | null;
   is_public: boolean;
+  is_ranked: boolean;
   user_id: string;
   profiles: { username: string | null; } | null;
 }
@@ -33,13 +36,16 @@ interface ListInteractiveContentProps {
 
 export default function ListInteractiveContent({ initialList, initialPoems, initialUser }: ListInteractiveContentProps) {
   const [list, setList] = useState(initialList)
+  const [poems, setPoems] = useState(initialPoems)
   const [isEditModalOpen, setIsEditModalOpen] = useState(false)
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false)
   const router = useRouter()
+  const [isPending, startTransition] = useTransition()
 
   useEffect(() => {
     setList(initialList)
-  }, [initialList])
+    setPoems(initialPoems)
+  }, [initialList, initialPoems])
 
   const isOwner = initialUser?.id === list.user_id
   const isModalOpen = isEditModalOpen || isDeleteModalOpen
@@ -57,6 +63,22 @@ export default function ListInteractiveContent({ initialList, initialPoems, init
   const handleCloseEditModal = () => {
     setIsEditModalOpen(false)
     router.refresh()
+  }
+
+  const handleDragEnd = (event: DragEndEvent) => {
+    const { active, over } = event
+    if (over && active.id !== over.id) {
+      const oldIndex = poems.findIndex((p) => p.id === active.id)
+      const newIndex = poems.findIndex((p) => p.id === over.id)
+      const newOrder = arrayMove(poems, oldIndex, newIndex)
+      
+      setPoems(newOrder)
+
+      startTransition(() => {
+        const poemIds = newOrder.map(p => p.id)
+        reorderListItems(list.id, poemIds)
+      })
+    }
   }
 
   return (
@@ -89,13 +111,17 @@ export default function ListInteractiveContent({ initialList, initialPoems, init
             {list.description && <p className="mt-4 text-gray-500 dark:text-gray-300 max-w-2xl">{list.description}</p>}
           </div>
 
-          {initialPoems.length > 0 ? (
-            <div className="space-y-6">
-              {initialPoems.map((poem, index) => (
-                <PoemListCard key={poem!.id} poem={poem as any} index={index} />
-              ))}
-            </div>
-          ) : (
+          <DndContext collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
+            <SortableContext items={poems} strategy={verticalListSortingStrategy}>
+              <div className="space-y-6">
+                {poems.map((poem, index) => (
+                  <PoemListCard key={poem.id} poem={poem} index={index} isRanked={list.is_ranked} isOwner={isOwner} />
+                ))}
+              </div>
+            </SortableContext>
+          </DndContext>
+
+          {poems.length === 0 && (
             <p className="text-gray-500 dark:text-gray-400">Cette liste est vide pour le moment.</p>
           )}
         </main>
