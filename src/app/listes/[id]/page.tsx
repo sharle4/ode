@@ -5,6 +5,7 @@ import Header from '@/components/Header'
 import Link from 'next/link'
 import PoemListCard from '@/components/PoemListCard'
 import EditListModal from '@/components/EditListModal'
+import ConfirmationModal from '@/components/ConfirmationModal'
 import { deleteList } from '@/app/actions'
 import { GlobeAltIcon, LockClosedIcon, PencilIcon, TrashIcon } from '@heroicons/react/24/solid'
 import { useEffect, useState } from 'react'
@@ -32,6 +33,7 @@ export default function ListPage() {
   const [user, setUser] = useState<User | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [isEditModalOpen, setIsEditModalOpen] = useState(false)
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false) // Nouvel état
   const supabase = createClient()
   const router = useRouter()
 
@@ -68,19 +70,20 @@ export default function ListPage() {
     }
   }, [id, supabase, router]);
 
+  const isModalOpen = isEditModalOpen || isDeleteModalOpen;
   useEffect(() => {
-    if (isEditModalOpen) document.body.style.overflow = 'hidden';
+    if (isModalOpen) document.body.style.overflow = 'hidden';
     else document.body.style.overflow = 'auto';
     return () => { document.body.style.overflow = 'auto'; };
-  }, [isEditModalOpen]);
+  }, [isModalOpen]);
 
   const handleDelete = async () => {
-    if (list && window.confirm(`Êtes-vous sûr de vouloir supprimer la liste "${list.name}" ?`)) {
+    if (list) {
       await deleteList(list.id)
     }
   }
 
-  const handleCloseModal = () => {
+  const handleCloseEditModal = () => {
     setIsEditModalOpen(false)
     router.refresh()
   }
@@ -93,7 +96,7 @@ export default function ListPage() {
   return (
     <>
       <Header />
-      <div className={`transition-filter duration-300 ${isEditModalOpen ? 'blur-sm' : ''}`}>
+      <div className={`transition-filter duration-300 ${isModalOpen ? 'blur-sm' : ''}`}>
         <main className="container mx-auto px-4 sm:px-6 lg:px-8 py-8">
           <div className="mb-8">
             <div className="flex items-center justify-between">
@@ -106,7 +109,7 @@ export default function ListPage() {
                   <button onClick={() => setIsEditModalOpen(true)} className="p-2 text-gray-500 hover:text-indigo-600 dark:hover:text-indigo-400">
                     <PencilIcon className="w-5 h-5" />
                   </button>
-                  <button onClick={handleDelete} className="p-2 text-gray-500 hover:text-red-600 dark:hover:text-red-500">
+                  <button onClick={() => setIsDeleteModalOpen(true)} className="p-2 text-gray-500 hover:text-red-600 dark:hover:text-red-500">
                     <TrashIcon className="w-5 h-5" />
                   </button>
                 </div>
@@ -134,11 +137,18 @@ export default function ListPage() {
       </div>
 
       {isEditModalOpen && (
-        <div 
-          className="fixed inset-0 bg-black bg-opacity-75 z-50 flex justify-center items-center p-4"
-          onClick={handleCloseModal}
-        >
-          <EditListModal list={list} onClose={handleCloseModal} />
+        <div className="fixed inset-0 z-50 flex justify-center items-center p-4">
+          <EditListModal list={list} onClose={handleCloseEditModal} />
+        </div>
+      )}
+      {isDeleteModalOpen && (
+        <div className="fixed inset-0 z-50 flex justify-center items-center p-4">
+          <ConfirmationModal
+            title="Supprimer la liste"
+            message={`Êtes-vous sûr de vouloir supprimer la liste "${list.name}" ? Cette action est irréversible.`}
+            onConfirm={handleDelete}
+            onClose={() => setIsDeleteModalOpen(false)}
+          />
         </div>
       )}
     </>

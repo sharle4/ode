@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { updateListDetails } from '@/app/actions'
-import { XMarkIcon, CheckCircleIcon, GlobeAltIcon } from '@heroicons/react/24/solid'
+import { XMarkIcon, CheckCircleIcon, GlobeAltIcon, LockClosedIcon } from '@heroicons/react/24/solid'
 
 interface List {
   id: number
@@ -20,6 +20,7 @@ export default function EditListModal({ list, onClose }: EditListModalProps) {
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [confirmation, setConfirmation] = useState<string | null>(null)
+  const [isPublic, setIsPublic] = useState(list.is_public)
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault()
@@ -27,6 +28,8 @@ export default function EditListModal({ list, onClose }: EditListModalProps) {
     setError(null)
     
     const formData = new FormData(event.currentTarget)
+    formData.set('isPublic', isPublic ? 'on' : 'off')
+    
     const result = await updateListDetails(formData)
 
     if (result.error) {
@@ -79,14 +82,35 @@ export default function EditListModal({ list, onClose }: EditListModalProps) {
                 />
               </div>
               <div>
-                <label htmlFor="isPublic" className="text-sm font-medium text-gray-700 dark:text-gray-300">Visibilité</label>
-                <label className="relative inline-flex items-center cursor-pointer mt-2">
-                  <input type="checkbox" id="isPublic" name="isPublic" defaultChecked={list.is_public} className="sr-only peer" />
-                  <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-indigo-300 dark:peer-focus:ring-indigo-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-indigo-600"></div>
-                  <span className="ml-3 text-sm font-medium text-gray-900 dark:text-gray-300 flex items-center">
-                    <GlobeAltIcon className="w-4 h-4 mr-1" /> Publique
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Visibilité</label>
+                <button
+                  type="button"
+                  onClick={() => setIsPublic(!isPublic)}
+                  className={`relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 ${
+                    isPublic ? 'bg-indigo-600' : 'bg-gray-200 dark:bg-gray-700'
+                  }`}
+                >
+                  <span
+                    className={`pointer-events-none relative inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${
+                      isPublic ? 'translate-x-5' : 'translate-x-0'
+                    }`}
+                  >
+                    <span
+                      className={`absolute inset-0 flex h-full w-full items-center justify-center transition-opacity ${
+                        isPublic ? 'opacity-0 duration-100 ease-out' : 'opacity-100 duration-200 ease-in'
+                      }`}
+                    >
+                      <LockClosedIcon className="h-3 w-3 text-gray-400" />
+                    </span>
+                    <span
+                      className={`absolute inset-0 flex h-full w-full items-center justify-center transition-opacity ${
+                        isPublic ? 'opacity-100 duration-200 ease-in' : 'opacity-0 duration-100 ease-out'
+                      }`}
+                    >
+                      <GlobeAltIcon className="h-3 w-3 text-indigo-600" />
+                    </span>
                   </span>
-                </label>
+                </button>
               </div>
             </div>
             {error && <p className="text-sm text-red-500 mt-4">{error}</p>}
