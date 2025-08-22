@@ -7,8 +7,9 @@ import PoemListCard from '@/components/PoemListCard'
 import EditListModal from '@/components/EditListModal'
 import { deleteList } from '@/app/actions'
 import { GlobeAltIcon, LockClosedIcon, PencilIcon, TrashIcon } from '@heroicons/react/24/solid'
-import { useEffect, useState } from 'react'
+import { useEffect, useState, use } from 'react'
 import type { User } from '@supabase/supabase-js'
+import { useRouter } from 'next/navigation'
 
 interface ListData {
   id: number;
@@ -23,25 +24,30 @@ interface PoemItem {
 }
 
 export default function ListPage({ params }: { params: { id: string } }) {
+  const { id } = use(Promise.resolve(params));
+  
   const [list, setList] = useState<ListData | null>(null)
   const [poems, setPoems] = useState<any[]>([])
   const [user, setUser] = useState<User | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [isEditModalOpen, setIsEditModalOpen] = useState(false)
   const supabase = createClient()
+  const router = useRouter()
 
   useEffect(() => {
     const fetchData = async () => {
+      setIsLoading(true)
       const { data: { user } } = await supabase.auth.getUser()
       setUser(user)
 
       const { data: listData } = await supabase
         .from('lists')
         .select('*, profiles(username)')
-        .eq('id', params.id)
+        .eq('id', id)
         .single()
       
       if (!listData || (!listData.is_public && user?.id !== listData.user_id)) {
+        setList(null)
         setIsLoading(false)
         return
       }
@@ -50,19 +56,30 @@ export default function ListPage({ params }: { params: { id: string } }) {
       const { data: listItems } = await supabase
         .from('list_items')
         .select('poems(*, authors(name))')
-        .eq('list_id', params.id)
+        .eq('list_id', id)
         .order('added_at', { ascending: true })
       
       setPoems(listItems?.map(item => item.poems).filter(Boolean) || [])
       setIsLoading(false)
     }
     fetchData()
-  }, [params.id, supabase])
+  }, [id, supabase, router]);
+
+  useEffect(() => {
+    if (isEditModalOpen) document.body.style.overflow = 'hidden';
+    else document.body.style.overflow = 'auto';
+    return () => { document.body.style.overflow = 'auto'; };
+  }, [isEditModalOpen]);
 
   const handleDelete = async () => {
     if (list && window.confirm(`Êtes-vous sûr de vouloir supprimer la liste "${list.name}" ?`)) {
       await deleteList(list.id)
     }
+  }
+
+  const handleCloseModal = () => {
+    setIsEditModalOpen(false)
+    router.refresh()
   }
 
   if (isLoading) return <div>Chargement...</div>
@@ -73,7 +90,7 @@ export default function ListPage({ params }: { params: { id: string } }) {
   return (
     <>
       <Header />
-      <main className="container mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <main className={`container mx-auto px-4 sm:px-6 lg:px-8 py-8 transition-filter duration-300 ${isEditModalOpen ? 'blur-sm' : ''}`}>
         <div className="mb-8">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-3">
@@ -111,7 +128,7 @@ export default function ListPage({ params }: { params: { id: string } }) {
         )}
       </main>
 
-      {isEditModalOpen && <EditListModal list={list} onClose={() => setIsEditModalOpen(false)} />}
+      {isEditModalOpen && <EditListModal list={list} onClose={handleCloseModal} />}
     </>
   )
 }
