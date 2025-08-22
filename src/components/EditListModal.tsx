@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { updateListDetails } from '@/app/actions'
-import { XMarkIcon, CheckCircleIcon, GlobeAltIcon, LockClosedIcon, ListBulletIcon, QueueListIcon } from '@heroicons/react/24/solid'
+import { XMarkIcon, CheckCircleIcon, GlobeAltIcon, LockClosedIcon, ListBulletIcon, NumberedListIcon } from '@heroicons/react/24/solid'
 
 interface List {
   id: number
@@ -99,7 +99,7 @@ export default function EditListModal({ list, onClose }: EditListModalProps) {
                   <button type="button" onClick={() => setIsRanked(!isRanked)} className={`relative inline-flex h-8 w-14 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 ${isRanked ? 'bg-indigo-600' : 'bg-gray-200 dark:bg-gray-700'}`}>
                     <span className={`pointer-events-none relative inline-block h-7 w-7 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${isRanked ? 'translate-x-6' : 'translate-x-0'}`}>
                       <span className={`absolute inset-0 flex h-full w-full items-center justify-center transition-opacity ${isRanked ? 'opacity-0' : 'opacity-100'}`}><ListBulletIcon className="h-4 w-4 text-gray-400" /></span>
-                      <span className={`absolute inset-0 flex h-full w-full items-center justify-center transition-opacity ${isRanked ? 'opacity-100' : 'opacity-0'}`}><QueueListIcon className="h-4 w-4 text-indigo-600" /></span>
+                      <span className={`absolute inset-0 flex h-full w-full items-center justify-center transition-opacity ${isRanked ? 'opacity-100' : 'opacity-0'}`}><NumberedListIcon className="h-4 w-4 text-indigo-600" /></span>
                     </span>
                   </button>
                 </div>
