@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { updateListDetails } from '@/app/actions'
-import { XMarkIcon, CheckCircleIcon, GlobeAltIcon, LockClosedIcon } from '@heroicons/react/24/solid'
+import { XMarkIcon, CheckCircleIcon, GlobeAltIcon } from '@heroicons/react/24/solid'
 
 interface List {
   id: number

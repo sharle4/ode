@@ -7,9 +7,9 @@ import PoemListCard from '@/components/PoemListCard'
 import EditListModal from '@/components/EditListModal'
 import { deleteList } from '@/app/actions'
 import { GlobeAltIcon, LockClosedIcon, PencilIcon, TrashIcon } from '@heroicons/react/24/solid'
-import { useEffect, useState, use } from 'react'
+import { useEffect, useState } from 'react'
 import type { User } from '@supabase/supabase-js'
-import { useRouter } from 'next/navigation'
+import { useRouter, useParams } from 'next/navigation'
 
 interface ListData {
   id: number;
@@ -23,8 +23,9 @@ interface PoemItem {
   poems: { id: number; title: string | null; content: string | null; authors: { name: string | null; } | null; } | null;
 }
 
-export default function ListPage({ params }: { params: { id: string } }) {
-  const { id } = use(Promise.resolve(params));
+export default function ListPage() {
+  const params = useParams();
+  const id = params.id as string;
   
   const [list, setList] = useState<ListData | null>(null)
   const [poems, setPoems] = useState<any[]>([])
@@ -62,7 +63,9 @@ export default function ListPage({ params }: { params: { id: string } }) {
       setPoems(listItems?.map(item => item.poems).filter(Boolean) || [])
       setIsLoading(false)
     }
-    fetchData()
+    if (id) {
+      fetchData()
+    }
   }, [id, supabase, router]);
 
   useEffect(() => {
@@ -90,45 +93,54 @@ export default function ListPage({ params }: { params: { id: string } }) {
   return (
     <>
       <Header />
-      <main className={`container mx-auto px-4 sm:px-6 lg:px-8 py-8 transition-filter duration-300 ${isEditModalOpen ? 'blur-sm' : ''}`}>
-        <div className="mb-8">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-3">
-              {list.is_public ? <GlobeAltIcon className="w-6 h-6 text-gray-400" /> : <LockClosedIcon className="w-6 h-6 text-gray-400" />}
-              <h1 className="text-3xl font-bold text-gray-900 dark:text-white">{list.name}</h1>
-            </div>
-            {isOwner && (
-              <div className="flex items-center space-x-2">
-                <button onClick={() => setIsEditModalOpen(true)} className="p-2 text-gray-500 hover:text-indigo-600 dark:hover:text-indigo-400">
-                  <PencilIcon className="w-5 h-5" />
-                </button>
-                <button onClick={handleDelete} className="p-2 text-gray-500 hover:text-red-600 dark:hover:text-red-500">
-                  <TrashIcon className="w-5 h-5" />
-                </button>
+      <div className={`transition-filter duration-300 ${isEditModalOpen ? 'blur-sm' : ''}`}>
+        <main className="container mx-auto px-4 sm:px-6 lg:px-8 py-8">
+          <div className="mb-8">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center space-x-3">
+                {list.is_public ? <GlobeAltIcon className="w-6 h-6 text-gray-400" /> : <LockClosedIcon className="w-6 h-6 text-gray-400" />}
+                <h1 className="text-3xl font-bold text-gray-900 dark:text-white">{list.name}</h1>
               </div>
-            )}
+              {isOwner && (
+                <div className="flex items-center space-x-2">
+                  <button onClick={() => setIsEditModalOpen(true)} className="p-2 text-gray-500 hover:text-indigo-600 dark:hover:text-indigo-400">
+                    <PencilIcon className="w-5 h-5" />
+                  </button>
+                  <button onClick={handleDelete} className="p-2 text-gray-500 hover:text-red-600 dark:hover:text-red-500">
+                    <TrashIcon className="w-5 h-5" />
+                  </button>
+                </div>
+              )}
+            </div>
+            <p className="mt-2 text-gray-600 dark:text-gray-400">
+              Une liste par{' '}
+              <Link href={`/profil/${list.profiles?.username}`} className="font-semibold hover:underline">
+                {list.profiles?.username}
+              </Link>
+            </p>
+            {list.description && <p className="mt-4 text-gray-500 dark:text-gray-300 max-w-2xl">{list.description}</p>}
           </div>
-          <p className="mt-2 text-gray-600 dark:text-gray-400">
-            Une liste par{' '}
-            <Link href={`/profil/${list.profiles?.username}`} className="font-semibold hover:underline">
-              {list.profiles?.username}
-            </Link>
-          </p>
-          {list.description && <p className="mt-4 text-gray-500 dark:text-gray-300 max-w-2xl">{list.description}</p>}
+
+          {poems.length > 0 ? (
+            <div className="space-y-6">
+              {poems.map((poem, index) => (
+                <PoemListCard key={poem!.id} poem={poem as any} index={index} />
+              ))}
+            </div>
+          ) : (
+            <p className="text-gray-500 dark:text-gray-400">Cette liste est vide pour le moment.</p>
+          )}
+        </main>
+      </div>
+
+      {isEditModalOpen && (
+        <div 
+          className="fixed inset-0 bg-black bg-opacity-75 z-50 flex justify-center items-center p-4"
+          onClick={handleCloseModal}
+        >
+          <EditListModal list={list} onClose={handleCloseModal} />
         </div>
-
-        {poems.length > 0 ? (
-          <div className="space-y-6">
-            {poems.map((poem, index) => (
-              <PoemListCard key={poem!.id} poem={poem as any} index={index} />
-            ))}
-          </div>
-        ) : (
-          <p className="text-gray-500 dark:text-gray-400">Cette liste est vide pour le moment.</p>
-        )}
-      </main>
-
-      {isEditModalOpen && <EditListModal list={list} onClose={handleCloseModal} />}
+      )}
     </>
   )
 }
