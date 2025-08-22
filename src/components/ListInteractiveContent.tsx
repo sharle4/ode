@@ -41,6 +41,11 @@ export default function ListInteractiveContent({ initialList, initialPoems, init
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false)
   const router = useRouter()
   const [isPending, startTransition] = useTransition()
+  
+  const [isMounted, setIsMounted] = useState(false)
+  useEffect(() => {
+    setIsMounted(true)
+  }, [])
 
   useEffect(() => {
     setList(initialList)
@@ -111,15 +116,23 @@ export default function ListInteractiveContent({ initialList, initialPoems, init
             {list.description && <p className="mt-4 text-gray-500 dark:text-gray-300 max-w-2xl">{list.description}</p>}
           </div>
 
-          <DndContext collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
-            <SortableContext items={poems} strategy={verticalListSortingStrategy}>
-              <div className="space-y-6">
-                {poems.map((poem, index) => (
-                  <PoemListCard key={poem.id} poem={poem} index={index} isRanked={list.is_ranked} isOwner={isOwner} />
-                ))}
-              </div>
-            </SortableContext>
-          </DndContext>
+          {isMounted ? (
+            <DndContext collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
+              <SortableContext items={poems} strategy={verticalListSortingStrategy}>
+                <div className="space-y-6">
+                  {poems.map((poem, index) => (
+                    <PoemListCard key={poem.id} poem={poem} index={index} isRanked={list.is_ranked} isOwner={isOwner} />
+                  ))}
+                </div>
+              </SortableContext>
+            </DndContext>
+          ) : (
+            <div className="space-y-6">
+              {poems.map((poem, index) => (
+                <PoemListCard key={poem.id} poem={poem} index={index} isRanked={list.is_ranked} isOwner={isOwner} />
+              ))}
+            </div>
+          )}
 
           {poems.length === 0 && (
             <p className="text-gray-500 dark:text-gray-400">Cette liste est vide pour le moment.</p>
