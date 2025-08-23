@@ -11,14 +11,14 @@ export async function updateListDetails(formData: FormData) {
   const name = formData.get('name') as string
   const description = formData.get('description') as string
   const isPublic = formData.get('isPublic') === 'on'
-  const isRanked = formData.get('isRanked') === 'on' // On récupère la nouvelle valeur
+  const isRanked = formData.get('isRanked') === 'on'
 
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return { error: 'Authentification requise.' }
 
   const { error } = await supabase
     .from('lists')
-    .update({ name, description, is_public: isPublic, is_ranked: isRanked }) // On met à jour is_ranked
+    .update({ name, description, is_public: isPublic, is_ranked: isRanked })
     .eq('id', listId)
     .eq('user_id', user.id)
 
@@ -55,24 +55,17 @@ export async function deleteList(listId: number) {
 
 export async function reorderListItems(listId: number, poemIds: number[]) {
   const supabase = createClient()
+  
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return { error: 'Authentification requise.' }
 
-  const { data: list } = await supabase.from('lists').select('user_id').eq('id', listId).single()
-  if (!list || list.user_id !== user.id) {
-    return { error: 'Permission refusée.' }
-  }
-
-  const updates = poemIds.map((poemId, index) => ({
-    list_id: listId,
-    poem_id: poemId,
-    position: index + 1,
-  }))
-
-  const { error } = await supabase.from('list_items').upsert(updates)
+  const { error } = await supabase.rpc('update_list_order', {
+    list_id_param: listId,
+    poem_ids_param: poemIds,
+  })
 
   if (error) {
-    console.error(error)
+    console.error("Erreur RPC reorderListItems:", error)
     return { error: 'Erreur lors de la réorganisation.' }
   }
 

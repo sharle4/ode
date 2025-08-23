@@ -5,8 +5,8 @@ import PoemListCard from '@/components/PoemListCard'
 import EditListModal from '@/components/EditListModal'
 import ConfirmationModal from '@/components/ConfirmationModal'
 import { deleteList, reorderListItems } from '@/app/actions'
-import { GlobeAltIcon, LockClosedIcon, PencilIcon, TrashIcon } from '@heroicons/react/24/solid'
-import { useState, useEffect, useTransition } from 'react'
+import { GlobeAltIcon, LockClosedIcon, PencilIcon, TrashIcon, CheckCircleIcon } from '@heroicons/react/24/solid'
+import { useState, useEffect } from 'react'
 import type { User } from '@supabase/supabase-js'
 import { useRouter } from 'next/navigation'
 import { DndContext, closestCenter, type DragEndEvent } from '@dnd-kit/core'
@@ -40,7 +40,10 @@ export default function ListInteractiveContent({ initialList, initialPoems, init
   const [isEditModalOpen, setIsEditModalOpen] = useState(false)
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false)
   const router = useRouter()
-  const [isPending, startTransition] = useTransition()
+  
+  const [hasOrderChanged, setHasOrderChanged] = useState(false)
+  const [isSaving, setIsSaving] = useState(false)
+  const [showSaveConfirmation, setShowSaveConfirmation] = useState(false)
   
   const [isMounted, setIsMounted] = useState(false)
   useEffect(() => {
@@ -78,12 +81,23 @@ export default function ListInteractiveContent({ initialList, initialPoems, init
       const newOrder = arrayMove(poems, oldIndex, newIndex)
       
       setPoems(newOrder)
-
-      startTransition(() => {
-        const poemIds = newOrder.map(p => p.id)
-        reorderListItems(list.id, poemIds)
-      })
+      setHasOrderChanged(true)
     }
+  }
+
+  const handleSaveChanges = async () => {
+    setIsSaving(true)
+    const poemIds = poems.map(p => p.id)
+    const result = await reorderListItems(list.id, poemIds)
+    
+    if (result.success) {
+      setHasOrderChanged(false)
+      setShowSaveConfirmation(true)
+      setTimeout(() => setShowSaveConfirmation(false), 3000)
+    } else {
+      alert(result.error || "Une erreur est survenue lors de la sauvegarde.")
+    }
+    setIsSaving(false)
   }
 
   return (
@@ -98,6 +112,15 @@ export default function ListInteractiveContent({ initialList, initialPoems, init
               </div>
               {isOwner && (
                 <div className="flex items-center space-x-2">
+                  {list.is_ranked && hasOrderChanged && (
+                    <button 
+                      onClick={handleSaveChanges} 
+                      disabled={isSaving}
+                      className="bg-indigo-600 text-white py-2 px-4 rounded-md hover:bg-indigo-700 text-sm disabled:bg-indigo-400"
+                    >
+                      {isSaving ? 'Sauvegarde...' : 'Sauvegarder'}
+                    </button>
+                  )}
                   <button onClick={() => setIsEditModalOpen(true)} className="p-2 text-gray-500 hover:text-indigo-600 dark:hover:text-indigo-400">
                     <PencilIcon className="w-5 h-5" />
                   </button>
@@ -138,6 +161,13 @@ export default function ListInteractiveContent({ initialList, initialPoems, init
             <p className="text-gray-500 dark:text-gray-400">Cette liste est vide pour le moment.</p>
           )}
         </main>
+      </div>
+
+      <div className={`fixed bottom-5 right-5 z-50 transition-transform duration-300 ${showSaveConfirmation ? 'translate-x-0' : 'translate-x-full'}`}>
+        <div className="bg-green-100 dark:bg-green-900/70 border border-green-200 dark:border-green-800 text-green-800 dark:text-green-200 px-4 py-3 rounded-lg shadow-lg flex items-center space-x-2">
+          <CheckCircleIcon className="w-5 h-5" />
+          <span>Classement sauvegardé !</span>
+        </div>
       </div>
 
       {isEditModalOpen && (
