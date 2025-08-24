@@ -74,10 +74,8 @@ export default function ListInteractiveContent({ initialList, initialPoems, init
     setIsDeleteModalOpen(false)
     const result = await deleteList(list.id)
     if (result.success && result.username) {
+      router.push(`/profil/${result.username}`)
       showConfirmation("Liste supprimée avec succès !")
-      setTimeout(() => {
-        router.push(`/profil/${result.username}`)
-      }, 1000)
     } else {
       alert(result.error || "Une erreur est survenue lors de la suppression.")
     }
