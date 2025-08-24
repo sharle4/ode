@@ -6,6 +6,7 @@ import { useTheme } from './ThemeProvider';
 import { createClient } from '@/lib/supabase/client';
 import { type User } from '@supabase/supabase-js';
 import { useRouter } from 'next/navigation';
+import Image from 'next/image';
 
 // --- Icônes ---
 const SunIcon = ({ className }: { className: string }) => (
@@ -49,7 +50,7 @@ export default function Header() {
   const [searchQuery, setSearchQuery] = useState('');
   const [searchResults, setSearchResults] = useState<any[]>([]);
   const [isSearching, setIsSearching] = useState(false);
-  const debouncedSearchQuery = useDebounce(searchQuery, 100);
+  const debouncedSearchQuery = useDebounce(searchQuery, 300);
 
   useEffect(() => {
     const fetchUserAndProfile = async (user: User) => {
@@ -113,7 +114,14 @@ export default function Header() {
     <header className="bg-white/80 dark:bg-gray-900/80 backdrop-blur-sm border-b border-gray-200 dark:border-gray-800 sticky top-0 z-50">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
-          <Link href="/" className="text-2xl font-bold text-gray-900 dark:text-white tracking-tight">Ode</Link>
+          <div className="flex items-center space-x-8">
+            <Link href="/" className="text-2xl font-bold text-gray-900 dark:text-white tracking-tight">Ode</Link>
+            <nav className="hidden md:flex space-x-4">
+              <Link href="/explorer" className="text-sm font-medium text-gray-600 dark:text-gray-300 hover:text-indigo-600 dark:hover:text-indigo-400">
+                Explorer
+              </Link>
+            </nav>
+          </div>
           
           <div className="flex-1 flex justify-center px-2 lg:ml-6 lg:justify-center">
             <div className="relative max-w-md w-full lg:max-w-lg">
