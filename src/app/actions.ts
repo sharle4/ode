@@ -50,14 +50,19 @@ export async function deleteList(listId: number) {
     return { error: 'Erreur lors de la suppression de la liste.' }
   }
 
-  redirect(`/profil/${list.profiles?.username}`)
+  revalidatePath(`/profil/${list.profiles?.username}`)
+  return { success: true, username: list.profiles?.username }
 }
 
 export async function reorderListItems(listId: number, poemIds: number[]) {
   const supabase = createClient()
-  
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return { error: 'Authentification requise.' }
+
+  const { data: list } = await supabase.from('lists').select('user_id').eq('id', listId).single()
+  if (!list || list.user_id !== user.id) {
+    return { error: 'Permission refusée.' }
+  }
 
   const { error } = await supabase.rpc('update_list_order', {
     list_id_param: listId,

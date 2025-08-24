@@ -6,7 +6,7 @@ import EditListModal from '@/components/EditListModal'
 import ConfirmationModal from '@/components/ConfirmationModal'
 import { deleteList, reorderListItems } from '@/app/actions'
 import { GlobeAltIcon, LockClosedIcon, PencilIcon, TrashIcon, CheckCircleIcon } from '@heroicons/react/24/solid'
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useTransition } from 'react'
 import type { User } from '@supabase/supabase-js'
 import { useRouter } from 'next/navigation'
 import { DndContext, closestCenter, type DragEndEvent } from '@dnd-kit/core'
@@ -40,10 +40,11 @@ export default function ListInteractiveContent({ initialList, initialPoems, init
   const [isEditModalOpen, setIsEditModalOpen] = useState(false)
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false)
   const router = useRouter()
+  const [isPending, startTransition] = useTransition()
   
+  const [confirmationMessage, setConfirmationMessage] = useState<string | null>(null)
   const [hasOrderChanged, setHasOrderChanged] = useState(false)
   const [isSaving, setIsSaving] = useState(false)
-  const [showSaveConfirmation, setShowSaveConfirmation] = useState(false)
   
   const [isMounted, setIsMounted] = useState(false)
   useEffect(() => {
@@ -64,8 +65,22 @@ export default function ListInteractiveContent({ initialList, initialPoems, init
     return () => { document.body.style.overflow = 'auto'; };
   }, [isModalOpen]);
 
+  const showConfirmation = (message: string) => {
+    setConfirmationMessage(message)
+    setTimeout(() => setConfirmationMessage(null), 3000)
+  }
+
   const handleDelete = async () => {
-    await deleteList(list.id)
+    setIsDeleteModalOpen(false)
+    const result = await deleteList(list.id)
+    if (result.success && result.username) {
+      showConfirmation("Liste supprimée avec succès !")
+      setTimeout(() => {
+        router.push(`/profil/${result.username}`)
+      }, 1000)
+    } else {
+      alert(result.error || "Une erreur est survenue lors de la suppression.")
+    }
   }
 
   const handleCloseEditModal = () => {
@@ -92,8 +107,7 @@ export default function ListInteractiveContent({ initialList, initialPoems, init
     
     if (result.success) {
       setHasOrderChanged(false)
-      setShowSaveConfirmation(true)
-      setTimeout(() => setShowSaveConfirmation(false), 3000)
+      showConfirmation("Classement sauvegardé !")
     } else {
       alert(result.error || "Une erreur est survenue lors de la sauvegarde.")
     }
@@ -102,6 +116,17 @@ export default function ListInteractiveContent({ initialList, initialPoems, init
 
   return (
     <>
+      <div 
+        className={`fixed top-20 left-1/2 -translate-x-1/2 z-50 transition-all duration-300 ${
+          confirmationMessage ? 'opacity-100 translate-y-0' : 'opacity-0 -translate-y-5 pointer-events-none'
+        }`}
+      >
+        <div className="bg-green-100 dark:bg-green-900/70 border border-green-200 dark:border-green-800 text-green-800 dark:text-green-200 px-4 py-3 rounded-lg shadow-lg flex items-center space-x-2">
+          <CheckCircleIcon className="w-5 h-5" />
+          <span>{confirmationMessage}</span>
+        </div>
+      </div>
+
       <div className={`transition-filter duration-300 ${isModalOpen ? 'blur-sm' : ''}`}>
         <main className="container mx-auto px-4 sm:px-6 lg:px-8 py-8">
           <div className="mb-8">
@@ -161,13 +186,6 @@ export default function ListInteractiveContent({ initialList, initialPoems, init
             <p className="text-gray-500 dark:text-gray-400">Cette liste est vide pour le moment.</p>
           )}
         </main>
-      </div>
-
-      <div className={`fixed bottom-5 right-5 z-50 transition-transform duration-300 ${showSaveConfirmation ? 'translate-x-0' : 'translate-x-full'}`}>
-        <div className="bg-green-100 dark:bg-green-900/70 border border-green-200 dark:border-green-800 text-green-800 dark:text-green-200 px-4 py-3 rounded-lg shadow-lg flex items-center space-x-2">
-          <CheckCircleIcon className="w-5 h-5" />
-          <span>Classement sauvegardé !</span>
-        </div>
       </div>
 
       {isEditModalOpen && (
