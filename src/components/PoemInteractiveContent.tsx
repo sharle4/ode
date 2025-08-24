@@ -8,6 +8,7 @@ import Rating from './Rating'
 import ReviewSection from './ReviewSection'
 import AddToListModal from './AddToListModal'
 import PublicListsSection from './PublicListsSection'
+import PoemInfoCard from './PoemInfoCard'
 import { XMarkIcon } from '@heroicons/react/24/solid'
 
 interface PoemData { title: string; authors: { name: string | null } | null; publication_date: string | null; source: string | null; content: string; categories: string[] | null; }

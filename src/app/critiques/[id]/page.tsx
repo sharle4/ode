@@ -99,10 +99,6 @@ export default async function ReviewPage({ params }: { params: { id: string } })
               distribution={distribution || []}
               user={user}
               userLists={userLists || []}
-              userRating={null}
-              onRate={() => {}}
-              onCritique={() => router.push(`/poemes/${poem.id}`)}
-              onAddToList={() => router.push(`/poemes/${poem.id}`)}
             />
           </div>
 
