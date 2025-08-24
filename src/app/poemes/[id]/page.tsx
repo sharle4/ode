@@ -1,16 +1,22 @@
-import { createClient } from '@/lib/supabase/server';
-import Header from '@/components/Header';
-import { notFound } from 'next/navigation';
-import PoemInteractiveContent from '@/components/PoemInteractiveContent';
+import { createClient } from '@/lib/supabase/server'
+import { notFound } from 'next/navigation'
+import Header from '@/components/Header'
+import PoemInteractiveContent from '@/components/PoemInteractiveContent'
 
 export const dynamic = 'force-dynamic'
 
 export default async function PoemPage({ params }: { params: { id: string } }) {
-  const { id } = params;
-  const supabase = createClient();
+  const supabase = createClient()
+  const { id } = params
+
+  const { data: { user } } = await supabase.auth.getUser()
+
+  const reviewsQuery = supabase.rpc('get_reviews_for_poem', {
+    poem_id_param: parseInt(id),
+    user_id_param: user?.id,
+  })
 
   const [
-    { data: { user } },
     { data: poem, error: poemError },
     { data: reviews },
     { data: stats },
@@ -18,9 +24,8 @@ export default async function PoemPage({ params }: { params: { id: string } }) {
     { data: userLists },
     { data: publicLists }
   ] = await Promise.all([
-    supabase.auth.getUser(),
     supabase.from('poems').select('*, authors(name)').eq('id', id).single(),
-    supabase.from('reviews').select('*, profiles(username, avatar_url)').eq('poem_id', id).order('created_at', { ascending: false }),
+    reviewsQuery,
     supabase.rpc('get_poem_stats', { poem_id_param: parseInt(id) }).single(),
     supabase.rpc('get_poem_rating_distribution', { poem_id_param: parseInt(id) }),
     supabase.rpc('get_user_lists_for_poem', { poem_id_param: parseInt(id) }),

@@ -115,3 +115,41 @@ export async function unfollowUser(profileIdToUnfollow: string) {
   revalidatePath(`/profil/${(await supabase.from('profiles').select('username').eq('id', profileIdToUnfollow).single()).data?.username}`)
   return { success: true }
 }
+
+export async function likeReview(reviewId: number) {
+  const supabase = createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return { error: 'Authentification requise.' }
+
+  const { error } = await supabase
+    .from('review_likes')
+    .insert({ review_id: reviewId, user_id: user.id })
+
+  if (error) {
+    console.error(error)
+    return { error: 'Erreur lors du like.' }
+  }
+
+  revalidatePath('/poemes/[id]', 'page')
+  return { success: true }
+}
+
+export async function unlikeReview(reviewId: number) {
+  const supabase = createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return { error: 'Authentification requise.' }
+
+  const { error } = await supabase
+    .from('review_likes')
+    .delete()
+    .eq('review_id', reviewId)
+    .eq('user_id', user.id)
+
+  if (error) {
+    console.error(error)
+    return { error: "Erreur lors de l'unlike." }
+  }
+
+  revalidatePath('/poemes/[id]', 'page')
+  return { success: true }
+}
