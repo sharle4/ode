@@ -149,7 +149,7 @@ export default function Header() {
                     {searchResults.map((result) => (
                       <li key={`${result.type}-${result.id}`}>
                         <Link 
-                          href={result.type === 'author' ? `/profil/${result.title}` : `/poemes/${result.id}`}
+                          href={result.type === 'author' ? `/auteurs/${encodeURIComponent(result.title)}` : `/poemes/${result.id}`}
                           className="block p-3 hover:bg-gray-100 dark:hover:bg-gray-700"
                           onClick={() => {
                             setSearchQuery('');

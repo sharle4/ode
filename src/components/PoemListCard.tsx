@@ -51,12 +51,16 @@ export default function PoemListCard({ poem, index, isRanked, isOwner }: PoemLis
               {poem.title}
             </h3>
           </Link>
-          <p className="text-sm text-gray-500 dark:text-gray-400">
-            {poem.authors?.name || 'Auteur inconnu'}
-          </p>
-          <p className="mt-3 text-gray-600 dark:text-gray-400 text-sm whitespace-pre-wrap italic line-clamp-2">
-            {snippet}...
-          </p>
+          <Link href={`/auteurs/${encodeURIComponent(poem.authors?.name || '')}`}>
+            <p className="text-sm text-gray-500 dark:text-gray-400 hover:underline">
+              {poem.authors?.name || 'Auteur inconnu'}
+            </p>
+          </Link>
+          <Link href={`/poemes/${poem.id}`}>
+            <p className="mt-3 text-gray-600 dark:text-gray-400 text-sm whitespace-pre-wrap italic line-clamp-2">
+              {snippet}...
+            </p>
+          </Link>
         </div>
         {isRanked && isOwner && (
           <div {...attributes} {...listeners} className="p-2 cursor-grab active:cursor-grabbing">
