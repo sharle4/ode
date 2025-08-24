@@ -165,7 +165,7 @@ export async function addCommentToReview(reviewId: number, content: string) {
 
   if (error) {
     console.error(error)
-    return { error: 'Erreur lors de l''ajout du commentaire.' }
+    return { error: "Erreur lors de l'ajout du commentaire." }
   }
 
   revalidatePath(`/critiques/${reviewId}`)
