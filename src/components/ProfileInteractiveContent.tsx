@@ -47,53 +47,56 @@ export default function ProfileInteractiveContent({ profile, stats, isFollowing,
 
   return (
     <main className="container mx-auto px-4 sm:px-6 lg:px-8 py-8">
-      {/* Section Header du Profil */}
-      <div className="flex items-center space-x-6 mb-8">
-        <div className="flex-shrink-0">
-          {isOwnProfile && loggedInUser ? (
-            <AvatarUploader user={loggedInUser} initialAvatarUrl={profile.avatar_url} />
-          ) : (
-            profile.avatar_url ? (
-              <img src={profile.avatar_url} alt={profile.username || ''} className="w-20 h-20 rounded-full object-cover" />
+      <div className="flex flex-col sm:flex-row items-center justify-between mb-12">
+        <div className="flex items-center space-x-6">
+          <div className="flex-shrink-0">
+            {isOwnProfile && loggedInUser ? (
+              <AvatarUploader user={loggedInUser} initialAvatarUrl={profile.avatar_url} />
             ) : (
-              <div className="w-20 h-20 rounded-full bg-gray-200 dark:bg-gray-700 flex items-center justify-center">
-                <UserIcon className="w-12 h-12 text-gray-500" />
+              profile.avatar_url ? (
+                <img src={profile.avatar_url} alt={profile.username || ''} className="w-20 h-20 rounded-full object-cover" />
+              ) : (
+                <div className="w-20 h-20 rounded-full bg-gray-200 dark:bg-gray-700 flex items-center justify-center">
+                  <UserIcon className="w-12 h-12 text-gray-500" />
+                </div>
+              )
+            )}
+          </div>
+          <div className="flex flex-col items-start">
+            <h1 className="text-3xl font-bold text-gray-900 dark:text-white">{profile.username}</h1>
+            {!isOwnProfile && (
+              <div className="mt-2">
+                {optimisticIsFollowing ? (
+                  <button onClick={handleUnfollow} disabled={isPending} className="w-full sm:w-auto bg-transparent border border-gray-400 text-gray-600 dark:border-gray-500 dark:text-gray-300 py-1 px-3 rounded-md hover:bg-gray-50 dark:hover:bg-gray-700/50 text-sm">
+                    Abonné
+                  </button>
+                ) : (
+                  <button onClick={handleFollow} disabled={isPending} className="w-full sm:w-auto bg-indigo-600 text-white py-1 px-3 rounded-md hover:bg-indigo-700 text-sm">
+                    S'abonner
+                  </button>
+                )}
               </div>
-            )
-          )}
+            )}
+          </div>
         </div>
-        <div className="flex-grow flex flex-col sm:flex-row items-start sm:items-center justify-between">
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-white">{profile.username}</h1>
-          {!isOwnProfile && (
-            optimisticIsFollowing ? (
-              <button onClick={handleUnfollow} disabled={isPending} className="mt-2 sm:mt-0 w-full sm:w-auto bg-transparent border border-gray-400 text-gray-600 dark:border-gray-500 dark:text-gray-300 py-2 px-4 rounded-md hover:bg-gray-50 dark:hover:bg-gray-700/50 text-sm">
-                Abonné
-              </button>
-            ) : (
-              <button onClick={handleFollow} disabled={isPending} className="mt-2 sm:mt-0 w-full sm:w-auto bg-indigo-600 text-white py-2 px-4 rounded-md hover:bg-indigo-700 text-sm">
-                S'abonner
-              </button>
-            )
-          )}
-        </div>
-      </div>
-
-      <div className="flex items-center space-x-6 border-y border-gray-200 dark:border-gray-700 py-4 mb-12">
-        <div className="text-center">
-          <p className="text-xl font-bold text-gray-900 dark:text-white">{stats.reviewsCount}</p>
-          <p className="text-sm text-gray-500 dark:text-gray-400">Critiques</p>
-        </div>
-        <div className="text-center">
-          <p className="text-xl font-bold text-gray-900 dark:text-white">{stats.listsCount}</p>
-          <p className="text-sm text-gray-500 dark:text-gray-400">Listes</p>
-        </div>
-        <div className="text-center">
-          <p className="text-xl font-bold text-gray-900 dark:text-white">{optimisticFollowers}</p>
-          <p className="text-sm text-gray-500 dark:text-gray-400">Abonnés</p>
-        </div>
-        <div className="text-center">
-          <p className="text-xl font-bold text-gray-900 dark:text-white">{stats.following}</p>
-          <p className="text-sm text-gray-500 dark:text-gray-400">Abonnements</p>
+        
+        <div className="flex items-center space-x-6 mt-4 sm:mt-0">
+          <div className="text-center">
+            <p className="text-xl font-bold text-gray-900 dark:text-white">{stats.reviewsCount}</p>
+            <p className="text-sm text-gray-500 dark:text-gray-400">Critiques</p>
+          </div>
+          <div className="text-center">
+            <p className="text-xl font-bold text-gray-900 dark:text-white">{stats.listsCount}</p>
+            <p className="text-sm text-gray-500 dark:text-gray-400">Listes</p>
+          </div>
+          <div className="text-center">
+            <p className="text-xl font-bold text-gray-900 dark:text-white">{optimisticFollowers}</p>
+            <p className="text-sm text-gray-500 dark:text-gray-400">Abonnés</p>
+          </div>
+          <div className="text-center">
+            <p className="text-xl font-bold text-gray-900 dark:text-white">{stats.following}</p>
+            <p className="text-sm text-gray-500 dark:text-gray-400">Abonnements</p>
+          </div>
         </div>
       </div>
 
