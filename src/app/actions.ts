@@ -77,3 +77,41 @@ export async function reorderListItems(listId: number, poemIds: number[]) {
   revalidatePath(`/listes/${listId}`)
   return { success: true }
 }
+
+export async function followUser(profileIdToFollow: string) {
+  const supabase = createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return { error: 'Authentification requise.' }
+
+  const { error } = await supabase
+    .from('followers')
+    .insert({ follower_id: user.id, following_id: profileIdToFollow })
+
+  if (error) {
+    console.error(error)
+    return { error: 'Erreur lors du suivi.' }
+  }
+
+  revalidatePath(`/profil/${(await supabase.from('profiles').select('username').eq('id', profileIdToFollow).single()).data?.username}`)
+  return { success: true }
+}
+
+export async function unfollowUser(profileIdToUnfollow: string) {
+  const supabase = createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return { error: 'Authentification requise.' }
+
+  const { error } = await supabase
+    .from('followers')
+    .delete()
+    .eq('follower_id', user.id)
+    .eq('following_id', profileIdToUnfollow)
+
+  if (error) {
+    console.error(error)
+    return { error: 'Erreur lors du désabonnement.' }
+  }
+  
+  revalidatePath(`/profil/${(await supabase.from('profiles').select('username').eq('id', profileIdToUnfollow).single()).data?.username}`)
+  return { success: true }
+}
