@@ -107,9 +107,18 @@ export default function PoemInteractiveContent({ poemId, initialUser, initialPoe
 
   const isModalActive = isReviewModalOpen || isListModalOpen;
 
-  const closeModal = () => {
+  const handleCloseReviewModal = () => {
     setIsReviewModalOpen(false);
+  };
+
+  const handleCloseListModal = () => {
     setIsListModalOpen(false);
+    router.refresh();
+  };
+
+  const handleBackdropClick = () => {
+    if (isReviewModalOpen) handleCloseReviewModal();
+    if (isListModalOpen) handleCloseListModal();
   }
 
   return (
@@ -174,17 +183,16 @@ export default function PoemInteractiveContent({ poemId, initialUser, initialPoe
         </div>
       </div>
 
-      {/* Section des Modals */}
       <div 
         className={`fixed inset-0 z-50 flex justify-center items-center p-4 transition-opacity duration-300 ${isModalActive ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}
-        onClick={closeModal}
+        onClick={handleBackdropClick}
       >
         {isReviewModalOpen && (
           <div 
             className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-xl w-full max-w-lg relative"
             onClick={e => e.stopPropagation()}
           >
-            <button onClick={() => setIsReviewModalOpen(false)} className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200">
+            <button onClick={handleCloseReviewModal} className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200">
               <XMarkIcon className="w-6 h-6" />
             </button>
             <h3 className="text-lg font-bold mb-4">Votre avis sur "{initialPoem.title}"</h3>
@@ -198,7 +206,7 @@ export default function PoemInteractiveContent({ poemId, initialUser, initialPoe
               />
               {error && <p className="text-sm text-red-500 mt-2">{error}</p>}
               <div className="flex justify-end space-x-4 mt-4">
-                <button type="button" onClick={() => setIsReviewModalOpen(false)} className="text-sm text-gray-600 dark:text-gray-400">Annuler</button>
+                <button type="button" onClick={handleCloseReviewModal} className="text-sm text-gray-600 dark:text-gray-400">Annuler</button>
                 <button type="submit" disabled={isSubmitting || !rating} className="bg-indigo-600 text-white py-2 px-4 rounded-md hover:bg-indigo-700 disabled:bg-indigo-400">
                   {isSubmitting ? 'Enregistrement...' : 'Enregistrer'}
                 </button>
@@ -206,7 +214,7 @@ export default function PoemInteractiveContent({ poemId, initialUser, initialPoe
             </form>
           </div>
         )}
-        {isListModalOpen && <AddToListModal poemId={poemId} poemTitle={initialPoem.title} onClose={() => setIsListModalOpen(false)} />}
+        {isListModalOpen && <AddToListModal poemId={poemId} poemTitle={initialPoem.title} onClose={handleCloseListModal} />}
       </div>
     </>
   )
