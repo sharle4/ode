@@ -75,14 +75,16 @@ export default function ReviewSection({ reviews, user }: ReviewSectionProps) {
                       {formatDate(review.created_at)}
                     </p>
                   </div>
-                  {review.content && <p className="mt-2 text-gray-600 dark:text-gray-400 text-sm">{review.content}</p>}
-                  <ReviewInteractions
-                    reviewId={review.id}
-                    initialLikesCount={likesCount}
-                    initialCommentsCount={commentsCount}
-                    isLikedByUser={isLikedByUser}
-                    isLoggedIn={!!user}
-                  />
+                  {review.content && <p className="mt-4 text-gray-600 dark:text-gray-400 text-sm">{review.content}</p>}
+                  <div className="mt-4">
+                    <ReviewInteractions
+                      reviewId={review.id}
+                      initialLikesCount={likesCount}
+                      initialCommentsCount={commentsCount}
+                      isLikedByUser={isLikedByUser}
+                      isLoggedIn={!!user}
+                    />
+                  </div>
                 </div>
               </div>
             )
