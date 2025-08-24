@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useTransition, useEffect } from 'react'
+import { useState, useTransition } from 'react'
 import { addCommentToReview } from '@/app/actions'
 import type { User } from '@supabase/supabase-js'
 import Link from 'next/link'
@@ -24,18 +24,13 @@ interface CommentSectionProps {
 }
 
 export default function CommentSection({ reviewId, initialComments, user }: CommentSectionProps) {
-  const [comments, setComments] = useState(initialComments)
   const [newComment, setNewComment] = useState('')
   const [isPending, startTransition] = useTransition()
   const router = useRouter()
 
-  useEffect(() => {
-    setComments(initialComments)
-  }, [initialComments])
-
   const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault()
-    if (newComment.trim() === '') return
+    if (newComment.trim() === '' || !user) return
 
     startTransition(async () => {
       const result = await addCommentToReview(reviewId, newComment.trim())
@@ -57,11 +52,11 @@ export default function CommentSection({ reviewId, initialComments, user }: Comm
   return (
     <div className="mt-12">
       <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-6">
-        Commentaires ({comments.length})
+        Commentaires ({initialComments.length})
       </h2>
 
       <div className="space-y-6">
-        {comments.map(comment => (
+        {initialComments.map(comment => (
           <div key={comment.id} className="flex space-x-4">
             <Link href={`/profil/${comment.profiles?.username}`} className="flex-shrink-0">
               {comment.profiles?.avatar_url ? (
@@ -83,7 +78,7 @@ export default function CommentSection({ reviewId, initialComments, user }: Comm
                   {formatDate(comment.created_at)}
                 </p>
               </div>
-              <p className="mt-1 text-gray-600 dark:text-gray-400">{comment.content}</p>
+              <p className="mt-1 text-gray-600 dark:text-gray-400 whitespace-pre-wrap">{comment.content}</p>
             </div>
           </div>
         ))}
