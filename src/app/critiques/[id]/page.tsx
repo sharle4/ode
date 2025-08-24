@@ -4,6 +4,7 @@ import Header from '@/components/Header'
 import StaticRating from '@/components/StaticRating'
 import Link from 'next/link'
 import { UserIcon } from '@heroicons/react/24/solid'
+import CommentSection from '@/components/CommentSection'
 
 export const dynamic = 'force-dynamic'
 
@@ -56,6 +57,10 @@ export default async function ReviewPage({ params }: { params: { id: string } })
                   <Link href={`/profil/${review.profiles?.username}`} className="font-semibold text-gray-800 dark:text-gray-200 hover:underline">
                     {review.profiles?.username}
                   </Link>
+                  {' '}pour le poème{' '}
+                  <Link href={`/poemes/${poem.id}`} className="font-semibold text-gray-800 dark:text-gray-200 hover:underline">
+                    {poem.title}
+                  </Link>
                 </p>
                 <StaticRating rating={review.rating} size="md" />
               </div>
@@ -69,23 +74,18 @@ export default async function ReviewPage({ params }: { params: { id: string } })
               Publiée le {formatDate(review.created_at)}
             </div>
 
-            <div className="mt-12">
-              <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-6">
-                Commentaires ({comments?.length || 0})
-              </h2>
-            </div>
+            <CommentSection 
+              reviewId={review.id} 
+              initialComments={comments || []} 
+              user={user} 
+            />
           </div>
 
           <div className="lg:col-span-1">
             <div className="sticky top-24">
-              <div className="bg-white dark:bg-gray-800/50 rounded-lg shadow-md border border-gray-200 dark:border-gray-700">
-                <div className="p-4">
-                  <h3 className="font-bold text-lg text-gray-900 dark:text-white">{poem.title}</h3>
-                  <p className="text-sm text-gray-500 dark:text-gray-400">par {poem.authors.name}</p>
-                </div>
-                <div className="h-48 bg-gray-100 dark:bg-gray-800 flex items-center justify-center">
-                  <p className="text-sm text-gray-500">Infos du poème</p>
-                </div>
+              <div className="bg-white dark:bg-gray-800/50 rounded-lg shadow-md border border-gray-200 dark:border-gray-700 p-4">
+                <h3 className="font-bold text-lg text-gray-900 dark:text-white">{poem.title}</h3>
+                <p className="text-sm text-gray-500 dark:text-gray-400">par {poem.authors.name}</p>
               </div>
             </div>
           </div>
