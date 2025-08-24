@@ -47,6 +47,7 @@ export default function ReviewSection({ reviews, user }: ReviewSectionProps) {
             const likesCount = review.review_likes[0]?.count || 0
             const commentsCount = review.review_comments[0]?.count || 0
             const isLikedByUser = (review.user_has_liked[0]?.count || 0) > 0
+            const isLongReview = (review.content?.length || 0) > 500;
 
             return (
               <div key={review.id} className="flex space-x-4">
@@ -75,7 +76,20 @@ export default function ReviewSection({ reviews, user }: ReviewSectionProps) {
                       {formatDate(review.created_at)}
                     </p>
                   </div>
-                  {review.content && <p className="mt-4 text-gray-600 dark:text-gray-400 text-sm">{review.content}</p>}
+                  {review.content && (
+                    <div className="mt-4 text-gray-600 dark:text-gray-400 text-sm space-y-4">
+                      <Link href={`/critiques/${review.id}`}>
+                        <p className={`whitespace-pre-wrap ${isLongReview ? 'line-clamp-9' : ''}`}>
+                          {review.content}
+                        </p>
+                      </Link>
+                      {isLongReview && (
+                        <Link href={`/critiques/${review.id}`} className="text-indigo-600 dark:text-indigo-400 font-semibold text-xs hover:underline">
+                          Lire la suite
+                        </Link>
+                      )}
+                    </div>
+                  )}
                   <div className="mt-4">
                     <ReviewInteractions
                       reviewId={review.id}

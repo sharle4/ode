@@ -108,7 +108,7 @@ export default function ReviewPage() {
             </div>
             {review.content && (
               <div className="mt-6 prose prose-lg dark:prose-invert max-w-none">
-                <p>{review.content}</p>
+                <p className="whitespace-pre-wrap">{review.content}</p>
               </div>
             )}
             <div className="mt-4 border-t border-gray-200 dark:border-gray-700 pt-2">
@@ -133,9 +133,6 @@ export default function ReviewPage() {
               distribution={distribution || []}
               user={user}
               userLists={userLists || []}
-              onRate={() => router.push(`/poemes/${poem.id}`)}
-              onCritique={() => router.push(`/poemes/${poem.id}`)}
-              onAddToList={() => router.push(`/poemes/${poem.id}`)}
             />
           </div>
         </div>
