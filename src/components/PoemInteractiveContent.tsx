@@ -4,14 +4,13 @@ import { createClient } from '@/lib/supabase/client'
 import { useRouter } from 'next/navigation'
 import { useEffect, useState } from 'react'
 import type { User } from '@supabase/supabase-js'
-import RatingsChart from './RatingsChart'
 import Rating from './Rating'
 import ReviewSection from './ReviewSection'
 import AddToListModal from './AddToListModal'
-import UserListTags from './UserListTags'
 import PoemInfoCard from './PoemInfoCard'
 import PublicListsSection from './PublicListsSection'
 import { XMarkIcon } from '@heroicons/react/24/solid'
+import Link from 'next/link'
 
 interface PoemData { title: string; authors: { name: string | null } | null; publication_date: string | null; source: string | null; content: string; categories: string[] | null; }
 interface ReviewData { id: number; content: string | null; rating: number | null; created_at: string; profiles: { username: string | null; avatar_url: string | null; } | null; }
@@ -123,7 +122,11 @@ export default function PoemInteractiveContent({ poemId, initialUser, initialPoe
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 lg:gap-12 w-full">
         <div className={`lg:col-span-2 transition-filter duration-300 ${isModalActive ? 'blur-sm' : ''}`}>
           <h1 className="text-4xl font-extrabold text-gray-900 dark:text-white tracking-tight">{initialPoem.title}</h1>
-          <p className="mt-2 text-xl text-gray-500 dark:text-gray-400">par {initialPoem.authors?.name || 'Auteur inconnu'}</p>
+          <Link href={`/auteurs/${encodeURIComponent(initialPoem.authors?.name || '')}`}>
+            <p className="mt-2 text-xl text-gray-500 dark:text-gray-400 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors">
+              par {initialPoem.authors?.name || 'Auteur inconnu'}
+            </p>
+          </Link>
           <div className="mt-8 prose prose-lg dark:prose-invert max-w-none">
             <p className="whitespace-pre-wrap">{initialPoem.content}</p>
           </div>
