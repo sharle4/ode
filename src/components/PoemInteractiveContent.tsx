@@ -4,11 +4,9 @@ import { createClient } from '@/lib/supabase/client'
 import { useRouter } from 'next/navigation'
 import { useEffect, useState } from 'react'
 import type { User } from '@supabase/supabase-js'
-import RatingsChart from './RatingsChart'
 import Rating from './Rating'
 import ReviewSection from './ReviewSection'
 import AddToListModal from './AddToListModal'
-import UserListTags from './UserListTags'
 import PublicListsSection from './PublicListsSection'
 import { XMarkIcon } from '@heroicons/react/24/solid'
 
@@ -40,7 +38,6 @@ export default function PoemInteractiveContent({ poemId, initialUser, initialPoe
   const [isListModalOpen, setIsListModalOpen] = useState(false)
   
   const [rating, setRating] = useState<number | null>(null)
-  const [hoverRating, setHoverRating] = useState<number | null>(null)
   const [content, setContent] = useState('')
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -107,15 +104,11 @@ export default function PoemInteractiveContent({ poemId, initialUser, initialPoe
 
   const isModalActive = isReviewModalOpen || isListModalOpen;
 
-  const handleCloseReviewModal = () => {
-    setIsReviewModalOpen(false);
-  };
-
+  const handleCloseReviewModal = () => setIsReviewModalOpen(false);
   const handleCloseListModal = () => {
     setIsListModalOpen(false);
     router.refresh();
   };
-
   const handleBackdropClick = () => {
     if (isReviewModalOpen) handleCloseReviewModal();
     if (isListModalOpen) handleCloseListModal();
@@ -130,56 +123,22 @@ export default function PoemInteractiveContent({ poemId, initialUser, initialPoe
           <div className="mt-8 prose prose-lg dark:prose-invert max-w-none">
             <p className="whitespace-pre-wrap">{initialPoem.content}</p>
           </div>
-          <ReviewSection reviews={initialReviews} />
+          <ReviewSection reviews={initialReviews} user={user} />
           <PublicListsSection lists={initialPublicLists} />
         </div>
 
         <div className={`lg:col-span-1 transition-filter duration-300 ${isModalActive ? 'blur-sm' : ''}`}>
-          <div className="sticky top-24">
-            <div className="bg-white dark:bg-gray-800/50 rounded-lg shadow-md p-6 border border-gray-200 dark:border-gray-800">
-              <h2 className="text-lg font-bold text-gray-900 dark:text-white truncate">{initialPoem.title}</h2>
-              <ul className="mt-4 space-y-2 text-gray-600 dark:text-gray-400 text-sm">
-                <li><strong>Auteur:</strong> {initialPoem.authors?.name || 'N/A'}</li>
-                <li><strong>Recueil:</strong> {initialPoem.source || 'N/A'}</li>
-                {initialPoem.categories && initialPoem.categories.length > 0 && (
-                  <li>
-                    <strong>Catégories:</strong>
-                    <div className="flex flex-wrap gap-1 mt-1">
-                      {initialPoem.categories.map(cat => (
-                        <span key={cat} className="px-2 py-0.5 bg-gray-100 dark:bg-gray-700 text-xs rounded-full">
-                          {cat}
-                        </span>
-                      ))}
-                    </div>
-                  </li>
-                )}
-              </ul>
-              <hr className="my-6 border-gray-200 dark:border-gray-700" />
-              <div className="flex items-center">
-                <span className="text-yellow-400 text-3xl font-bold">{averageRating.toFixed(1)}</span>
-                <span className="text-gray-500 dark:text-gray-400 ml-2 text-sm">({reviewsCount} avis)</span>
-              </div>
-              <div className="mt-4">
-                <RatingsChart data={initialDistribution} totalReviews={reviewsCount} />
-              </div>
-              <hr className="my-6 border-gray-200 dark:border-gray-700" />
-              <h2 className="text-lg font-bold text-gray-900 dark:text-white">Votre avis</h2>
-              <div className="mt-4">
-                <Rating rating={rating} setRating={handleRatingOnly} hoverRating={hoverRating} setHoverRating={setHoverRating} />
-              </div>
-              <UserListTags lists={initialUserLists} />
-              {user && (
-                <div className="flex space-x-2 mt-4">
-                  <button onClick={() => setIsReviewModalOpen(true)} className="w-full bg-transparent border border-indigo-600 text-indigo-600 dark:border-indigo-400 dark:text-indigo-400 py-2 px-4 rounded-md hover:bg-indigo-50 dark:hover:bg-indigo-900/20 text-sm">
-                    Critiquer
-                  </button>
-                  <button onClick={() => setIsListModalOpen(true)} className="w-full bg-transparent border border-gray-400 text-gray-600 dark:border-gray-500 dark:text-gray-300 py-2 px-4 rounded-md hover:bg-gray-50 dark:hover:bg-gray-700/50 text-sm">
-                    Ajouter à une liste
-                  </button>
-                </div>
-              )}
-            </div>
-          </div>
+          <PoemInfoCard
+            poem={initialPoem}
+            stats={initialStats}
+            distribution={initialDistribution}
+            user={user}
+            userLists={initialUserLists}
+            userRating={rating}
+            onRate={handleRatingOnly}
+            onCritique={() => setIsReviewModalOpen(true)}
+            onAddToList={() => setIsListModalOpen(true)}
+          />
         </div>
       </div>
 

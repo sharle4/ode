@@ -5,6 +5,7 @@ import StaticRating from '@/components/StaticRating'
 import Link from 'next/link'
 import { UserIcon } from '@heroicons/react/24/solid'
 import CommentSection from '@/components/CommentSection'
+import PoemInfoCard from '@/components/PoemInfoCard'
 
 export const dynamic = 'force-dynamic'
 
@@ -24,7 +25,17 @@ export default async function ReviewPage({ params }: { params: { id: string } })
     notFound()
   }
 
-  const { review_data: review, poem_data: poem, comments_data: comments, likes_data: likes } = pageData
+  const { review_data: review, poem_data: poem, comments_data: comments } = pageData
+
+  const [
+    { data: stats },
+    { data: distribution },
+    { data: userLists }
+  ] = await Promise.all([
+    supabase.rpc('get_poem_stats', { poem_id_param: poem.id }).single(),
+    supabase.rpc('get_poem_rating_distribution', { poem_id_param: poem.id }),
+    supabase.rpc('get_user_lists_for_poem', { poem_id_param: poem.id })
+  ])
 
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('fr-FR', {
@@ -82,12 +93,17 @@ export default async function ReviewPage({ params }: { params: { id: string } })
           </div>
 
           <div className="lg:col-span-1">
-            <div className="sticky top-24">
-              <div className="bg-white dark:bg-gray-800/50 rounded-lg shadow-md border border-gray-200 dark:border-gray-700 p-4">
-                <h3 className="font-bold text-lg text-gray-900 dark:text-white">{poem.title}</h3>
-                <p className="text-sm text-gray-500 dark:text-gray-400">par {poem.authors.name}</p>
-              </div>
-            </div>
+            <PoemInfoCard
+              poem={poem}
+              stats={stats}
+              distribution={distribution || []}
+              user={user}
+              userLists={userLists || []}
+              userRating={null}
+              onRate={() => {}}
+              onCritique={() => router.push(`/poemes/${poem.id}`)}
+              onAddToList={() => router.push(`/poemes/${poem.id}`)}
+            />
           </div>
 
         </div>
