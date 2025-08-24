@@ -14,11 +14,11 @@ interface ListCardProps {
 }
 
 export default function ListCard({ list }: ListCardProps) {
-  const poemCountText = `${list.poem_count} poème${list.poem_count > 1 ? 's' : ''}`
+  const poemCountText = `${list.poem_count} poème${list.poem_count !== 1 ? 's' : ''}`
 
   return (
     <Link href={`/listes/${list.id}`}>
-      <div className="bg-white dark:bg-gray-800/50 rounded-lg border border-gray-200 dark:border-gray-700 p-4 h-full flex flex-col hover:border-indigo-500 dark:hover:border-indigo-400 transition-colors">
+      <div className="bg-white dark:bg-gray-800/50 rounded-lg border border-gray-200 dark:border-gray-700 p-4 h-full flex flex-col hover:border-indigo-500 dark:hover:border-indigo-400 transition-all duration-300 hover:shadow-lg hover:-translate-y-1">
         <div className="flex-grow">
           <div className="flex items-center space-x-2">
             {list.is_public ? (
