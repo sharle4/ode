@@ -4,11 +4,13 @@ import { createClient } from '@/lib/supabase/client'
 import { useRouter } from 'next/navigation'
 import { useEffect, useState } from 'react'
 import type { User } from '@supabase/supabase-js'
+import RatingsChart from './RatingsChart'
 import Rating from './Rating'
 import ReviewSection from './ReviewSection'
 import AddToListModal from './AddToListModal'
-import PublicListsSection from './PublicListsSection'
+import UserListTags from './UserListTags'
 import PoemInfoCard from './PoemInfoCard'
+import PublicListsSection from './PublicListsSection'
 import { XMarkIcon } from '@heroicons/react/24/solid'
 
 interface PoemData { title: string; authors: { name: string | null } | null; publication_date: string | null; source: string | null; content: string; categories: string[] | null; }
@@ -39,6 +41,7 @@ export default function PoemInteractiveContent({ poemId, initialUser, initialPoe
   const [isListModalOpen, setIsListModalOpen] = useState(false)
   
   const [rating, setRating] = useState<number | null>(null)
+  const [hoverRating, setHoverRating] = useState<number | null>(null)
   const [content, setContent] = useState('')
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)

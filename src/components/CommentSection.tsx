@@ -5,6 +5,7 @@ import { addCommentToReview } from '@/app/actions'
 import type { User } from '@supabase/supabase-js'
 import Link from 'next/link'
 import { UserIcon } from '@heroicons/react/24/solid'
+import { useRouter } from 'next/navigation'
 
 interface Comment {
   id: number
@@ -23,9 +24,9 @@ interface CommentSectionProps {
 }
 
 export default function CommentSection({ reviewId, initialComments, user }: CommentSectionProps) {
-  const [comments, setComments] = useState(initialComments)
   const [newComment, setNewComment] = useState('')
   const [isPending, startTransition] = useTransition()
+  const router = useRouter()
 
   const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault()
@@ -35,6 +36,7 @@ export default function CommentSection({ reviewId, initialComments, user }: Comm
       const result = await addCommentToReview(reviewId, newComment.trim())
       if (!result.error) {
         setNewComment('')
+        router.refresh()
       } else {
         alert(result.error)
       }
@@ -50,12 +52,11 @@ export default function CommentSection({ reviewId, initialComments, user }: Comm
   return (
     <div className="mt-12">
       <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-6">
-        Commentaires ({comments.length})
+        Commentaires ({initialComments.length})
       </h2>
 
-      {/* Liste des commentaires */}
       <div className="space-y-6">
-        {comments.map(comment => (
+        {initialComments.map(comment => (
           <div key={comment.id} className="flex space-x-4">
             <Link href={`/profil/${comment.profiles?.username}`} className="flex-shrink-0">
               {comment.profiles?.avatar_url ? (
