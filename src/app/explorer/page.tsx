@@ -26,7 +26,7 @@ export default async function ExplorerPage() {
 
         <section className="mb-12">
           <h2 className="text-2xl font-semibold text-gray-800 dark:text-gray-200 mb-4">
-            Poèmes Populaires
+            Poèmes populaires
           </h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
             {popularPoems?.map(poem => (
@@ -43,13 +43,14 @@ export default async function ExplorerPage() {
 
         <section>
           <h2 className="text-2xl font-semibold text-gray-800 dark:text-gray-200 mb-4">
-            Explorer par Thèmes
+            Explorer par thèmes
           </h2>
           <div className="flex flex-wrap gap-3">
             {allCategories?.map(cat => (
-              <Link key={cat.category} href={`/recherche?q=${encodeURIComponent(cat.category)}`}>
-                <span className="px-4 py-2 bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 rounded-full hover:bg-indigo-100 dark:hover:bg-indigo-900/50 transition-colors">
-                  {cat.category}
+              <Link key={cat.category} href={`/recherche?category=${encodeURIComponent(cat.category)}`}>
+                <span className="flex items-center space-x-2 px-4 py-2 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-full text-gray-700 dark:text-gray-300 hover:border-indigo-500 dark:hover:border-indigo-400 hover:text-indigo-600 dark:hover:text-indigo-300 transition-all duration-200 transform hover:scale-105 shadow-sm">
+                  <span className="font-mono text-indigo-400">#</span>
+                  <span>{cat.category}</span>
                 </span>
               </Link>
             ))}
