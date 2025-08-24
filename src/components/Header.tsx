@@ -115,7 +115,16 @@ export default function Header() {
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
           <div className="flex items-center space-x-8">
-            <Link href="/" className="text-2xl font-bold text-gray-900 dark:text-white tracking-tight">Ode</Link>
+            <Link href="/" className="flex items-center space-x-2 text-gray-900 dark:text-white">
+              <Image
+                  src={theme === 'dark' ? '/dark_logo.svg' : '/light_logo.svg'}
+                  alt="Ode"
+                  width={96}
+                  height={96}
+                  className="w-20 h-20 p-1 object-contain"
+                  priority
+                />
+              </Link>
             <nav className="hidden md:flex space-x-4">
               <Link href="/explorer" className="text-sm font-medium text-gray-600 dark:text-gray-300 hover:text-indigo-600 dark:hover:text-indigo-400">
                 Explorer
