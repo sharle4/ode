@@ -153,3 +153,21 @@ export async function unlikeReview(reviewId: number) {
   revalidatePath('/poemes/[id]', 'page')
   return { success: true }
 }
+
+export async function addCommentToReview(reviewId: number, content: string) {
+  const supabase = createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return { error: 'Authentification requise.' }
+
+  const { error } = await supabase
+    .from('review_comments')
+    .insert({ review_id: reviewId, user_id: user.id, content: content })
+
+  if (error) {
+    console.error(error)
+    return { error: 'Erreur lors de l''ajout du commentaire.' }
+  }
+
+  revalidatePath(`/critiques/${reviewId}`)
+  return { success: true }
+}
