@@ -74,7 +74,7 @@ const PoemCard = React.memo(function PoemCard({ poem, index }: PoemCardProps) {
                   }}
                 >
                   <ListPlus size={14} weight="bold" />
-                  List
+                  Lister
                 </motion.button>
 
                 <motion.button
@@ -88,7 +88,7 @@ const PoemCard = React.memo(function PoemCard({ poem, index }: PoemCardProps) {
                   }}
                 >
                   <BookOpen size={14} weight="bold" />
-                  Read
+                  Lire
                 </motion.button>
               </div>
             </motion.div>
@@ -105,7 +105,7 @@ const PoemCard = React.memo(function PoemCard({ poem, index }: PoemCardProps) {
             </span>
           </div>
           <span className="text-warm-gray/60 text-xs font-mono">
-            {poem.totalLogs.toLocaleString()} logs
+            {poem.totalLogs.toLocaleString()} ajouts
           </span>
         </div>
       </div>

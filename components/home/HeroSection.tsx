@@ -47,7 +47,7 @@ const HeroSection = React.memo(function HeroSection() {
             >
               <span className="inline-flex items-center gap-2 rounded-full border border-soft-border/60 bg-white/60 backdrop-blur-sm px-3.5 py-1.5 text-xs text-warm-gray shadow-[inset_0_1px_0_rgba(255,255,255,0.1)]">
                 <span className="h-1.5 w-1.5 rounded-full bg-accent animate-pulse" />
-                Poetry in every tongue
+                La poésie dans toutes les langues
               </span>
             </motion.div>
 
@@ -55,18 +55,16 @@ const HeroSection = React.memo(function HeroSection() {
               className="font-serif text-4xl md:text-6xl tracking-tighter leading-none text-charcoal text-balance"
               variants={itemVariants}
             >
-              Read poetry the way
+              Lisez la poésie comme
               <br />
-              <span className="italic text-charcoal/70">it was written.</span>
+              <span className="italic text-charcoal/70">elle a été écrite.</span>
             </motion.h1>
 
             <motion.p
               className="mt-6 text-base text-warm-gray leading-relaxed max-w-[52ch]"
               variants={itemVariants}
             >
-              Access poems from every era and language in their original form
-              alongside their translation. Rate, discuss, and build your personal
-              anthology with a global community of readers.
+              Accédez à des poèmes de toutes les époques et de toutes les langues dans leur version originale aux côtés de leur traduction. Notez, discutez et créez votre anthologie personnelle avec une communauté mondiale de lecteurs.
             </motion.p>
 
             <motion.div
@@ -76,7 +74,7 @@ const HeroSection = React.memo(function HeroSection() {
               <MagneticButton
                 className="inline-flex items-center gap-2 rounded-full bg-charcoal px-6 py-3 text-sm font-medium text-cream transition-colors hover:bg-ink active:scale-[0.98] active:-translate-y-[1px]"
               >
-                Start Exploring
+                Explorer
                 <ArrowRight size={16} weight="bold" />
               </MagneticButton>
 
@@ -84,7 +82,7 @@ const HeroSection = React.memo(function HeroSection() {
                 className="inline-flex items-center gap-2 rounded-full border border-soft-border px-6 py-3 text-sm font-medium text-charcoal transition-colors hover:bg-charcoal/5 active:scale-[0.98] active:-translate-y-[1px]"
               >
                 <BookOpen size={16} weight="regular" />
-                Log a Poem
+                Ajouter un poème
               </MagneticButton>
             </motion.div>
 
@@ -96,21 +94,21 @@ const HeroSection = React.memo(function HeroSection() {
                 <p className="text-2xl font-serif font-semibold text-charcoal tracking-tight">
                   42.8k
                 </p>
-                <p className="text-xs text-warm-gray/60 mt-0.5">Poems catalogued</p>
+                <p className="text-xs text-warm-gray/60 mt-0.5">Poèmes catalogués</p>
               </div>
               <div className="h-8 w-px bg-soft-border/60" />
               <div>
                 <p className="text-2xl font-serif font-semibold text-charcoal tracking-tight">
                   127
                 </p>
-                <p className="text-xs text-warm-gray/60 mt-0.5">Languages</p>
+                <p className="text-xs text-warm-gray/60 mt-0.5">Langues</p>
               </div>
               <div className="h-8 w-px bg-soft-border/60" />
               <div>
                 <p className="text-2xl font-serif font-semibold text-charcoal tracking-tight">
                   18.3k
                 </p>
-                <p className="text-xs text-warm-gray/60 mt-0.5">Active readers</p>
+                <p className="text-xs text-warm-gray/60 mt-0.5">Lecteurs actifs</p>
               </div>
             </motion.div>
           </motion.div>

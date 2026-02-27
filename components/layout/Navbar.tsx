@@ -13,9 +13,9 @@ import {
 import OdeLogo from "@/components/ui/OdeLogo";
 
 const navLinks = [
-  { label: "Explore", icon: Compass, href: "#explore" },
-  { label: "My Lists", icon: ListBullets, href: "#lists" },
-  { label: "Log a Poem", icon: PencilLine, href: "#log" },
+  { label: "Explorer", icon: Compass, href: "#explore" },
+  { label: "Mes Listes", icon: ListBullets, href: "#lists" },
+  { label: "Ajouter", icon: PencilLine, href: "#log" },
 ];
 
 const Navbar = React.memo(function Navbar() {
@@ -34,11 +34,10 @@ const Navbar = React.memo(function Navbar() {
   return (
     <>
       <motion.header
-        className={`fixed top-0 left-0 right-0 z-40 transition-all duration-500 ${
-          scrolled
+        className={`fixed top-0 left-0 right-0 z-40 transition-all duration-500 ${scrolled
             ? "bg-cream/70 backdrop-blur-xl border-b border-soft-border/40 shadow-[0_1px_3px_rgba(0,0,0,0.04)]"
             : "bg-transparent"
-        }`}
+          }`}
         initial={{ y: -80 }}
         animate={{ y: 0 }}
         transition={{
@@ -54,9 +53,8 @@ const Navbar = React.memo(function Navbar() {
 
           <div className="hidden md:flex flex-1 max-w-md mx-8">
             <div
-              className={`relative w-full transition-all duration-300 ${
-                searchFocused ? "scale-[1.02]" : "scale-100"
-              }`}
+              className={`relative w-full transition-all duration-300 ${searchFocused ? "scale-[1.02]" : "scale-100"
+                }`}
             >
               <MagnifyingGlass
                 size={16}
@@ -65,7 +63,7 @@ const Navbar = React.memo(function Navbar() {
               />
               <input
                 type="text"
-                placeholder="Search for a poem, author, or emotion..."
+                placeholder="Rechercher un poème, un auteur ou une émotion..."
                 className="w-full rounded-full bg-white/60 border border-soft-border/60 shadow-[inset_0_1px_0_rgba(255,255,255,0.1)] backdrop-blur-sm py-2.5 pl-10 pr-4 text-sm text-charcoal placeholder:text-warm-gray/50 outline-none transition-all duration-300 focus:bg-white focus:border-soft-border focus:shadow-[0_0_0_3px_rgba(184,84,80,0.08)]"
                 onFocus={() => setSearchFocused(true)}
                 onBlur={() => setSearchFocused(false)}
@@ -133,7 +131,7 @@ const Navbar = React.memo(function Navbar() {
                   />
                   <input
                     type="text"
-                    placeholder="Search poems, authors, emotions..."
+                    placeholder="Rechercher des poèmes, auteurs..."
                     className="w-full rounded-full bg-white border border-soft-border py-3 pl-10 pr-4 text-sm text-charcoal placeholder:text-warm-gray/50 outline-none focus:border-accent/30"
                   />
                 </div>
@@ -171,8 +169,8 @@ const Navbar = React.memo(function Navbar() {
                   V
                 </div>
                 <div>
-                  <p className="text-sm font-medium text-charcoal">Profile</p>
-                  <p className="text-xs text-warm-gray">View your library</p>
+                  <p className="text-sm font-medium text-charcoal">Profil</p>
+                  <p className="text-xs text-warm-gray">Voir votre bibliothèque</p>
                 </div>
               </motion.div>
             </div>

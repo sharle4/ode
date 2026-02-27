@@ -48,14 +48,14 @@ const BilingualSpotlight = React.memo(function BilingualSpotlight() {
           <div className="flex items-center gap-3 mb-3">
             <span className="h-px flex-1 max-w-[40px] bg-accent/40" />
             <span className="text-xs uppercase tracking-[0.2em] text-accent font-medium">
-              Poem of the Day
+              Poème du jour
             </span>
           </div>
           <h2 className="font-serif text-2xl md:text-3xl tracking-tight text-charcoal">
             {poem.title}
           </h2>
           <div className="mt-2 flex items-center gap-3">
-            <p className="text-sm text-warm-gray">by {poem.author}</p>
+            <p className="text-sm text-warm-gray">par {poem.author}</p>
             <div className="flex items-center gap-1.5">
               <Globe size={14} className="text-warm-gray/50" />
               <span className="text-xs text-warm-gray/50">
@@ -88,7 +88,7 @@ const BilingualSpotlight = React.memo(function BilingualSpotlight() {
             <div className="absolute -left-4 top-0 bottom-0 w-px bg-gradient-to-b from-soft-border via-soft-border/30 to-transparent hidden md:block" />
 
             <p className="text-xs uppercase tracking-[0.15em] text-warm-gray/50 mb-4 font-medium">
-              Translation -- English
+              Traduction -- Français
             </p>
 
             <p className="font-serif text-xl md:text-2xl leading-loose text-charcoal/60 italic whitespace-pre-line">
@@ -111,7 +111,7 @@ const BilingualSpotlight = React.memo(function BilingualSpotlight() {
           <div className="h-4 w-px bg-soft-border/60" />
 
           <span className="text-sm text-warm-gray/60 font-mono">
-            {poem.totalLogs.toLocaleString()} readers
+            {poem.totalLogs.toLocaleString()} lecteurs
           </span>
 
           <div className="h-4 w-px bg-soft-border/60" />
@@ -126,7 +126,7 @@ const BilingualSpotlight = React.memo(function BilingualSpotlight() {
             }}
           >
             <BookmarkSimple size={16} weight="regular" />
-            Save to list
+            Enregistrer
           </motion.button>
         </motion.div>
       </div>

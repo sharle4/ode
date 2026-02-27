@@ -21,9 +21,9 @@ const playfair = Playfair_Display({
 });
 
 export const metadata: Metadata = {
-  title: "ode -- Poetry as a Living Experience",
+  title: "ode -- La poésie comme expérience vivante",
   description:
-    "Rate, discover, and discuss poetry from every language and era. A social platform for verse, where poems live in their original tongue and in translation.",
+    "Notez, découvrez et discutez de poèmes de toutes les langues et époques. Une plateforme sociale pour la poésie, où les vers vivent dans leur langue d'origine comme en traduction.",
 };
 
 export default function RootLayout({

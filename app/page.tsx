@@ -16,14 +16,14 @@ export default function Home() {
 
         <div id="explore">
           <TrendingRow
-            title="Trending This Week"
-            subtitle="The most-logged poems across the global community"
+            title="Tendances de la semaine"
+            subtitle="Les poèmes les plus partagés par la communauté mondiale"
             poems={trendingPoems}
           />
 
           <TrendingRow
-            title="Curated for You: Japanese Haikus"
-            subtitle="Based on your recent activity and taste profile"
+            title="Sélection pour vous : Haïkus japonais"
+            subtitle="Basé sur votre activité récente et vos préférences"
             poems={curatedHaikus}
           />
         </div>

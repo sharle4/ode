@@ -3,39 +3,39 @@ import OdeLogo from "@/components/ui/OdeLogo";
 
 const footerColumns = [
   {
-    title: "About",
+    title: "À propos",
     links: [
-      { label: "Our Story", href: "#" },
-      { label: "How It Works", href: "#" },
-      { label: "Careers", href: "#" },
-      { label: "Press", href: "#" },
+      { label: "Notre Histoire", href: "#" },
+      { label: "Comment ça marche", href: "#" },
+      { label: "Carrières", href: "#" },
+      { label: "Presse", href: "#" },
     ],
   },
   {
-    title: "Community",
+    title: "Communauté",
     links: [
-      { label: "Trending Poems", href: "#" },
-      { label: "Discussion", href: "#" },
-      { label: "Curated Lists", href: "#" },
-      { label: "Contributors", href: "#" },
+      { label: "Poèmes Populaires", href: "#" },
+      { label: "Discussions", href: "#" },
+      { label: "Sélections", href: "#" },
+      { label: "Contributeurs", href: "#" },
     ],
   },
   {
-    title: "Legal",
+    title: "Légal",
     links: [
-      { label: "Privacy Policy", href: "#" },
-      { label: "Terms of Service", href: "#" },
-      { label: "Copyright", href: "#" },
-      { label: "Accessibility", href: "#" },
+      { label: "Confidentialité", href: "#" },
+      { label: "Conditions d'utilisation", href: "#" },
+      { label: "Droits d'auteur", href: "#" },
+      { label: "Accessibilité", href: "#" },
     ],
   },
   {
-    title: "Connect",
+    title: "Contact",
     links: [
       { label: "Newsletter", href: "#" },
       { label: "GitHub", href: "#" },
       { label: "Mastodon", href: "#" },
-      { label: "RSS Feed", href: "#" },
+      { label: "Flux RSS", href: "#" },
     ],
   },
 ];
@@ -71,10 +71,10 @@ export default function Footer() {
             <OdeLogo width="100%" height="auto" />
           </div>
           <p className="text-xs text-warm-gray/50 text-center max-w-[40ch]">
-            Poetry belongs to everyone. Read it in the language it was born in.
+            La poésie appartient à tous. Lisez-la dans sa langue d'origine.
           </p>
           <p className="text-[11px] text-warm-gray/30 font-mono">
-            2026 ode. All rights reserved.
+            2026 ode. Tous droits réservés.
           </p>
         </div>
       </div>

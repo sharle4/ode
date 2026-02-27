@@ -13,10 +13,10 @@ interface ActivityCardProps {
 
 function ActionLabel({ action }: { action: CommunityActivity["action"] }) {
   const labels: Record<CommunityActivity["action"], string> = {
-    logged: "logged",
-    rated: "rated",
-    "added to list": "added to list",
-    reviewed: "reviewed",
+    logged: "a enregistré",
+    rated: "a noté",
+    "added to list": "a ajouté à une liste",
+    reviewed: "a commenté",
   };
   return (
     <span className="text-warm-gray text-sm">{labels[action]}</span>
@@ -62,7 +62,7 @@ const ActivityCard = React.memo(function ActivityCard({
               {activity.poemTitle}
             </span>
             <span className="text-warm-gray text-xs">
-              by {activity.poemAuthor}
+              de {activity.poemAuthor}
             </span>
           </div>
 

@@ -6,7 +6,7 @@ export const poems: Poem[] = [
     title: "Tonight I Can Write",
     originalTitle: "Poema 20",
     author: "Pablo Neruda",
-    originalLanguage: "Spanish",
+    originalLanguage: "Espagnol",
     coverGradient: "from-stone-800 via-stone-700 to-amber-900/40",
     averageRating: 4.7,
     totalLogs: 12847,
@@ -14,7 +14,7 @@ export const poems: Poem[] = [
       original:
         "Puedo escribir los versos mas tristes esta noche.\nEscribir, por ejemplo: La noche esta estrellada,\ny tiritan, azules, los astros, a lo lejos.",
       translation:
-        "Tonight I can write the saddest lines.\nWrite, for example: The night is starry,\nand the blue stars shiver in the distance.",
+        "Ce soir, je peux écrire les vers les plus tristes.\nÉcrire, par exemple : La nuit est étoilée,\net les étoiles bleues frissonnent au loin.",
     },
   },
   {
@@ -22,7 +22,7 @@ export const poems: Poem[] = [
     title: "Invitation to the Voyage",
     originalTitle: "L'Invitation au voyage",
     author: "Charles Baudelaire",
-    originalLanguage: "French",
+    originalLanguage: "Français",
     coverGradient: "from-zinc-900 via-slate-800 to-rose-900/30",
     averageRating: 4.5,
     totalLogs: 9432,
@@ -30,7 +30,7 @@ export const poems: Poem[] = [
       original:
         "Mon enfant, ma soeur,\nSonge a la douceur\nD'aller la-bas vivre ensemble!",
       translation:
-        "My child, my sister,\nThink of the sweetness\nOf going there to live together!",
+        "Mon enfant, ma sœur,\nSonge à la douceur\nD'aller là-bas vivre ensemble !",
     },
   },
   {
@@ -38,20 +38,20 @@ export const poems: Poem[] = [
     title: "The Old Pond",
     originalTitle: "Furu ike ya",
     author: "Matsuo Basho",
-    originalLanguage: "Japanese",
+    originalLanguage: "Japonais",
     coverGradient: "from-emerald-950 via-slate-800 to-stone-900",
     averageRating: 4.8,
     totalLogs: 15203,
     snippet: {
       original: "Furu ike ya\nkawazu tobikomu\nmizu no oto",
-      translation: "An old silent pond\nA frog jumps into the pond\nSplash! Silence again",
+      translation: "Un vieil étang silencieux\nUne grenouille y plonge\nPlouf ! De nouveau le silence",
     },
   },
   {
     id: "poem-004",
     title: "Because I could not stop for Death",
     author: "Emily Dickinson",
-    originalLanguage: "English",
+    originalLanguage: "Anglais",
     coverGradient: "from-slate-900 via-zinc-800 to-neutral-700",
     averageRating: 4.6,
     totalLogs: 11876,
@@ -59,7 +59,7 @@ export const poems: Poem[] = [
       original:
         "Because I could not stop for Death --\nHe kindly stopped for me --\nThe Carriage held but just Ourselves --\nAnd Immortality.",
       translation:
-        "Because I could not stop for Death --\nHe kindly stopped for me --\nThe Carriage held but just Ourselves --\nAnd Immortality.",
+        "Parce que je ne pouvais m'arrêter pour la Mort --\nElle s'est gentiment arrêtée pour moi --\nLa diligence ne contenait que Nous --\nEt l'Immortalité.",
     },
   },
   {
@@ -67,7 +67,7 @@ export const poems: Poem[] = [
     title: "The Guest House",
     originalTitle: "Mihman-khaneh",
     author: "Jalal al-Din Rumi",
-    originalLanguage: "Persian",
+    originalLanguage: "Persan",
     coverGradient: "from-amber-950 via-orange-900/60 to-stone-900",
     averageRating: 4.9,
     totalLogs: 18492,
@@ -75,14 +75,14 @@ export const poems: Poem[] = [
       original:
         "Har ruz sahar mihmani tazeh miresad.\nShadi, depress, badkhaahi.",
       translation:
-        "Every morning a new arrival.\nA joy, a depression, a meanness.",
+        "Chaque matin un nouvel arrivant.\nUne joie, une dépression, une mesquinerie.",
     },
   },
   {
     id: "poem-006",
     title: "Lady Lazarus",
     author: "Sylvia Plath",
-    originalLanguage: "English",
+    originalLanguage: "Anglais",
     coverGradient: "from-red-950/80 via-zinc-900 to-slate-800",
     averageRating: 4.4,
     totalLogs: 8765,
@@ -90,7 +90,7 @@ export const poems: Poem[] = [
       original:
         "I have done it again.\nOne year in every ten\nI manage it --",
       translation:
-        "I have done it again.\nOne year in every ten\nI manage it --",
+        "Je l'ai encore fait.\nUne année sur dix\nJ'y arrive --",
     },
   },
   {
@@ -98,7 +98,7 @@ export const poems: Poem[] = [
     title: "The Drunken Boat",
     originalTitle: "Le Bateau ivre",
     author: "Arthur Rimbaud",
-    originalLanguage: "French",
+    originalLanguage: "Français",
     coverGradient: "from-blue-950/70 via-slate-800 to-zinc-900",
     averageRating: 4.3,
     totalLogs: 7298,
@@ -106,14 +106,14 @@ export const poems: Poem[] = [
       original:
         "Comme je descendais des Fleuves impassibles,\nJe ne me sentis plus guide par les haleurs.",
       translation:
-        "As I descended impassive Rivers,\nI felt no longer guided by the haulers.",
+        "Comme je descendais des Fleuves impassibles,\nJe ne me sentis plus guidé par les haleurs.",
     },
   },
   {
     id: "poem-008",
     title: "The Second Coming",
     author: "W.B. Yeats",
-    originalLanguage: "English",
+    originalLanguage: "Anglais",
     coverGradient: "from-stone-900 via-neutral-800 to-zinc-800",
     averageRating: 4.7,
     totalLogs: 13456,
@@ -121,7 +121,7 @@ export const poems: Poem[] = [
       original:
         "Turning and turning in the widening gyre\nThe falcon cannot hear the falconer;\nThings fall apart; the centre cannot hold.",
       translation:
-        "Turning and turning in the widening gyre\nThe falcon cannot hear the falconer;\nThings fall apart; the centre cannot hold.",
+        "Tournant et tournant dans la spirale grandissante\nLe faucon ne peut entendre le fauconnier ;\nLes choses s'effondrent ; le centre ne peut plus tenir.",
     },
   },
   {
@@ -129,7 +129,7 @@ export const poems: Poem[] = [
     title: "Quiet Night Thought",
     originalTitle: "Jing Ye Si",
     author: "Li Bai",
-    originalLanguage: "Chinese",
+    originalLanguage: "Chinois",
     coverGradient: "from-indigo-950/60 via-slate-900 to-stone-800",
     averageRating: 4.6,
     totalLogs: 10234,
@@ -137,14 +137,14 @@ export const poems: Poem[] = [
       original:
         "Chuang qian ming yue guang,\nYi shi di shang shuang.\nJu tou wang ming yue,\nDi tou si gu xiang.",
       translation:
-        "Bright moonlight before my bed,\nI suspect it is frost on the ground.\nI raise my head to gaze at the bright moon,\nThen lower it, thinking of home.",
+        "Brillante lumière de lune devant mon lit,\nJe soupçonne que ce soit du givre sur le sol.\nJe lève la tête pour contempler la lune brillante,\nPuis je la baisse, en pensant à mon foyer.",
     },
   },
   {
     id: "poem-010",
     title: "Fragment 31",
     author: "Sappho",
-    originalLanguage: "Ancient Greek",
+    originalLanguage: "Grec Ancien",
     coverGradient: "from-rose-950/50 via-stone-800 to-zinc-900",
     averageRating: 4.5,
     totalLogs: 6543,
@@ -152,7 +152,7 @@ export const poems: Poem[] = [
       original:
         "Phainetai moi kenos isos theoisin\nemmen oner, ottis enantios toi\nisdanei.",
       translation:
-        "He seems to me equal to the gods,\nthat man who sits across from you\nand listens.",
+        "Il me semble égal aux dieux,\ncet homme qui s'assied en face de toi\net t'écoute.",
     },
   },
   {
@@ -160,7 +160,7 @@ export const poems: Poem[] = [
     title: "Sleepwalking Ballad",
     originalTitle: "Romance sonambulo",
     author: "Federico Garcia Lorca",
-    originalLanguage: "Spanish",
+    originalLanguage: "Espagnol",
     coverGradient: "from-emerald-950/50 via-zinc-900 to-slate-800",
     averageRating: 4.8,
     totalLogs: 9871,
@@ -168,14 +168,14 @@ export const poems: Poem[] = [
       original:
         "Verde que te quiero verde.\nVerde viento. Verdes ramas.\nEl barco sobre la mar\ny el caballo en la montana.",
       translation:
-        "Green, how I want you green.\nGreen wind. Green branches.\nThe ship upon the sea\nand the horse on the mountain.",
+        "Vert, comme je te veux vert.\nVent vert. Branches vertes.\nLe bateau sur la mer\net le cheval dans la montagne.",
     },
   },
   {
     id: "poem-012",
     title: "Song of Myself",
     author: "Walt Whitman",
-    originalLanguage: "English",
+    originalLanguage: "Anglais",
     coverGradient: "from-teal-950/40 via-stone-900 to-neutral-800",
     averageRating: 4.4,
     totalLogs: 14532,
@@ -183,14 +183,14 @@ export const poems: Poem[] = [
       original:
         "I celebrate myself, and sing myself,\nAnd what I assume you shall assume,\nFor every atom belonging to me as good belongs to you.",
       translation:
-        "I celebrate myself, and sing myself,\nAnd what I assume you shall assume,\nFor every atom belonging to me as good belongs to you.",
+        "Je me célèbre et je me chante,\net ce que j'assume vous devrez l'assumer,\ncar chaque atome m'appartenant vous appartient aussi bien.",
     },
   },
   {
     id: "poem-013",
     title: "Ode to a Nightingale",
     author: "John Keats",
-    originalLanguage: "English",
+    originalLanguage: "Anglais",
     coverGradient: "from-violet-950/40 via-slate-900 to-zinc-800",
     averageRating: 4.6,
     totalLogs: 11298,
@@ -198,7 +198,7 @@ export const poems: Poem[] = [
       original:
         "My heart aches, and a drowsy numbness pains\nMy sense, as though of hemlock I had drunk.",
       translation:
-        "My heart aches, and a drowsy numbness pains\nMy sense, as though of hemlock I had drunk.",
+        "Mon cœur souffre, et une torpeur endormie fait mal\nÀ mes sens, comme si de la pruche j'avais bu.",
     },
   },
   {
@@ -206,7 +206,7 @@ export const poems: Poem[] = [
     title: "Requiem",
     originalTitle: "Rekviem",
     author: "Anna Akhmatova",
-    originalLanguage: "Russian",
+    originalLanguage: "Russe",
     coverGradient: "from-sky-950/40 via-zinc-900 to-stone-800",
     averageRating: 4.7,
     totalLogs: 7654,
@@ -214,7 +214,7 @@ export const poems: Poem[] = [
       original:
         "Net, i ne pod chuzhim nebesvodom,\nI ne pod zashchitoi chuzhikh kryl,--\nYa byla togda s moim narodom,\nTam, gde moi narod, k neschastyu, byl.",
       translation:
-        "No, not under an alien sky,\nNot sheltered by alien wings --\nI was with my people then,\nThere, where my people, unhappily, were.",
+        "Non, pas sous un ciel étranger,\nNi à l'abri d'ailes étrangères --\nJ'étais avec mon peuple alors,\nLà où mon peuple, par malheur, se trouvait.",
     },
   },
   {
@@ -222,7 +222,7 @@ export const poems: Poem[] = [
     title: "Tobacco Shop",
     originalTitle: "Tabacaria",
     author: "Fernando Pessoa",
-    originalLanguage: "Portuguese",
+    originalLanguage: "Portugais",
     coverGradient: "from-yellow-950/30 via-stone-900 to-slate-800",
     averageRating: 4.3,
     totalLogs: 5432,
@@ -230,7 +230,7 @@ export const poems: Poem[] = [
       original:
         "Nao sou nada.\nNunca serei nada.\nNao posso querer ser nada.\nA parte isso, tenho em mim todos os sonhos do mundo.",
       translation:
-        "I am nothing.\nI shall never be anything.\nI cannot wish to be anything.\nAside from that, I have within me all the dreams of the world.",
+        "Je ne suis rien.\nJe ne serai jamais rien.\nJe ne peux vouloir être rien.\nÀ part ça, j'ai en moi tous les rêves du monde.",
     },
   },
 ];
@@ -247,8 +247,8 @@ export const communityActivities: CommunityActivity[] = [
     poemAuthor: "W.B. Yeats",
     rating: 4.5,
     reviewText:
-      "A mesmerizing descent into fragmentation. Yeats captures the collapse of civilization with imagery so precise it brands itself into your memory. The falcon metaphor alone carries the weight of an entire philosophy.",
-    timestamp: "2h ago",
+      "Une descente hypnotique vers la fragmentation. Yeats capture l'effondrement de la civilisation avec des images si précises qu'elles se gravent dans votre mémoire. La métaphore du faucon porte à elle seule le poids d'une philosophie entière.",
+    timestamp: "il y a 2h",
     likes: 47,
     comments: 12,
   },
@@ -261,7 +261,7 @@ export const communityActivities: CommunityActivity[] = [
     action: "logged",
     poemTitle: "The Old Pond",
     poemAuthor: "Matsuo Basho",
-    timestamp: "3h ago",
+    timestamp: "il y a 3h",
     likes: 23,
     comments: 4,
   },
@@ -276,8 +276,8 @@ export const communityActivities: CommunityActivity[] = [
     poemAuthor: "Sylvia Plath",
     rating: 5,
     reviewText:
-      "Plath writes with a ferocity that makes you feel the heat of the oven. Every stanza is a controlled explosion. This is not poetry -- it is a reckoning.",
-    timestamp: "4h ago",
+      "Plath écrit avec une férocité qui vous fait ressentir la chaleur du four. Chaque strophe est une explosion contrôlée. Ce n'est pas de la poésie -- c'est une reddition de comptes.",
+    timestamp: "il y a 4h",
     likes: 89,
     comments: 31,
   },
@@ -290,7 +290,7 @@ export const communityActivities: CommunityActivity[] = [
     action: "added to list",
     poemTitle: "Fragment 31",
     poemAuthor: "Sappho",
-    timestamp: "5h ago",
+    timestamp: "il y a 5h",
     likes: 15,
     comments: 2,
   },
@@ -305,8 +305,8 @@ export const communityActivities: CommunityActivity[] = [
     poemAuthor: "Federico Garcia Lorca",
     rating: 4,
     reviewText:
-      "Green pervades everything. Lorca paints with a single word and builds an entire dreamscape around it. The repetition is hypnotic, each verse pulling you deeper into a trance that never fully releases.",
-    timestamp: "6h ago",
+      "Le vert imprègne tout. Lorca peint avec un seul mot et construit un tout nouveau paysage onirique autour de lui. La répétition est hypnotique, chaque vers vous plongeant plus profondément dans une transe qui ne vous lâche jamais.",
+    timestamp: "il y a 6h",
     likes: 56,
     comments: 18,
   },
@@ -320,7 +320,7 @@ export const communityActivities: CommunityActivity[] = [
     poemTitle: "Invitation to the Voyage",
     poemAuthor: "Charles Baudelaire",
     rating: 4.5,
-    timestamp: "7h ago",
+    timestamp: "il y a 7h",
     likes: 34,
     comments: 8,
   },
@@ -335,8 +335,8 @@ export const communityActivities: CommunityActivity[] = [
     poemAuthor: "Jalal al-Din Rumi",
     rating: 5,
     reviewText:
-      "Rumi distills centuries of Sufi wisdom into a single metaphor. The guest house is not just a poem -- it is a practice. I return to it weekly and each reading peels back a new layer of meaning.",
-    timestamp: "9h ago",
+      "Rûmî distille des siècles de sagesse soufie dans une seule métaphore. La maison d'hôtes n'est pas juste un poème -- c'est une pratique. J'y reviens chaque semaine et chaque lecture dévoile une nouvelle couche de signification.",
+    timestamp: "il y a 9h",
     likes: 112,
     comments: 42,
   },
@@ -351,8 +351,8 @@ export const communityActivities: CommunityActivity[] = [
     poemAuthor: "Fernando Pessoa",
     rating: 4.5,
     reviewText:
-      "Pessoa stares into the void and the void hands him a cigarette. The opening lines are among the most devastatingly honest in all of literature. A monument to existential clarity.",
-    timestamp: "11h ago",
+      "Pessoa regarde dans le vide et le vide lui tend une cigarette. Les premiers vers comptent parmi les plus honnêtes et les plus dévastateurs de toute la littérature. Un monument à la clarté existentielle.",
+    timestamp: "il y a 11h",
     likes: 68,
     comments: 22,
   },
