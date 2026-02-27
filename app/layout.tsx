@@ -21,9 +21,9 @@ const playfair = Playfair_Display({
 });
 
 export const metadata: Metadata = {
-  title: "ode -- La poésie comme expérience vivante",
+  title: "ode -- La plus grande communauté de poésie",
   description:
-    "Notez, découvrez et discutez de poèmes de toutes les langues et époques. Une plateforme sociale pour la poésie, où les vers vivent dans leur langue d'origine comme en traduction.",
+    "Explorez la plus grande base de données de poèmes au monde. Notez, découvrez et discutez de poèmes de toutes les époques avec une communauté de lecteurs passionnés.",
 };
 
 export default function RootLayout({

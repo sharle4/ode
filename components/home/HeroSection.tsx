@@ -47,7 +47,7 @@ const HeroSection = React.memo(function HeroSection() {
             >
               <span className="inline-flex items-center gap-2 rounded-full border border-soft-border/60 bg-white/60 backdrop-blur-sm px-3.5 py-1.5 text-xs text-warm-gray shadow-[inset_0_1px_0_rgba(255,255,255,0.1)]">
                 <span className="h-1.5 w-1.5 rounded-full bg-accent animate-pulse" />
-                La poésie dans toutes les langues
+                La plus grande base de données de poésie
               </span>
             </motion.div>
 
@@ -55,16 +55,16 @@ const HeroSection = React.memo(function HeroSection() {
               className="font-serif text-4xl md:text-6xl tracking-tighter leading-none text-charcoal text-balance"
               variants={itemVariants}
             >
-              Lisez la poésie comme
+              Découvrez, notez et
               <br />
-              <span className="italic text-charcoal/70">elle a été écrite.</span>
+              <span className="italic text-charcoal/70">partagez la poésie.</span>
             </motion.h1>
 
             <motion.p
               className="mt-6 text-base text-warm-gray leading-relaxed max-w-[52ch]"
               variants={itemVariants}
             >
-              Accédez à des poèmes de toutes les époques et de toutes les langues dans leur version originale aux côtés de leur traduction. Notez, discutez et créez votre anthologie personnelle avec une communauté mondiale de lecteurs.
+              Explorez la plus grande base de données de poèmes au monde. Lisez des œuvres de toutes les époques, notez vos coups de cœur et créez votre propre anthologie avec notre communauté de lecteurs passionnés.
             </motion.p>
 
             <motion.div

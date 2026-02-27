@@ -71,7 +71,7 @@ export default function Footer() {
             <OdeLogo width="100%" height="auto" />
           </div>
           <p className="text-xs text-warm-gray/50 text-center max-w-[40ch]">
-            La poésie appartient à tous. Lisez-la dans sa langue d'origine.
+            La poésie appartient à tous. Rejoignez la plus grande communauté de lecteurs au monde.
           </p>
           <p className="text-[11px] text-warm-gray/30 font-mono">
             2026 ode. Tous droits réservés.
