@@ -103,7 +103,7 @@ async function preloadData() {
         let { data, error } = await supabase.from('collections').select('id, title, author_id, wikipedia_page_id').range(offset, offset + limit - 1);
         if (error) { console.error("Error preloading collections", error); break; }
         data?.forEach(c => {
-            const key = c.wikipedia_page_id ? `page_${c.wikipedia_page_id}` : `author_${c.author_id}_title_${c.title}`;
+            const key = c.wikipedia_page_id ? `page_${c.wikipedia_page_id}` : `title_${c.title}`;
             collectionsMap.set(key, { id: c.id, author_id: c.author_id });
         });
         hasMore = data?.length === limit;
@@ -165,7 +165,7 @@ async function getOrCreateCollection(collectionTitle, authorId, publicationYear,
     if (!collectionTitle) return null;
 
     let pageId = collectionStructure?.page_id || null;
-    const key = pageId ? `page_${pageId}` : `author_${authorId}_title_${collectionTitle}`;
+    const key = pageId ? `page_${pageId}` : `title_${collectionTitle}`;
 
     if (collectionsMap.has(key)) {
         const coll = collectionsMap.get(key);
