@@ -1,0 +1,16 @@
+{
+  "stats": {
+    "totalLines": 27925,
+    "insertedPoems": 27925,
+    "skippedDuplicates": 0,
+    "missingAuthorRecovered": 581,
+    "errors": {
+      "parse": 0,
+      "authors": 0,
+      "collections": 0,
+      "poems": 0,
+      "slugs": 0
+    }
+  },
+  "failedPoems": []
+}

@@ -20,7 +20,7 @@ create table public.authors (
 create table public.collections (
     id uuid primary key default gen_random_uuid(),
     title text not null,
-    author_id uuid references public.authors(id) on delete cascade not null,
+    author_id uuid references public.authors(id) on delete cascade,
     publication_year int,
     summary text,
     cover_url text,

@@ -100,9 +100,12 @@ async function preloadData() {
     // 2. Collections
     offset = 0; hasMore = true;
     while (hasMore) {
-        let { data, error } = await supabase.from('collections').select('id, title, author_id').range(offset, offset + limit - 1);
+        let { data, error } = await supabase.from('collections').select('id, title, author_id, wikipedia_page_id').range(offset, offset + limit - 1);
         if (error) { console.error("Error preloading collections", error); break; }
-        data?.forEach(c => collectionsMap.set(`${c.author_id}_${c.title}`, c.id));
+        data?.forEach(c => {
+            const key = c.wikipedia_page_id ? `page_${c.wikipedia_page_id}` : `author_${c.author_id}_title_${c.title}`;
+            collectionsMap.set(key, { id: c.id, author_id: c.author_id });
+        });
         hasMore = data?.length === limit;
         offset += limit;
     }
@@ -161,10 +164,19 @@ async function getOrCreateAuthor(authorName) {
 async function getOrCreateCollection(collectionTitle, authorId, publicationYear, collectionStructure) {
     if (!collectionTitle) return null;
 
-    const key = `${authorId}_${collectionTitle}`;
-    if (collectionsMap.has(key)) return collectionsMap.get(key);
-
     let pageId = collectionStructure?.page_id || null;
+    const key = pageId ? `page_${pageId}` : `author_${authorId}_title_${collectionTitle}`;
+
+    if (collectionsMap.has(key)) {
+        const coll = collectionsMap.get(key);
+        // Si la collection existe mais que l'auteur est différent, c'est une Revue (multi-auteurs) !
+        if (coll.author_id !== null && authorId !== null && coll.author_id !== authorId) {
+            console.log(`[Collection] '${collectionTitle}' detected as multi-author. Nullifying author_id.`);
+            await supabase.from('collections').update({ author_id: null }).eq('id', coll.id);
+            coll.author_id = null; // Update en mémoire pour éviter d'update à chaque poème
+        }
+        return coll.id;
+    }
 
     try {
         const { data, error } = await supabase.from('collections')
@@ -176,7 +188,7 @@ async function getOrCreateCollection(collectionTitle, authorId, publicationYear,
             }).select('id').single();
 
         if (error) throw error;
-        collectionsMap.set(key, data.id);
+        collectionsMap.set(key, { id: data.id, author_id: authorId });
         return data.id;
     } catch (e) {
         stats.errors.collections++;
