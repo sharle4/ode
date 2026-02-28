@@ -1,11 +1,11 @@
 -- 1. EXTENSIONS
-create extension if not exists "uuid-ossp";
+-- (PostgreSQL native gen_random_uuid() is used instead of uuid-ossp)
 
 -- 2. CORE TABLES (AUTHORS, COLLECTIONS, POEMS)
 
 -- Auteurs
 create table public.authors (
-    id uuid primary key default uuid_generate_v4(),
+    id uuid primary key default gen_random_uuid(),
     name text unique not null,
     biography text,
     image_url text,
@@ -18,7 +18,7 @@ create table public.authors (
 
 -- Recueils
 create table public.collections (
-    id uuid primary key default uuid_generate_v4(),
+    id uuid primary key default gen_random_uuid(),
     title text not null,
     author_id uuid references public.authors(id) on delete cascade not null,
     publication_year int,
@@ -31,7 +31,7 @@ create table public.collections (
 
 -- Poèmes
 create table public.poems (
-    id uuid primary key default uuid_generate_v4(),
+    id uuid primary key default gen_random_uuid(),
     title text not null,
     slug text unique not null,
     author_id uuid references public.authors(id) on delete cascade not null,
@@ -43,6 +43,8 @@ create table public.poems (
     language text default 'fr' not null,
     publication_year int,
     wikisource_page_id int unique,
+    hub_title text,
+    hub_page_id int not null,
     average_rating numeric(3,2) default 0.00 not null,
     ratings_count int default 0 not null,
     created_at timestamptz default now() not null,
@@ -53,6 +55,7 @@ create table public.poems (
 create index idx_poems_author_id on public.poems(author_id);
 create index idx_poems_collection_id on public.poems(collection_id);
 create index idx_poems_slug on public.poems(slug);
+create index idx_poems_hub_page_id on public.poems(hub_page_id);
 
 
 -- 3. USERS & SOCIAL TABLES
@@ -72,7 +75,7 @@ create table public.users (
 
 -- Table de liaison Top Poèmes (max 3 par contrainte applicative, unicité sur la position garantie en DB)
 create table public.user_top_poems (
-    id uuid primary key default uuid_generate_v4(),
+    id uuid primary key default gen_random_uuid(),
     user_id uuid references public.users(id) on delete cascade not null,
     poem_id uuid references public.poems(id) on delete cascade not null,
     position int not null check (position in (1, 2, 3)),
@@ -84,7 +87,7 @@ create table public.user_top_poems (
 
 -- Table de liaison Top Auteurs
 create table public.user_top_authors (
-    id uuid primary key default uuid_generate_v4(),
+    id uuid primary key default gen_random_uuid(),
     user_id uuid references public.users(id) on delete cascade not null,
     author_id uuid references public.authors(id) on delete cascade not null,
     position int not null check (position in (1, 2, 3)),
@@ -104,7 +107,7 @@ create table public.followers (
 
 -- Ratings (Notes + Critiques fusionnées)
 create table public.ratings (
-    id uuid primary key default uuid_generate_v4(),
+    id uuid primary key default gen_random_uuid(),
     user_id uuid references public.users(id) on delete cascade not null,
     poem_id uuid references public.poems(id) on delete cascade,
     collection_id uuid references public.collections(id) on delete cascade,
@@ -135,7 +138,7 @@ create table public.review_likes (
 
 -- Commentaires sur les Reviews
 create table public.review_comments (
-    id uuid primary key default uuid_generate_v4(),
+    id uuid primary key default gen_random_uuid(),
     rating_id uuid references public.ratings(id) on delete cascade not null,
     user_id uuid references public.users(id) on delete cascade not null,
     content text not null,
@@ -154,7 +157,7 @@ create table public.review_comment_likes (
 
 -- Highlights
 create table public.highlights (
-    id uuid primary key default uuid_generate_v4(),
+    id uuid primary key default gen_random_uuid(),
     user_id uuid references public.users(id) on delete cascade not null,
     poem_id uuid references public.poems(id) on delete cascade not null,
     stanza_index int not null,
@@ -170,7 +173,7 @@ create table public.highlights (
 -- 4. LISTS & CURATION
 
 create table public.lists (
-    id uuid primary key default uuid_generate_v4(),
+    id uuid primary key default gen_random_uuid(),
     user_id uuid references public.users(id) on delete cascade not null,
     title text not null,
     description text,
@@ -197,7 +200,7 @@ create table public.list_likes (
 );
 
 create table public.tags (
-    id uuid primary key default uuid_generate_v4(),
+    id uuid primary key default gen_random_uuid(),
     name text unique not null,
     category text, -- 'theme', 'form', 'movement'
     created_at timestamptz default now() not null
@@ -209,6 +212,22 @@ create table public.poem_tags (
     primary key (poem_id, tag_id)
 );
 
+-- Index suggérés pour optimiser les jointures FK et interdire les full table scans on delete cascade
+create index idx_ratings_user_id on public.ratings(user_id);
+create index idx_ratings_poem_id on public.ratings(poem_id);
+create index idx_ratings_collection_id on public.ratings(collection_id);
+
+create index idx_review_comments_rating_id on public.review_comments(rating_id);
+
+create index idx_highlights_user_id on public.highlights(user_id);
+create index idx_highlights_poem_id on public.highlights(poem_id);
+
+create index idx_list_items_list_id on public.list_items(list_id);
+create index idx_lists_user_id on public.lists(user_id);
+
+create index idx_user_top_poems_user_id on public.user_top_poems(user_id);
+create index idx_user_top_authors_user_id on public.user_top_authors(user_id);
+
 create table public.daily_poems (
     date date primary key,
     poem_id uuid references public.poems(id) on delete cascade not null,
@@ -219,7 +238,7 @@ create table public.daily_poems (
 -- 5. GAMIFICATION & NOTIFICATIONS
 
 create table public.badges (
-    id uuid primary key default uuid_generate_v4(),
+    id uuid primary key default gen_random_uuid(),
     name text unique not null,
     description text not null,
     icon_url text,
@@ -236,7 +255,7 @@ create table public.user_badges (
 );
 
 create table public.notifications (
-    id uuid primary key default uuid_generate_v4(),
+    id uuid primary key default gen_random_uuid(),
     user_id uuid references public.users(id) on delete cascade not null, -- receiver
     actor_id uuid references public.users(id) on delete set null, -- sender
     type text not null, -- 'new_follower', 'review_like', 'new_comment', 'badge_earned'

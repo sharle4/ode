@@ -161,7 +161,7 @@ async function processLine(line) {
             .maybeSingle();
 
         if (existingPoem) {
-            // console.log(`Poem already exists: ${poemData.title}`);
+            console.log(`Poem already exists: ${poemData.title}`);
             return; // Skip duplicate
         }
 
