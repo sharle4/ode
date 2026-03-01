@@ -56,7 +56,8 @@ const POEMS_FILE_PATH = path.join(__dirname, '..', 'poems', 'poems.cleaned.jsonl
 // --- In-Memory Caches ---
 // We preload data to avoid 50,000+ sequential GET requests that exhaust local ports. 
 const authorsMap = new Map(); // name -> author_id
-const collectionsMap = new Map(); // author_id_title -> collection_id
+const authorIdToNameMap = new Map(); // author_id -> name
+const collectionsMap = new Map(); // collection key -> collection_id
 const existingPoemIds = new Set(); // wikisource_page_id
 const usedSlugs = new Set(); // slug
 
@@ -85,7 +86,10 @@ async function preloadData() {
     while (hasMore) {
         let { data, error } = await supabase.from('authors').select('id, name').range(offset, offset + limit - 1);
         if (error) { console.error("Error preloading authors", error); break; }
-        data?.forEach(a => authorsMap.set(a.name, a.id));
+        data?.forEach(a => {
+            authorsMap.set(a.name, a.id);
+            authorIdToNameMap.set(a.id, a.name);
+        });
         hasMore = data?.length === limit;
         offset += limit;
     }
@@ -93,7 +97,10 @@ async function preloadData() {
     // Create unknown author if missing
     if (!authorsMap.has(UNKNOWN_AUTHOR)) {
         const { data } = await supabase.from('authors').insert({ name: UNKNOWN_AUTHOR }).select('id').single();
-        if (data) authorsMap.set(UNKNOWN_AUTHOR, data.id);
+        if (data) {
+            authorsMap.set(UNKNOWN_AUTHOR, data.id);
+            authorIdToNameMap.set(data.id, UNKNOWN_AUTHOR);
+        }
     }
     console.log(`✅ Loaded ${authorsMap.size} authors.`);
 
@@ -154,6 +161,7 @@ async function getOrCreateAuthor(authorName) {
         const { data, error } = await supabase.from('authors').insert({ name: authorName }).select('id').single();
         if (error) throw error;
         authorsMap.set(authorName, data.id);
+        authorIdToNameMap.set(data.id, authorName);
         return data.id;
     } catch (e) {
         stats.errors.authors++;
@@ -169,11 +177,23 @@ async function getOrCreateCollection(collectionTitle, authorId, publicationYear,
 
     if (collectionsMap.has(key)) {
         const coll = collectionsMap.get(key);
-        // Si la collection existe mais que l'auteur est différent, c'est une Revue (multi-auteurs) !
+        // Si la collection existe mais que l'auteur est différent, c'est potentiellement une Revue (multi-auteurs)
         if (coll.author_id !== null && authorId !== null && coll.author_id !== authorId) {
-            console.log(`[Collection] '${collectionTitle}' detected as multi-author. Nullifying author_id.`);
-            await supabase.from('collections').update({ author_id: null }).eq('id', coll.id);
-            coll.author_id = null; // Update en mémoire pour éviter d'update à chaque poème
+            const oldAuthor = authorIdToNameMap.get(coll.author_id) || coll.author_id;
+            const newAuthor = authorIdToNameMap.get(authorId) || authorId;
+
+            if (oldAuthor === UNKNOWN_AUTHOR && newAuthor !== UNKNOWN_AUTHOR) {
+                console.log(`[Collection] '${collectionTitle}' updating author from '${UNKNOWN_AUTHOR}' to '${newAuthor}'.`);
+                await supabase.from('collections').update({ author_id: authorId }).eq('id', coll.id);
+                coll.author_id = authorId;
+            } else if (oldAuthor !== UNKNOWN_AUTHOR && newAuthor === UNKNOWN_AUTHOR) {
+                console.log(`[Collection] '${collectionTitle}' ignoring '${UNKNOWN_AUTHOR}' to keep '${oldAuthor}'.`);
+                // Do nothing, keep proper author
+            } else {
+                console.log(`[Collection] '${collectionTitle}' detected as multi-author. Conflict between '${oldAuthor}' and '${newAuthor}'. Nullifying author_id.`);
+                await supabase.from('collections').update({ author_id: null }).eq('id', coll.id);
+                coll.author_id = null; // Update en mémoire pour éviter d'update à chaque poème
+            }
         }
         return coll.id;
     }
