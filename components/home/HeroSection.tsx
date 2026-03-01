@@ -6,6 +6,10 @@ import { ArrowRight, BookOpen } from "@phosphor-icons/react";
 import OdeLogo from "@/components/ui/OdeLogo";
 import MagneticButton from "@/components/ui/MagneticButton";
 
+interface HeroSectionProps {
+  dailyPoem: any;
+}
+
 const containerVariants = {
   hidden: {},
   visible: {
@@ -30,7 +34,7 @@ const itemVariants = {
   },
 };
 
-const HeroSection = React.memo(function HeroSection() {
+const HeroSection = React.memo(function HeroSection({ dailyPoem }: HeroSectionProps) {
   return (
     <section className="relative min-h-[100dvh] overflow-hidden">
       <div className="mx-auto max-w-[1400px] px-4 md:px-8">
@@ -45,23 +49,29 @@ const HeroSection = React.memo(function HeroSection() {
               className="mb-6"
               variants={itemVariants}
             >
-              <span className="inline-flex items-center gap-2 rounded-full border border-soft-border/60 bg-white/60 backdrop-blur-sm px-3.5 py-1.5 text-xs text-warm-gray shadow-[inset_0_1px_0_rgba(255,255,255,0.1)]">
+              <span className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-zinc-900/50 backdrop-blur-sm px-3.5 py-1.5 text-xs text-zinc-400 shadow-[inset_0_1px_0_rgba(255,255,255,0.05)]">
                 <span className="h-1.5 w-1.5 rounded-full bg-accent animate-pulse" />
                 La plus grande base de données de poésie
               </span>
             </motion.div>
 
-            <motion.h1
-              className="font-serif text-4xl md:text-6xl tracking-tighter leading-none text-charcoal text-balance"
-              variants={itemVariants}
-            >
-              Découvrez, notez et
-              <br />
-              <span className="italic text-charcoal/70">partagez la poésie.</span>
-            </motion.h1>
+            <h1 className="font-serif text-4xl md:text-6xl tracking-tighter leading-none text-white text-balance">
+              {dailyPoem ? (
+                <>
+                  Plongez dans l'œuvre de <br />
+                  <span className="italic text-zinc-400">{dailyPoem.authors?.name}</span>
+                </>
+              ) : (
+                <>
+                  Découvrez, notez et
+                  <br />
+                  <span className="italic text-zinc-400">partagez la poésie.</span>
+                </>
+              )}
+            </h1>
 
             <motion.p
-              className="mt-6 text-base text-warm-gray leading-relaxed max-w-[52ch]"
+              className="mt-6 text-base text-zinc-400 leading-relaxed max-w-[52ch]"
               variants={itemVariants}
             >
               Explorez la plus grande base de données de poèmes au monde. Lisez des œuvres de toutes les époques, notez vos coups de cœur et créez votre propre anthologie avec notre communauté de lecteurs passionnés.
@@ -72,14 +82,14 @@ const HeroSection = React.memo(function HeroSection() {
               variants={itemVariants}
             >
               <MagneticButton
-                className="inline-flex items-center gap-2 rounded-full bg-charcoal px-6 py-3 text-sm font-medium text-cream transition-colors hover:bg-ink active:scale-[0.98] active:-translate-y-[1px]"
+                className="inline-flex items-center gap-2 rounded-full bg-white px-6 py-3 text-sm font-medium text-black transition-colors hover:bg-zinc-200 active:scale-[0.98] active:-translate-y-[1px]"
               >
                 Explorer
                 <ArrowRight size={16} weight="bold" />
               </MagneticButton>
 
               <MagneticButton
-                className="inline-flex items-center gap-2 rounded-full border border-soft-border px-6 py-3 text-sm font-medium text-charcoal transition-colors hover:bg-charcoal/5 active:scale-[0.98] active:-translate-y-[1px]"
+                className="inline-flex items-center gap-2 rounded-full border border-zinc-800 px-6 py-3 text-sm font-medium text-white transition-colors hover:bg-zinc-800/50 active:scale-[0.98] active:-translate-y-[1px]"
               >
                 <BookOpen size={16} weight="regular" />
                 Ajouter un poème
@@ -91,24 +101,24 @@ const HeroSection = React.memo(function HeroSection() {
               variants={itemVariants}
             >
               <div>
-                <p className="text-2xl font-serif font-semibold text-charcoal tracking-tight">
+                <p className="text-2xl font-serif font-semibold text-white tracking-tight">
                   42.8k
                 </p>
-                <p className="text-xs text-warm-gray/60 mt-0.5">Poèmes catalogués</p>
+                <p className="text-xs text-zinc-500 mt-0.5">Poèmes catalogués</p>
               </div>
-              <div className="h-8 w-px bg-soft-border/60" />
+              <div className="h-8 w-px bg-zinc-800" />
               <div>
-                <p className="text-2xl font-serif font-semibold text-charcoal tracking-tight">
+                <p className="text-2xl font-serif font-semibold text-white tracking-tight">
                   127
                 </p>
-                <p className="text-xs text-warm-gray/60 mt-0.5">Langues</p>
+                <p className="text-xs text-zinc-500 mt-0.5">Langues</p>
               </div>
-              <div className="h-8 w-px bg-soft-border/60" />
+              <div className="h-8 w-px bg-zinc-800" />
               <div>
-                <p className="text-2xl font-serif font-semibold text-charcoal tracking-tight">
+                <p className="text-2xl font-serif font-semibold text-white tracking-tight">
                   18.3k
                 </p>
-                <p className="text-xs text-warm-gray/60 mt-0.5">Lecteurs actifs</p>
+                <p className="text-xs text-zinc-500 mt-0.5">Lecteurs actifs</p>
               </div>
             </motion.div>
           </motion.div>
@@ -152,7 +162,7 @@ const HeroSection = React.memo(function HeroSection() {
               </motion.div>
 
               <motion.div
-                className="absolute -bottom-4 left-1/2 -translate-x-1/2 w-[60%] h-px bg-gradient-to-r from-transparent via-soft-border to-transparent"
+                className="absolute -bottom-4 left-1/2 -translate-x-1/2 w-[60%] h-px bg-gradient-to-r from-transparent via-zinc-700 to-transparent"
                 animate={{
                   opacity: [0.4, 0.7, 0.4],
                   scaleX: [0.8, 1, 0.8],
@@ -168,7 +178,7 @@ const HeroSection = React.memo(function HeroSection() {
         </div>
       </div>
 
-      <div className="absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-t from-cream to-transparent pointer-events-none" />
+      <div className="absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-t from-zinc-950 to-transparent pointer-events-none" />
     </section>
   );
 });

@@ -113,3 +113,25 @@ export const getDailyPoem = cache(async () => {
 
     return poem
 })
+
+export const getTrendingPoems = cache(async (limit: number = 10) => {
+    const supabase = await createClient()
+
+    // Pour une démo élégante, on prend des poèmes au hasard ou récents
+    // Idéalement, on trierait par un score de popularité calculé
+    const { data: poems, error } = await supabase
+        .from('poems')
+        .select(`
+            *,
+            authors ( id, name )
+        `)
+        .limit(limit)
+        .order('created_at', { ascending: false })
+
+    if (error) {
+        console.error('Error fetching trending poems:', error)
+        return []
+    }
+
+    return poems
+})

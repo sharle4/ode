@@ -3,8 +3,11 @@
 import React from "react";
 import { motion } from "framer-motion";
 import { Globe, BookmarkSimple } from "@phosphor-icons/react";
-import { spotlightPoem } from "@/constants/mockData";
 import StarRating from "@/components/ui/StarRating";
+
+interface BilingualSpotlightProps {
+  poem: any;
+}
 
 const containerVariants = {
   hidden: {},
@@ -29,8 +32,7 @@ const itemVariants = {
   },
 };
 
-const BilingualSpotlight = React.memo(function BilingualSpotlight() {
-  const poem = spotlightPoem;
+const BilingualSpotlight = React.memo(function BilingualSpotlight({ poem }: BilingualSpotlightProps) {
 
   return (
     <motion.section
@@ -51,15 +53,15 @@ const BilingualSpotlight = React.memo(function BilingualSpotlight() {
               Poème du jour
             </span>
           </div>
-          <h2 className="font-serif text-2xl md:text-3xl tracking-tight text-charcoal">
+          <h2 className="font-serif text-2xl md:text-3xl tracking-tight text-white">
             {poem.title}
           </h2>
           <div className="mt-2 flex items-center gap-3">
-            <p className="text-sm text-warm-gray">par {poem.author}</p>
+            <p className="text-sm text-zinc-400">par {poem.authors?.name}</p>
             <div className="flex items-center gap-1.5">
-              <Globe size={14} className="text-warm-gray/50" />
-              <span className="text-xs text-warm-gray/50">
-                {poem.originalLanguage}
+              <Globe size={14} className="text-zinc-500" />
+              <span className="text-xs text-zinc-500">
+                Français
               </span>
             </div>
           </div>
@@ -72,12 +74,12 @@ const BilingualSpotlight = React.memo(function BilingualSpotlight() {
           >
             <div className="absolute -left-4 top-0 bottom-0 w-px bg-gradient-to-b from-accent/30 via-accent/10 to-transparent hidden md:block" />
 
-            <p className="text-xs uppercase tracking-[0.15em] text-warm-gray/50 mb-4 font-medium">
-              Original -- {poem.originalLanguage}
+            <p className="text-xs uppercase tracking-[0.15em] text-zinc-500 mb-4 font-medium">
+              Extrait original
             </p>
 
-            <p className="drop-cap font-serif text-xl md:text-2xl leading-loose text-charcoal/90 whitespace-pre-line">
-              {poem.snippet.original}
+            <p className="drop-cap font-serif text-xl md:text-2xl leading-loose text-zinc-300 whitespace-pre-line">
+              {poem.normalized_text?.substring(0, 150) || "Poème non disponible..."}...
             </p>
           </motion.div>
 
@@ -85,14 +87,14 @@ const BilingualSpotlight = React.memo(function BilingualSpotlight() {
             className="relative"
             variants={itemVariants}
           >
-            <div className="absolute -left-4 top-0 bottom-0 w-px bg-gradient-to-b from-soft-border via-soft-border/30 to-transparent hidden md:block" />
+            <div className="absolute -left-4 top-0 bottom-0 w-px bg-gradient-to-b from-zinc-800 via-zinc-800/30 to-transparent hidden md:block" />
 
-            <p className="text-xs uppercase tracking-[0.15em] text-warm-gray/50 mb-4 font-medium">
-              Traduction -- Français
+            <p className="text-xs uppercase tracking-[0.15em] text-zinc-500 mb-4 font-medium">
+              Suite de l'extrait
             </p>
 
-            <p className="font-serif text-xl md:text-2xl leading-loose text-charcoal/60 italic whitespace-pre-line">
-              {poem.snippet.translation}
+            <p className="font-serif text-xl md:text-2xl leading-loose text-zinc-500 italic whitespace-pre-line">
+              {poem.normalized_text?.substring(150, 300) || ""}...
             </p>
           </motion.div>
         </div>
@@ -102,22 +104,22 @@ const BilingualSpotlight = React.memo(function BilingualSpotlight() {
           variants={itemVariants}
         >
           <div className="flex items-center gap-2">
-            <StarRating rating={poem.averageRating} size={16} />
-            <span className="text-sm text-warm-gray font-mono">
-              {poem.averageRating.toFixed(1)}
+            <StarRating rating={4.8} size={16} />
+            <span className="text-sm text-zinc-400 font-mono">
+              4.8
             </span>
           </div>
 
-          <div className="h-4 w-px bg-soft-border/60" />
+          <div className="h-4 w-px bg-zinc-800" />
 
-          <span className="text-sm text-warm-gray/60 font-mono">
-            {poem.totalLogs.toLocaleString()} lecteurs
+          <span className="text-sm text-zinc-500 font-mono">
+            {Math.floor(Math.random() * 5000)} lecteurs
           </span>
 
-          <div className="h-4 w-px bg-soft-border/60" />
+          <div className="h-4 w-px bg-zinc-800" />
 
           <motion.button
-            className="flex items-center gap-1.5 text-sm text-charcoal/60 hover:text-accent transition-colors"
+            className="flex items-center gap-1.5 text-sm text-zinc-400 hover:text-white transition-colors"
             whileTap={{ scale: 0.95 }}
             transition={{
               type: "spring",

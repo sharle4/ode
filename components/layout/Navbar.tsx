@@ -35,8 +35,8 @@ const Navbar = React.memo(function Navbar() {
     <>
       <motion.header
         className={`fixed top-0 left-0 right-0 z-40 transition-all duration-500 ${scrolled
-            ? "bg-cream/70 backdrop-blur-xl border-b border-soft-border/40 shadow-[0_1px_3px_rgba(0,0,0,0.04)]"
-            : "bg-transparent"
+          ? "bg-zinc-950/80 backdrop-blur-xl border-b border-white/5 shadow-sm"
+          : "bg-transparent"
           }`}
         initial={{ y: -80 }}
         animate={{ y: 0 }}
@@ -64,7 +64,7 @@ const Navbar = React.memo(function Navbar() {
               <input
                 type="text"
                 placeholder="Rechercher un poème, un auteur ou une émotion..."
-                className="w-full rounded-full bg-white/60 border border-soft-border/60 shadow-[inset_0_1px_0_rgba(255,255,255,0.1)] backdrop-blur-sm py-2.5 pl-10 pr-4 text-sm text-charcoal placeholder:text-warm-gray/50 outline-none transition-all duration-300 focus:bg-white focus:border-soft-border focus:shadow-[0_0_0_3px_rgba(184,84,80,0.08)]"
+                className="w-full rounded-full bg-zinc-900/60 border border-white/10 shadow-[inset_0_1px_0_rgba(255,255,255,0.02)] backdrop-blur-sm py-2.5 pl-10 pr-4 text-sm text-white placeholder:text-zinc-500 outline-none transition-all duration-300 focus:bg-zinc-900 focus:border-white/20 focus:shadow-[0_0_0_3px_rgba(255,255,255,0.05)]"
                 onFocus={() => setSearchFocused(true)}
                 onBlur={() => setSearchFocused(false)}
               />
@@ -76,7 +76,7 @@ const Navbar = React.memo(function Navbar() {
               <a
                 key={link.label}
                 href={link.href}
-                className="flex items-center gap-2 rounded-full px-4 py-2 text-sm text-charcoal/70 transition-colors duration-200 hover:bg-charcoal/5 hover:text-charcoal"
+                className="flex items-center gap-2 rounded-full px-4 py-2 text-sm text-zinc-400 transition-colors duration-200 hover:bg-white/5 hover:text-white"
               >
                 <link.icon size={18} weight="regular" />
                 {link.label}
@@ -89,7 +89,7 @@ const Navbar = React.memo(function Navbar() {
           </div>
 
           <motion.button
-            className="md:hidden flex items-center justify-center w-10 h-10 rounded-full text-charcoal"
+            className="md:hidden flex items-center justify-center w-10 h-10 rounded-full text-white"
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
             whileTap={{ scale: 0.9 }}
             transition={{
@@ -111,7 +111,7 @@ const Navbar = React.memo(function Navbar() {
       <AnimatePresence>
         {mobileMenuOpen && (
           <motion.div
-            className="fixed inset-0 z-30 bg-cream/95 backdrop-blur-2xl md:hidden"
+            className="fixed inset-0 z-30 bg-zinc-950/95 backdrop-blur-2xl md:hidden"
             initial={{ opacity: 0, y: -20 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -20 }}
@@ -132,7 +132,7 @@ const Navbar = React.memo(function Navbar() {
                   <input
                     type="text"
                     placeholder="Rechercher des poèmes, auteurs..."
-                    className="w-full rounded-full bg-white border border-soft-border py-3 pl-10 pr-4 text-sm text-charcoal placeholder:text-warm-gray/50 outline-none focus:border-accent/30"
+                    className="w-full rounded-full bg-zinc-900 border border-zinc-800 py-3 pl-10 pr-4 text-sm text-white placeholder:text-zinc-500 outline-none focus:border-accent/50"
                   />
                 </div>
               </div>
@@ -142,7 +142,7 @@ const Navbar = React.memo(function Navbar() {
                   <motion.a
                     key={link.label}
                     href={link.href}
-                    className="flex items-center gap-4 rounded-2xl px-4 py-4 text-charcoal transition-colors hover:bg-charcoal/5"
+                    className="flex items-center gap-4 rounded-2xl px-4 py-4 text-white transition-colors hover:bg-white/5"
                     initial={{ opacity: 0, x: -20 }}
                     animate={{ opacity: 1, x: 0 }}
                     transition={{
@@ -169,8 +169,8 @@ const Navbar = React.memo(function Navbar() {
                   V
                 </div>
                 <div>
-                  <p className="text-sm font-medium text-charcoal">Profil</p>
-                  <p className="text-xs text-warm-gray">Voir votre bibliothèque</p>
+                  <p className="text-sm font-medium text-white">Profil</p>
+                  <p className="text-xs text-zinc-400">Voir votre bibliothèque</p>
                 </div>
               </motion.div>
             </div>

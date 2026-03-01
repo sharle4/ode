@@ -4,15 +4,20 @@ import HeroSection from "@/components/home/HeroSection";
 import TrendingRow from "@/components/home/TrendingRow";
 import BilingualSpotlight from "@/components/home/BilingualSpotlight";
 import CommunityFeed from "@/components/home/CommunityFeed";
-import { trendingPoems, curatedHaikus } from "@/constants/mockData";
+import { getDailyPoem, getTrendingPoems } from "@/utils/supabase/queries";
 
-export default function Home() {
+export default async function Home() {
+  const dailyPoem = await getDailyPoem();
+  // Fetch two distinct sets of poems for the rows
+  const trendingPoems = await getTrendingPoems(10);
+  const curatedPoems = await getTrendingPoems(8);
+
   return (
-    <div className="min-h-[100dvh] bg-cream">
+    <div className="min-h-[100dvh] bg-zinc-950">
       <Navbar />
 
       <main>
-        <HeroSection />
+        <HeroSection dailyPoem={dailyPoem} />
 
         <div id="explore">
           <TrendingRow
@@ -22,13 +27,13 @@ export default function Home() {
           />
 
           <TrendingRow
-            title="Sélection pour vous : Haïkus japonais"
+            title="Notre Sélection pour vous"
             subtitle="Basé sur votre activité récente et vos préférences"
-            poems={curatedHaikus}
+            poems={curatedPoems as any}
           />
         </div>
 
-        <BilingualSpotlight />
+        {dailyPoem && <BilingualSpotlight poem={dailyPoem} />}
 
         <CommunityFeed />
       </main>

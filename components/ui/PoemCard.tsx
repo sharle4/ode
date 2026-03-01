@@ -7,7 +7,7 @@ import type { Poem } from "@/types";
 import StarRating from "./StarRating";
 
 interface PoemCardProps {
-  poem: Poem;
+  poem: any;
   index: number;
 }
 
@@ -29,7 +29,7 @@ const PoemCard = React.memo(function PoemCard({ poem, index }: PoemCardProps) {
       onMouseLeave={() => setIsHovered(false)}
     >
       <motion.div
-        className={`relative aspect-[3/4] rounded-2xl overflow-hidden bg-gradient-to-br ${poem.coverGradient}`}
+        className={`relative aspect-[3/4] rounded-2xl overflow-hidden bg-gradient-to-br ${poem.coverGradient || 'from-zinc-900 to-zinc-800'}`}
         whileHover={{ scale: 1.03 }}
         transition={{
           type: "spring",
@@ -45,16 +45,16 @@ const PoemCard = React.memo(function PoemCard({ poem, index }: PoemCardProps) {
             <h3 className="font-serif text-white text-lg leading-tight font-medium">
               {poem.title}
             </h3>
-            <p className="text-white/60 text-sm">{poem.author}</p>
+            <p className="text-white/60 text-sm">{poem.authors?.name || poem.author || "Auteur inconnu"}</p>
           </div>
         </div>
 
-        <div className="absolute inset-0 bg-gradient-to-t from-zinc-950/90 via-zinc-950/30 to-transparent" />
+        <div className="absolute inset-0 bg-gradient-to-t from-zinc-950/95 via-zinc-950/40 to-transparent" />
 
         <AnimatePresence>
           {isHovered && (
             <motion.div
-              className="absolute inset-0 z-20 flex flex-col items-center justify-center gap-4 bg-zinc-950/70"
+              className="absolute inset-0 z-20 flex flex-col items-center justify-center gap-4 bg-zinc-950/80 backdrop-blur-sm"
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
@@ -99,13 +99,13 @@ const PoemCard = React.memo(function PoemCard({ poem, index }: PoemCardProps) {
       <div className="mt-3 px-0.5">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-1.5">
-            <StarRating rating={poem.averageRating} size={12} />
-            <span className="text-warm-gray text-xs font-mono">
-              {poem.averageRating.toFixed(1)}
+            <StarRating rating={poem.averageRating || 0} size={12} />
+            <span className="text-zinc-400 text-xs font-mono">
+              {(poem.averageRating || 0).toFixed(1)}
             </span>
           </div>
-          <span className="text-warm-gray/60 text-xs font-mono">
-            {poem.totalLogs.toLocaleString()} ajouts
+          <span className="text-zinc-500 text-xs font-mono">
+            {(poem.totalLogs || 0).toLocaleString()} ajouts
           </span>
         </div>
       </div>
