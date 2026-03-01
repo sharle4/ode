@@ -19,7 +19,7 @@ function ActionLabel({ action }: { action: CommunityActivity["action"] }) {
     reviewed: "a commenté",
   };
   return (
-    <span className="text-zinc-500 text-sm">{labels[action]}</span>
+    <span className="text-warm-gray text-sm">{labels[action]}</span>
   );
 }
 
@@ -29,7 +29,7 @@ const ActivityCard = React.memo(function ActivityCard({
 }: ActivityCardProps) {
   return (
     <motion.article
-      className="group relative rounded-2xl border border-zinc-800/60 bg-zinc-900/40 p-6 transition-colors hover:border-zinc-700/60 hover:bg-zinc-900/60"
+      className="group relative rounded-2xl border border-soft-border/60 bg-paper/60 backdrop-blur-sm p-6 transition-colors hover:border-soft-border hover:bg-paper"
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{
@@ -48,20 +48,20 @@ const ActivityCard = React.memo(function ActivityCard({
 
         <div className="flex-1 min-w-0">
           <div className="flex flex-wrap items-baseline gap-x-1.5 gap-y-0.5">
-            <span className="font-medium text-white text-sm">
+            <span className="font-medium text-charcoal text-sm">
               {activity.displayName}
             </span>
-            <span className="text-zinc-500 text-xs">
+            <span className="text-warm-gray text-xs">
               @{activity.username}
             </span>
             <ActionLabel action={activity.action} />
           </div>
 
           <div className="mt-1 flex flex-wrap items-baseline gap-x-1">
-            <span className="font-serif text-white text-sm font-medium italic">
+            <span className="font-serif text-charcoal text-sm font-medium italic">
               {activity.poemTitle}
             </span>
-            <span className="text-zinc-400 text-xs">
+            <span className="text-warm-gray text-xs">
               de {activity.poemAuthor}
             </span>
           </div>
@@ -70,7 +70,7 @@ const ActivityCard = React.memo(function ActivityCard({
             <div className="mt-2 flex items-center gap-2">
               <StarRating rating={activity.rating} size={14} />
               {activity.rating % 1 !== 0 && (
-                <span className="text-zinc-500 text-xs font-mono">
+                <span className="text-warm-gray text-xs font-mono">
                   {activity.rating.toFixed(1)}
                 </span>
               )}
@@ -78,14 +78,14 @@ const ActivityCard = React.memo(function ActivityCard({
           )}
 
           {activity.reviewText && (
-            <p className="mt-3 text-zinc-300 text-sm leading-relaxed max-w-[65ch]">
+            <p className="mt-3 text-charcoal/80 text-sm leading-relaxed max-w-[65ch]">
               {activity.reviewText}
             </p>
           )}
 
           <div className="mt-4 flex items-center gap-5">
             <motion.button
-              className="flex items-center gap-1.5 text-zinc-500 hover:text-accent transition-colors"
+              className="flex items-center gap-1.5 text-warm-gray hover:text-accent transition-colors"
               whileTap={{ scale: 0.9 }}
               transition={{
                 type: "spring",
@@ -98,7 +98,7 @@ const ActivityCard = React.memo(function ActivityCard({
             </motion.button>
 
             <motion.button
-              className="flex items-center gap-1.5 text-zinc-500 hover:text-white transition-colors"
+              className="flex items-center gap-1.5 text-warm-gray hover:text-charcoal transition-colors"
               whileTap={{ scale: 0.9 }}
               transition={{
                 type: "spring",
@@ -110,7 +110,7 @@ const ActivityCard = React.memo(function ActivityCard({
               <span className="text-xs font-mono">{activity.comments}</span>
             </motion.button>
 
-            <span className="ml-auto text-zinc-600 text-xs">
+            <span className="ml-auto text-warm-gray/50 text-xs">
               {activity.timestamp}
             </span>
           </div>

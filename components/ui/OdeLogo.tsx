@@ -26,9 +26,8 @@ const OdeLogo = React.memo(function OdeLogo({
       <title id="odeLogoTitle">ode</title>
       <defs>
         <linearGradient id="ink-gradient" x1="0%" y1="0%" x2="100%" y2="100%">
-          <stop offset="0%" stopColor="#ffffff" />
-          <stop offset="50%" stopColor="#e4e4e7" />
-          <stop offset="100%" stopColor="#ffffff" />
+          <stop offset="0%" stopColor="var(--logo-stop-1)" />
+          <stop offset="100%" stopColor="var(--logo-stop-2)" />
         </linearGradient>
         <filter
           id="luxury-shadow"

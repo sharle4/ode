@@ -4,10 +4,9 @@
 
     <defs>
         <!-- Gradient subtil d'obsidienne et de charbon pour un effet d'encre luxueuse -->
-        <linearGradient id="ink-gradient" x1="0%" y1="0%" x2="100%" y2="100%">
-            <stop offset="0%" stop-color="#ffffff"/>
-            <stop offset="50%" stop-color="#e4e4e7"/>
-            <stop offset="100%" stop-color="#ffffff"/>
+        <linearGradient id="paint0_linear_140_3030" x1="26.7915" y1="21.037" x2="129.5" y2="164" gradientUnits="userSpaceOnUse">
+            <stop stop-color="var(--logo-stop-1)"/>
+            <stop offset="1" stop-color="var(--logo-stop-2)"/>
         </linearGradient>
 
         <!-- Ombre portée ultra-douce pour donner un effet de matière et de volume à l'encre -->

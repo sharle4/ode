@@ -13,7 +13,7 @@ export default async function Home() {
   const curatedPoems = await getTrendingPoems(8);
 
   return (
-    <div className="min-h-[100dvh] bg-zinc-950">
+    <div className="min-h-[100dvh] bg-cream">
       <Navbar />
 
       <main>

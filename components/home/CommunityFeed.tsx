@@ -45,14 +45,14 @@ const CommunityFeed = React.memo(function CommunityFeed() {
         >
           <div className="flex items-center gap-3 mb-3">
             <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
-            <span className="text-xs uppercase tracking-[0.15em] text-zinc-400 font-medium">
+            <span className="text-xs uppercase tracking-[0.15em] text-warm-gray font-medium">
               Activité en direct
             </span>
           </div>
-          <h2 className="font-serif text-2xl md:text-3xl tracking-tight text-white">
+          <h2 className="font-serif text-2xl md:text-3xl tracking-tight text-charcoal">
             De la part de la communauté
           </h2>
-          <p className="mt-2 text-sm text-zinc-400 max-w-[50ch]">
+          <p className="mt-2 text-sm text-warm-gray max-w-[50ch]">
             Découvrez ce que les lecteurs du monde entier enregistrent, notent et discutent en ce moment.
           </p>
         </motion.div>

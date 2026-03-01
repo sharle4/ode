@@ -51,7 +51,7 @@ const TrendingRow = React.memo(function TrendingRow({
         <div className="flex items-end justify-between mb-6 md:mb-8">
           <div>
             <motion.h2
-              className="font-serif text-2xl md:text-3xl tracking-tight text-white"
+              className="font-serif text-2xl md:text-3xl tracking-tight text-charcoal"
               variants={{
                 hidden: { opacity: 0, x: -20 },
                 visible: {
@@ -69,7 +69,7 @@ const TrendingRow = React.memo(function TrendingRow({
             </motion.h2>
             {subtitle && (
               <motion.p
-                className="mt-1.5 text-sm text-zinc-400"
+                className="mt-1.5 text-sm text-warm-gray"
                 variants={{
                   hidden: { opacity: 0 },
                   visible: { opacity: 1, transition: { delay: 0.15 } },
@@ -83,7 +83,7 @@ const TrendingRow = React.memo(function TrendingRow({
           <div className="hidden md:flex items-center gap-2">
             <motion.button
               onClick={() => scrollBy("left")}
-              className="flex items-center justify-center w-9 h-9 rounded-full border border-zinc-800 text-zinc-400 hover:text-white hover:border-zinc-700 hover:bg-zinc-900 transition-colors"
+              className="flex items-center justify-center w-9 h-9 rounded-full border border-soft-border/60 text-warm-gray hover:text-charcoal hover:border-soft-border hover:bg-paper transition-colors"
               whileTap={{ scale: 0.92, y: 1 }}
               transition={{
                 type: "spring",
@@ -96,7 +96,7 @@ const TrendingRow = React.memo(function TrendingRow({
             </motion.button>
             <motion.button
               onClick={() => scrollBy("right")}
-              className="flex items-center justify-center w-9 h-9 rounded-full border border-zinc-800 text-zinc-400 hover:text-white hover:border-zinc-700 hover:bg-zinc-900 transition-colors"
+              className="flex items-center justify-center w-9 h-9 rounded-full border border-soft-border/60 text-warm-gray hover:text-charcoal hover:border-soft-border hover:bg-paper transition-colors"
               whileTap={{ scale: 0.92, y: 1 }}
               transition={{
                 type: "spring",
@@ -127,7 +127,7 @@ const TrendingRow = React.memo(function TrendingRow({
           ))}
         </div>
 
-        <div className="pointer-events-none absolute right-0 top-0 bottom-0 w-24 bg-gradient-to-l from-zinc-950 to-transparent" />
+        <div className="pointer-events-none absolute right-0 top-0 bottom-0 w-24 bg-gradient-to-l from-cream to-transparent" />
       </div>
     </motion.section>
   );

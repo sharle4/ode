@@ -9,8 +9,11 @@ import {
   PencilLine,
   X,
   List,
+  Moon,
+  Sun,
 } from "@phosphor-icons/react";
 import OdeLogo from "@/components/ui/OdeLogo";
+import { useTheme } from "next-themes";
 
 const navLinks = [
   { label: "Explorer", icon: Compass, href: "#explore" },
@@ -22,8 +25,11 @@ const Navbar = React.memo(function Navbar() {
   const [scrolled, setScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [searchFocused, setSearchFocused] = useState(false);
+  const { resolvedTheme, setTheme } = useTheme();
+  const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
+    setMounted(true);
     function handleScroll() {
       setScrolled(window.scrollY > 20);
     }
@@ -35,7 +41,7 @@ const Navbar = React.memo(function Navbar() {
     <>
       <motion.header
         className={`fixed top-0 left-0 right-0 z-40 transition-all duration-500 ${scrolled
-          ? "bg-zinc-950/80 backdrop-blur-xl border-b border-white/5 shadow-sm"
+          ? "bg-cream/70 backdrop-blur-xl border-b border-soft-border/60 shadow-sm"
           : "bg-transparent"
           }`}
         initial={{ y: -80 }}
@@ -59,12 +65,12 @@ const Navbar = React.memo(function Navbar() {
               <MagnifyingGlass
                 size={16}
                 weight="regular"
-                className="absolute left-4 top-1/2 -translate-y-1/2 text-warm-gray/60"
+                className="absolute left-4 top-1/2 -translate-y-1/2 text-warm-gray"
               />
               <input
                 type="text"
                 placeholder="Rechercher un poème, un auteur ou une émotion..."
-                className="w-full rounded-full bg-zinc-900/60 border border-white/10 shadow-[inset_0_1px_0_rgba(255,255,255,0.02)] backdrop-blur-sm py-2.5 pl-10 pr-4 text-sm text-white placeholder:text-zinc-500 outline-none transition-all duration-300 focus:bg-zinc-900 focus:border-white/20 focus:shadow-[0_0_0_3px_rgba(255,255,255,0.05)]"
+                className="w-full rounded-full bg-paper/50 border border-soft-border shadow-[inset_0_1px_0_rgba(26,26,26,0.02)] backdrop-blur-sm py-2.5 pl-10 pr-4 text-sm text-charcoal placeholder:text-warm-gray/60 outline-none transition-all duration-300 focus:bg-paper focus:border-soft-border focus:shadow-[0_0_0_3px_rgba(26,26,26,0.05)]"
                 onFocus={() => setSearchFocused(true)}
                 onBlur={() => setSearchFocused(false)}
               />
@@ -76,12 +82,22 @@ const Navbar = React.memo(function Navbar() {
               <a
                 key={link.label}
                 href={link.href}
-                className="flex items-center gap-2 rounded-full px-4 py-2 text-sm text-zinc-400 transition-colors duration-200 hover:bg-white/5 hover:text-white"
+                className="flex items-center gap-2 rounded-full px-4 py-2 text-sm text-charcoal/80 transition-colors duration-200 hover:bg-charcoal/5 hover:text-charcoal"
               >
                 <link.icon size={18} weight="regular" />
                 {link.label}
               </a>
             ))}
+
+            {mounted && (
+              <button
+                onClick={() => setTheme(resolvedTheme === "dark" ? "light" : "dark")}
+                className="ml-1 p-2 rounded-full text-charcoal/80 hover:bg-charcoal/5 hover:text-charcoal transition-colors"
+                aria-label="Toggle theme"
+              >
+                {resolvedTheme === "dark" ? <Sun size={18} /> : <Moon size={18} />}
+              </button>
+            )}
 
             <div className="ml-3 h-8 w-8 rounded-full bg-gradient-to-br from-accent to-accent-light flex items-center justify-center text-white text-xs font-medium cursor-pointer">
               V
@@ -89,7 +105,7 @@ const Navbar = React.memo(function Navbar() {
           </div>
 
           <motion.button
-            className="md:hidden flex items-center justify-center w-10 h-10 rounded-full text-white"
+            className="md:hidden flex items-center justify-center w-10 h-10 rounded-full text-charcoal"
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
             whileTap={{ scale: 0.9 }}
             transition={{

@@ -29,7 +29,7 @@ const PoemCard = React.memo(function PoemCard({ poem, index }: PoemCardProps) {
       onMouseLeave={() => setIsHovered(false)}
     >
       <motion.div
-        className={`relative aspect-[3/4] rounded-2xl overflow-hidden bg-gradient-to-br ${poem.coverGradient || 'from-zinc-900 to-zinc-800'}`}
+        className={`relative aspect-[3/4] rounded-2xl overflow-hidden bg-zinc-900 bg-gradient-to-br ${poem.coverGradient || 'from-zinc-800 to-zinc-900'}`}
         whileHover={{ scale: 1.03 }}
         transition={{
           type: "spring",
@@ -49,12 +49,12 @@ const PoemCard = React.memo(function PoemCard({ poem, index }: PoemCardProps) {
           </div>
         </div>
 
-        <div className="absolute inset-0 bg-gradient-to-t from-zinc-950/95 via-zinc-950/40 to-transparent" />
+        <div className="absolute inset-0 bg-gradient-to-t from-[#09090b]/95 via-[#09090b]/40 to-transparent" />
 
         <AnimatePresence>
           {isHovered && (
             <motion.div
-              className="absolute inset-0 z-20 flex flex-col items-center justify-center gap-4 bg-zinc-950/80 backdrop-blur-sm"
+              className="absolute inset-0 z-20 flex flex-col items-center justify-center gap-4 bg-[#09090b]/80 backdrop-blur-sm"
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
@@ -64,8 +64,7 @@ const PoemCard = React.memo(function PoemCard({ poem, index }: PoemCardProps) {
 
               <div className="flex items-center gap-3">
                 <motion.button
-                  className="flex items-center gap-1.5 rounded-full bg-white/10 border border-white/10 shadow-[inset_0_1px_0_rgba(255,255,255,0.1)] px-3.5 py-2 text-white text-xs backdrop-blur-sm"
-                  whileHover={{ scale: 1.05, backgroundColor: "rgba(255,255,255,0.18)" }}
+                  className="flex items-center gap-1.5 rounded-full bg-white/10 border border-white/10 shadow-[inset_0_1px_0_rgba(255,255,255,0.1)] px-3.5 py-2 text-white text-xs backdrop-blur-sm hover:bg-white/20"
                   whileTap={{ scale: 0.95, y: 1 }}
                   transition={{
                     type: "spring",
