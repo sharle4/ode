@@ -15,7 +15,7 @@ async function protectAction() {
     return { supabase, user }
 }
 
-export async function ratePoem(poemId: string, score: number, reviewText?: string) {
+export async function ratePoem(poemId: string, slug: string, score: number, reviewText?: string) {
     const { supabase, user } = await protectAction()
 
     // Upsert rating (id will be generated if missing, but we rely on the unique constraint user_id+poem_id)
@@ -38,11 +38,11 @@ export async function ratePoem(poemId: string, score: number, reviewText?: strin
     }
 
     // Revalidate the current poem page
-    revalidatePath('/poem/[slug]', 'page')
+    revalidatePath(`/poem/${slug}`)
     return { success: true }
 }
 
-export async function highlightPoem(poemId: string, stanzaIndex: number, lineIndex: number, text: string, annotation?: string) {
+export async function highlightPoem(poemId: string, slug: string, stanzaIndex: number, lineIndex: number, text: string, annotation?: string) {
     const { supabase, user } = await protectAction()
 
     const { error } = await supabase
@@ -61,7 +61,7 @@ export async function highlightPoem(poemId: string, stanzaIndex: number, lineInd
         return { error: 'Could not save highlight.' }
     }
 
-    revalidatePath('/poem/[slug]', 'page')
+    revalidatePath(`/poem/${slug}`)
     return { success: true }
 }
 
