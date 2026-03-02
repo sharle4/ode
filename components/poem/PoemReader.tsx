@@ -69,7 +69,7 @@ export default function PoemReader({ content }: PoemReaderProps) {
                             return (
                                 <p
                                     key={`line-${stanzaIndex}-${lineIndex}`}
-                                    className="text-lg md:text-2xl leading-loose md:leading-[2.5] text-charcoal dark:text-white"
+                                    className="text-lg md:text-2xl leading-loose md:leading-[2.5] text-charcoal"
                                 >
                                     <span className="drop-cap">{firstChar}</span>
                                     {restOfLine}
@@ -80,7 +80,7 @@ export default function PoemReader({ content }: PoemReaderProps) {
                         return (
                             <p
                                 key={`line-${stanzaIndex}-${lineIndex}`}
-                                className="text-lg md:text-2xl leading-loose md:leading-[2.5] text-charcoal dark:text-white min-h-[1.5em]"
+                                className="text-lg md:text-2xl leading-loose md:leading-[2.5] text-charcoal min-h-[1.5em]"
                             >
                                 {line}
                             </p>

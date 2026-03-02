@@ -28,25 +28,25 @@ export default function PoemActions({ poemId }: PoemActionsProps) {
     const actionButtons = [
         {
             id: "like",
-            icon: <Heart size={22} weight={isLiked ? "fill" : "regular"} className={isLiked ? "text-accent" : "text-charcoal dark:text-white"} />,
+            icon: <Heart size={22} weight={isLiked ? "fill" : "regular"} className={isLiked ? "text-accent" : "text-charcoal"} />,
             label: "Liker",
             onClick: () => setIsLiked(!isLiked),
         },
         {
             id: "list",
-            icon: <ListPlus size={22} weight="regular" className="text-charcoal dark:text-white" />,
+            icon: <ListPlus size={22} weight="regular" className="text-charcoal" />,
             label: "Ajouter",
             onClick: () => console.log("Open List Modal"),
         },
         {
             id: "rate",
-            icon: <Star size={22} weight="regular" className="text-charcoal dark:text-white" />,
+            icon: <Star size={22} weight="regular" className="text-charcoal" />,
             label: "Noter",
             onClick: () => console.log("Open Rate Modal"),
         },
         {
             id: "log",
-            icon: <ChatCircle size={22} weight="regular" className="text-charcoal dark:text-white" />,
+            icon: <ChatCircle size={22} weight="regular" className="text-charcoal" />,
             label: "Commenter",
             onClick: () => console.log("Open Log Modal"),
         },
@@ -55,7 +55,7 @@ export default function PoemActions({ poemId }: PoemActionsProps) {
     return (
         <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-40">
             <motion.div
-                className="flex items-center gap-1 md:gap-3 p-2 bg-paper/80 dark:bg-zinc-900/80 backdrop-blur-md border border-soft-border dark:border-zinc-800 rounded-full shadow-lg"
+                className="flex items-center gap-1 md:gap-3 p-2 bg-paper/90 backdrop-blur-md border border-soft-border rounded-full shadow-lg"
                 initial={{ y: 100, opacity: 0 }}
                 animate={{ y: 0, opacity: 1 }}
                 transition={{
@@ -69,27 +69,28 @@ export default function PoemActions({ poemId }: PoemActionsProps) {
                     <motion.button
                         key={btn.id}
                         onClick={btn.onClick}
-                        className="group relative flex items-center justify-center w-12 h-12 rounded-full hover:bg-black/5 dark:hover:bg-white/10 transition-colors"
+                        className="group relative flex items-center justify-center w-12 h-12 rounded-full hover:bg-charcoal/5 transition-colors"
                         whileTap={{ scale: 0.9 }}
                     >
                         {btn.icon}
 
-                        <div className="absolute -top-10 left-1/2 -translate-x-1/2 px-2 py-1 bg-charcoal dark:bg-white text-cream dark:text-charcoal text-[10px] uppercase tracking-widest rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none">
+                        <div className="absolute -top-11 left-1/2 -translate-x-1/2 px-2.5 py-1.5 bg-paper border border-soft-border text-charcoal text-[10px] uppercase tracking-widest rounded shadow-md opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none flex flex-col items-center">
                             {btn.label}
-                            <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 border-4 border-transparent border-t-charcoal dark:border-t-white" />
+                            {/* Flèche Tooltip */}
+                            <div className="absolute -bottom-[5px] w-2 h-2 bg-paper border-b border-r border-soft-border rotate-45" />
                         </div>
                     </motion.button>
                 ))}
 
-                <div className="w-px h-6 bg-soft-border dark:bg-zinc-700 mx-2" />
+                <div className="w-px h-6 bg-soft-border mx-2" />
 
                 <div className="relative">
                     <motion.button
                         onClick={handleShare}
-                        className="flex items-center justify-center w-12 h-12 rounded-full hover:bg-black/5 dark:hover:bg-white/10 transition-colors"
+                        className="flex items-center justify-center w-12 h-12 rounded-full hover:bg-charcoal/5 transition-colors"
                         whileTap={{ scale: 0.9 }}
                     >
-                        <ShareNetwork size={22} weight="regular" className="text-charcoal dark:text-white" />
+                        <ShareNetwork size={22} weight="regular" className="text-charcoal" />
                     </motion.button>
 
                     <AnimatePresence>
@@ -98,10 +99,10 @@ export default function PoemActions({ poemId }: PoemActionsProps) {
                                 initial={{ opacity: 0, y: 10, x: "-50%" }}
                                 animate={{ opacity: 1, y: 0, x: "-50%" }}
                                 exit={{ opacity: 0, y: 5, x: "-50%" }}
-                                className="absolute -top-12 left-1/2 px-3 py-1.5 bg-accent text-white text-[10px] uppercase tracking-widest rounded whitespace-nowrap shadow-md pointer-events-none"
+                                className="absolute -top-12 left-1/2 px-3 py-1.5 bg-accent text-white text-[10px] uppercase tracking-widest rounded whitespace-nowrap shadow-md pointer-events-none flex flex-col items-center"
                             >
                                 Lien copié !
-                                <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 border-4 border-transparent border-t-accent" />
+                                <div className="absolute -bottom-[4px] w-2 h-2 bg-accent rotate-45" />
                             </motion.div>
                         )}
                     </AnimatePresence>
