@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import { flushSync } from "react-dom";
+import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   MagnifyingGlass,
@@ -142,9 +143,11 @@ const Navbar = React.memo(function Navbar() {
               </motion.button>
             )}
 
-            <div className="ml-3 h-8 w-8 rounded-full bg-gradient-to-br from-accent to-accent-light flex items-center justify-center text-white text-xs font-medium cursor-pointer">
-              V
-            </div>
+            <Link href="/profile/BaudelaireFan">
+              <div className="ml-3 h-8 w-8 rounded-full bg-gradient-to-br from-accent to-accent-light flex items-center justify-center text-white text-xs font-medium cursor-pointer hover:shadow-lg transition-shadow">
+                B
+              </div>
+            </Link>
           </div>
 
           <motion.button
