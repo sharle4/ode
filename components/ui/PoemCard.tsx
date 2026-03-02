@@ -9,14 +9,17 @@ import StarRating from "./StarRating";
 interface PoemCardProps {
   poem: any;
   index: number;
+  layout?: "flex" | "grid";
 }
 
-const PoemCard = React.memo(function PoemCard({ poem, index }: PoemCardProps) {
+const PoemCard = React.memo(function PoemCard({ poem, index, layout = "flex" }: PoemCardProps) {
   const [isHovered, setIsHovered] = useState(false);
+
+  const containerClass = `relative cursor-pointer select-none ${layout === "flex" ? "flex-shrink-0 w-[200px] md:w-[240px]" : "w-full"}`;
 
   return (
     <motion.article
-      className="relative flex-shrink-0 w-[200px] md:w-[240px] cursor-pointer select-none"
+      className={containerClass}
       initial={{ opacity: 0, y: 30 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{

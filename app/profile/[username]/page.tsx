@@ -51,10 +51,13 @@ export default async function ProfilePage({ params }: ProfilePageProps) {
                             </p>
 
                             {/* Stats Bar */}
-                            <div className="flex items-center gap-8 md:gap-12 w-full justify-center md:justify-start">
-                                <StatBlock value={312} label="Lus" />
+                            <div className="flex flex-wrap items-center gap-6 md:gap-10 w-full justify-center md:justify-start">
+                                <StatBlock value={312} label="Poèmes lus" />
                                 <StatBlock value={42} label="Avis" />
                                 <StatBlock value={8} label="Listes" />
+                                <div className="hidden md:block w-px h-8 bg-soft-border"></div> {/* Séparateur */}
+                                <StatBlock value={124} label="Abonnés" />
+                                <StatBlock value={68} label="Abonnements" />
                             </div>
                         </div>
 

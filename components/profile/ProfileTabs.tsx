@@ -3,6 +3,7 @@
 import React, { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import PoemCard from "@/components/ui/PoemCard";
+import ProfileHome from "@/components/profile/ProfileHome";
 
 interface ProfileTabsProps {
     username: string;
@@ -10,9 +11,13 @@ interface ProfileTabsProps {
 }
 
 const TABS = [
-    { id: "activity", label: "Activité" },
-    { id: "favorites", label: "Favoris" },
-    { id: "lists", label: "Listes" },
+    { id: "profil", label: "Profil" },
+    { id: "poemes", label: "Poèmes" },
+    { id: "journal", label: "Journal" },
+    { id: "critiques", label: "Critiques" },
+    { id: "listes", label: "Listes" },
+    { id: "likes", label: "Likes" },
+    { id: "reseau", label: "Réseau" },
 ];
 
 export default function ProfileTabs({ username, favoritePoems }: ProfileTabsProps) {
@@ -43,51 +48,93 @@ export default function ProfileTabs({ username, favoritePoems }: ProfileTabsProp
 
             <div className="min-h-[400px]">
                 <AnimatePresence mode="wait">
-                    {activeTab === "activity" && (
+                    {activeTab === "profil" && (
                         <motion.div
-                            key="activity"
+                            key="profil"
+                            initial={{ opacity: 0, y: 10 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            exit={{ opacity: 0, y: -10 }}
+                            transition={{ duration: 0.2 }}
+                        >
+                            <ProfileHome username={username} favoritePoems={favoritePoems} />
+                        </motion.div>
+                    )}
+
+                    {activeTab === "poemes" && (
+                        <motion.div
+                            key="poemes"
                             initial={{ opacity: 0, y: 10 }}
                             animate={{ opacity: 1, y: 0 }}
                             exit={{ opacity: 0, y: -10 }}
                             transition={{ duration: 0.2 }}
                             className="text-center py-20 text-warm-gray italic font-serif"
                         >
-                            {username} n'a pas encore d'activité publique.
+                            Catalogue des poèmes de {username} (lus, notés, likés).
                         </motion.div>
                     )}
 
-                    {activeTab === "favorites" && (
+                    {activeTab === "journal" && (
                         <motion.div
-                            key="favorites"
-                            initial={{ opacity: 0, y: 10 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            exit={{ opacity: 0, y: -10 }}
-                            transition={{ duration: 0.2 }}
-                        >
-                            {favoritePoems.length > 0 ? (
-                                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-                                    {favoritePoems.map((poem, i) => (
-                                        <PoemCard key={poem.id} poem={poem} index={i} />
-                                    ))}
-                                </div>
-                            ) : (
-                                <div className="text-center py-20 text-warm-gray italic font-serif">
-                                    Aucun poème favori pour le moment.
-                                </div>
-                            )}
-                        </motion.div>
-                    )}
-
-                    {activeTab === "lists" && (
-                        <motion.div
-                            key="lists"
+                            key="journal"
                             initial={{ opacity: 0, y: 10 }}
                             animate={{ opacity: 1, y: 0 }}
                             exit={{ opacity: 0, y: -10 }}
                             transition={{ duration: 0.2 }}
                             className="text-center py-20 text-warm-gray italic font-serif"
                         >
-                            {username} n'a pas encore créé de listes.
+                            Journal chronologique de l'activité de {username}.
+                        </motion.div>
+                    )}
+
+                    {activeTab === "critiques" && (
+                        <motion.div
+                            key="critiques"
+                            initial={{ opacity: 0, y: 10 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            exit={{ opacity: 0, y: -10 }}
+                            transition={{ duration: 0.2 }}
+                            className="text-center py-20 text-warm-gray italic font-serif"
+                        >
+                            Toutes les critiques rédigées par {username}.
+                        </motion.div>
+                    )}
+
+                    {activeTab === "listes" && (
+                        <motion.div
+                            key="listes"
+                            initial={{ opacity: 0, y: 10 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            exit={{ opacity: 0, y: -10 }}
+                            transition={{ duration: 0.2 }}
+                            className="text-center py-20 text-warm-gray italic font-serif"
+                        >
+                            Collections et listes créées par {username}.
+                        </motion.div>
+                    )}
+
+                    {activeTab === "likes" && (
+                        <motion.div
+                            key="likes"
+                            initial={{ opacity: 0, y: 10 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            exit={{ opacity: 0, y: -10 }}
+                            transition={{ duration: 0.2 }}
+                            className="text-center py-20 text-warm-gray italic font-serif"
+                        >
+                            Tous les poèmes aimés par {username}.
+                        </motion.div>
+                    )}
+
+                    {activeTab === "reseau" && (
+                        <motion.div
+                            key="reseau"
+                            initial={{ opacity: 0, y: 10 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            exit={{ opacity: 0, y: -10 }}
+                            transition={{ duration: 0.2 }}
+                            className="text-center py-20 text-warm-gray italic font-serif"
+                        >
+                            Abonnés et abonnements de {username}.
                         </motion.div>
                     )}
                 </AnimatePresence>
