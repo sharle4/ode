@@ -54,7 +54,10 @@ const HeroSection = React.memo(function HeroSection({ dailyPoem }: HeroSectionPr
               </span>
             </motion.div>
 
-            <h1 className="font-serif text-4xl md:text-6xl tracking-tighter leading-none text-charcoal text-balance">
+            <motion.h1
+              variants={itemVariants}
+              className="font-serif text-4xl md:text-6xl tracking-tighter leading-none text-charcoal text-balance"
+            >
               {dailyPoem ? (
                 <>
                   Plongez dans l'œuvre de <br />
@@ -67,7 +70,7 @@ const HeroSection = React.memo(function HeroSection({ dailyPoem }: HeroSectionPr
                   <span className="italic text-warm-gray">partagez la poésie.</span>
                 </>
               )}
-            </h1>
+            </motion.h1>
 
             <motion.p
               className="mt-6 text-base text-warm-gray leading-relaxed max-w-[52ch]"

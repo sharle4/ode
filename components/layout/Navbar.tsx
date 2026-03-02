@@ -90,13 +90,25 @@ const Navbar = React.memo(function Navbar() {
             ))}
 
             {mounted && (
-              <button
+              <motion.button
                 onClick={() => setTheme(resolvedTheme === "dark" ? "light" : "dark")}
-                className="ml-1 p-2 rounded-full text-charcoal/80 hover:bg-charcoal/5 hover:text-charcoal transition-colors"
+                className="ml-1 p-2 rounded-full text-charcoal/80 hover:bg-charcoal/5 hover:text-charcoal transition-colors relative flex items-center justify-center w-9 h-9"
                 aria-label="Toggle theme"
+                whileTap={{ scale: 0.9 }}
               >
-                {resolvedTheme === "dark" ? <Sun size={18} /> : <Moon size={18} />}
-              </button>
+                <AnimatePresence mode="wait" initial={false}>
+                  <motion.div
+                    key={resolvedTheme === "dark" ? "dark" : "light"}
+                    initial={{ opacity: 0, rotate: -45, scale: 0.5 }}
+                    animate={{ opacity: 1, rotate: 0, scale: 1 }}
+                    exit={{ opacity: 0, rotate: 45, scale: 0.5 }}
+                    transition={{ duration: 0.2 }}
+                    className="absolute"
+                  >
+                    {resolvedTheme === "dark" ? <Sun size={18} /> : <Moon size={18} />}
+                  </motion.div>
+                </AnimatePresence>
+              </motion.button>
             )}
 
             <div className="ml-3 h-8 w-8 rounded-full bg-gradient-to-br from-accent to-accent-light flex items-center justify-center text-white text-xs font-medium cursor-pointer">
