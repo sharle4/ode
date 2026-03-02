@@ -51,16 +51,61 @@ html {
 }
 
 body {
-  background: var(--bg);
+  background-color: var(--bg);
   color: var(--fg);
   font-family: var(--font-sans), system-ui, sans-serif;
-  overflow-x: hidden;
-  transition: background-color 0.5s ease, color 0.5s ease, border-color 0.5s ease;
+  overflow: hidden;
+  display: -webkit-box;
+  line-clamp: 3;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
 }
 
 ::selection {
   background-color: #B8545033;
   color: #1A1A1A;
+}
+
+/* Poetic Theme Transitions */
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation-duration: 1.5s;
+  animation-timing-function: cubic-bezier(0.22, 1, 0.36, 1);
+  mix-blend-mode: normal;
+}
+
+::view-transition-old(root) {
+  animation-name: poeticFadeOut;
+  z-index: 1;
+}
+
+::view-transition-new(root) {
+  animation-name: poeticFadeIn;
+  z-index: 2;
+}
+
+@keyframes poeticFadeOut {
+  0% {
+    opacity: 1;
+    filter: blur(0px);
+  }
+
+  100% {
+    opacity: 0;
+    filter: blur(12px);
+  }
+}
+
+@keyframes poeticFadeIn {
+  0% {
+    opacity: 0;
+    filter: blur(12px);
+  }
+
+  100% {
+    opacity: 1;
+    filter: blur(0px);
+  }
 }
 
 .hide-scrollbar::-webkit-scrollbar {

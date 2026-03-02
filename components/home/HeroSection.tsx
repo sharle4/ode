@@ -33,6 +33,19 @@ const itemVariants = {
   },
 };
 
+const titleVariants = {
+  hidden: { opacity: 0, y: 30 },
+  visible: {
+    opacity: 1,
+    y: 0,
+    transition: {
+      type: "spring" as const,
+      stiffness: 80,
+      damping: 20,
+    },
+  },
+};
+
 const HeroSection = React.memo(function HeroSection({ dailyPoem }: HeroSectionProps) {
   return (
     <section className="relative min-h-[100dvh] overflow-hidden">
@@ -55,7 +68,7 @@ const HeroSection = React.memo(function HeroSection({ dailyPoem }: HeroSectionPr
             </motion.div>
 
             <motion.h1
-              variants={itemVariants}
+              variants={titleVariants}
               className="font-serif text-4xl md:text-6xl tracking-tighter leading-none text-charcoal text-balance"
             >
               {dailyPoem ? (

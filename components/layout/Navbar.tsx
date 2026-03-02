@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
+import { flushSync } from "react-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   MagnifyingGlass,
@@ -25,8 +26,25 @@ const Navbar = React.memo(function Navbar() {
   const [scrolled, setScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [searchFocused, setSearchFocused] = useState(false);
-  const { resolvedTheme, setTheme } = useTheme();
+  const { theme, setTheme, resolvedTheme } = useTheme();
   const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  const handleThemeToggle = () => {
+    const nextTheme = resolvedTheme === "dark" ? "light" : "dark";
+    if (!document.startViewTransition) {
+      setTheme(nextTheme);
+      return;
+    }
+    document.startViewTransition(() => {
+      flushSync(() => {
+        setTheme(nextTheme);
+      });
+    });
+  };
 
   useEffect(() => {
     setMounted(true);
@@ -91,22 +109,35 @@ const Navbar = React.memo(function Navbar() {
 
             {mounted && (
               <motion.button
-                onClick={() => setTheme(resolvedTheme === "dark" ? "light" : "dark")}
+                onClick={handleThemeToggle}
                 className="ml-1 p-2 rounded-full text-charcoal/80 hover:bg-charcoal/5 hover:text-charcoal transition-colors relative flex items-center justify-center w-9 h-9"
                 aria-label="Toggle theme"
                 whileTap={{ scale: 0.9 }}
               >
                 <AnimatePresence mode="wait" initial={false}>
-                  <motion.div
-                    key={resolvedTheme === "dark" ? "dark" : "light"}
-                    initial={{ opacity: 0, rotate: -45, scale: 0.5 }}
-                    animate={{ opacity: 1, rotate: 0, scale: 1 }}
-                    exit={{ opacity: 0, rotate: 45, scale: 0.5 }}
-                    transition={{ duration: 0.2 }}
-                    className="absolute"
-                  >
-                    {resolvedTheme === "dark" ? <Sun size={18} /> : <Moon size={18} />}
-                  </motion.div>
+                  {resolvedTheme === "dark" ? (
+                    <motion.div
+                      key="dark"
+                      initial={{ opacity: 0, rotate: -45, scale: 0.5 }}
+                      animate={{ opacity: 1, rotate: 0, scale: 1 }}
+                      exit={{ opacity: 0, rotate: 45, scale: 0.5 }}
+                      transition={{ duration: 0.2 }}
+                      className="absolute"
+                    >
+                      <Sun size={18} />
+                    </motion.div>
+                  ) : (
+                    <motion.div
+                      key="light"
+                      initial={{ opacity: 0, rotate: -45, scale: 0.5 }}
+                      animate={{ opacity: 1, rotate: 0, scale: 1 }}
+                      exit={{ opacity: 0, rotate: 45, scale: 0.5 }}
+                      transition={{ duration: 0.2 }}
+                      className="absolute"
+                    >
+                      <Moon size={18} />
+                    </motion.div>
+                  )}
                 </AnimatePresence>
               </motion.button>
             )}
