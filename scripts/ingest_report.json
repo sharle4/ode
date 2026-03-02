@@ -1,9 +1,9 @@
 {
   "stats": {
     "totalLines": 27925,
-    "insertedPoems": 27925,
-    "skippedDuplicates": 0,
-    "missingAuthorRecovered": 581,
+    "insertedPoems": 0,
+    "skippedDuplicates": 27925,
+    "missingAuthorRecovered": 0,
     "errors": {
       "parse": 0,
       "authors": 0,

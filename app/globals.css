@@ -54,11 +54,6 @@ body {
   background-color: var(--bg);
   color: var(--fg);
   font-family: var(--font-sans), system-ui, sans-serif;
-  overflow: hidden;
-  display: -webkit-box;
-  line-clamp: 3;
-  -webkit-line-clamp: 3;
-  -webkit-box-orient: vertical;
 }
 
 ::selection {
