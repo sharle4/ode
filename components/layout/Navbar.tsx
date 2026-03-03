@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, Suspense } from "react";
 import { flushSync } from "react-dom";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
@@ -15,6 +15,7 @@ import {
   Sun,
 } from "@phosphor-icons/react";
 import OdeLogo from "@/components/ui/OdeLogo";
+import NavbarSearch from "./NavbarSearch";
 import { useTheme } from "next-themes";
 
 const navLinks = [
@@ -26,7 +27,6 @@ const navLinks = [
 const Navbar = React.memo(function Navbar() {
   const [scrolled, setScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const [searchFocused, setSearchFocused] = useState(false);
   const { theme, setTheme, resolvedTheme } = useTheme();
   const [mounted, setMounted] = useState(false);
 
@@ -77,23 +77,13 @@ const Navbar = React.memo(function Navbar() {
           </a>
 
           <div className="hidden md:flex flex-1 max-w-md mx-8">
-            <div
-              className={`relative w-full transition-all duration-300 ${searchFocused ? "scale-[1.02]" : "scale-100"
-                }`}
-            >
-              <MagnifyingGlass
-                size={16}
-                weight="regular"
-                className="absolute left-4 top-1/2 -translate-y-1/2 text-warm-gray"
-              />
-              <input
-                type="text"
-                placeholder="Rechercher un poème, un auteur ou une émotion..."
-                className="w-full rounded-full bg-paper/50 border border-soft-border shadow-[inset_0_1px_0_rgba(26,26,26,0.02)] backdrop-blur-sm py-2.5 pl-10 pr-4 text-sm text-charcoal placeholder:text-warm-gray/60 outline-none transition-all duration-300 focus:bg-paper focus:border-soft-border focus:shadow-[0_0_0_3px_rgba(26,26,26,0.05)]"
-                onFocus={() => setSearchFocused(true)}
-                onBlur={() => setSearchFocused(false)}
-              />
-            </div>
+            <Suspense fallback={
+              <div className="relative w-full">
+                <div className="w-full rounded-full bg-paper/50 border border-soft-border animate-pulse h-[46px]"></div>
+              </div>
+            }>
+              <NavbarSearch variant="desktop" />
+            </Suspense>
           </div>
 
           <div className="hidden md:flex items-center gap-1">
@@ -185,18 +175,11 @@ const Navbar = React.memo(function Navbar() {
           >
             <div className="flex flex-col items-start justify-center h-full px-8 pb-20 pt-24">
               <div className="w-full mb-8">
-                <div className="relative w-full">
-                  <MagnifyingGlass
-                    size={16}
-                    weight="regular"
-                    className="absolute left-4 top-1/2 -translate-y-1/2 text-warm-gray/60"
-                  />
-                  <input
-                    type="text"
-                    placeholder="Rechercher des poèmes, auteurs..."
-                    className="w-full rounded-full bg-zinc-900 border border-zinc-800 py-3 pl-10 pr-4 text-sm text-white placeholder:text-zinc-500 outline-none focus:border-accent/50"
-                  />
-                </div>
+                <Suspense fallback={
+                  <div className="relative w-full h-[46px] rounded-full bg-zinc-900 animate-pulse"></div>
+                }>
+                  <NavbarSearch variant="mobile" />
+                </Suspense>
               </div>
 
               <nav className="flex flex-col gap-2 w-full">

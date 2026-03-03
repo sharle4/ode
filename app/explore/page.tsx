@@ -1,8 +1,7 @@
 import { Suspense } from "react";
 import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
-import SearchBar from "@/components/explore/SearchBar";
-import FilterPills from "@/components/explore/FilterPills";
+import CategoryGrid from "@/components/explore/CategoryGrid";
 import PoemCard from "@/components/ui/PoemCard";
 import CollectionCard from "@/components/author/CollectionCard";
 import { getTrendingPoems } from "@/utils/supabase/queries";
@@ -27,8 +26,9 @@ export default async function ExplorePage({
     const query = typeof rawParams.q === 'string' ? rawParams.q : '';
     const theme = typeof rawParams.theme === 'string' ? rawParams.theme : '';
     const period = typeof rawParams.period === 'string' ? rawParams.period : '';
+    const movement = typeof rawParams.movement === 'string' ? rawParams.movement : '';
 
-    const isSearching = query.length > 0 || theme.length > 0 || period.length > 0;
+    const isSearching = query.length > 0 || theme.length > 0 || period.length > 0 || movement.length > 0;
 
     // --- MOCK DATA --- 
     // Dans le futur, ceci proviendra de Supabase: await supabase.from('').select().textSearch()..
@@ -56,16 +56,12 @@ export default async function ExplorePage({
                 {/* HERO SEARCH SECTION */}
                 <section className="w-full pt-16 pb-8 px-4 sm:px-6 flex flex-col items-center">
                     <h1 className="font-serif text-4xl sm:text-5xl md:text-6xl text-charcoal mb-8 text-center leading-tight">
-                        Que cherchez-vous ?
+                        Explorer
                     </h1>
 
-                    {/* Suspens nécessaire pour le useSearchParams côté client dans SearchBar/FilterPills */}
-                    <Suspense fallback={<div className="h-16 w-full max-w-3xl bg-black/5 animate-pulse rounded-2xl"></div>}>
-                        <SearchBar />
-                    </Suspense>
-
-                    <Suspense fallback={<div className="h-12 w-full mt-6 bg-black/5 animate-pulse rounded-full"></div>}>
-                        <FilterPills />
+                    {/* Grille de catégories remplaçant FilterPills */}
+                    <Suspense fallback={<div className="min-h-[200px] w-full mt-10 bg-black/5 animate-pulse rounded-2xl"></div>}>
+                        <CategoryGrid />
                     </Suspense>
                 </section>
 
@@ -77,7 +73,7 @@ export default async function ExplorePage({
                         <div className="flex flex-col gap-12 animate-in fade-in duration-500">
                             <div>
                                 <h2 className="font-serif text-2xl text-charcoal mb-6 flex items-center gap-3">
-                                    Résultats pour <span className="text-accent italic">"{query || theme || period}"</span>
+                                    Résultats pour <span className="text-accent italic">"{query || theme || period || movement}"</span>
                                 </h2>
 
                                 {/* Mock Résultats Poèmes */}
