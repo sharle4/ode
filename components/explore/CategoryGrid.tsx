@@ -2,7 +2,6 @@
 
 import React from "react";
 import Link from "next/link";
-import { useSearchParams } from "next/navigation";
 
 interface Category {
     id: string; // The URL param value
@@ -34,33 +33,21 @@ const MOVEMENTS: Category[] = [
     { id: "Classicisme", title: "Classicisme", color: "from-yellow-600 to-amber-800" },
 ];
 
-function CategorySection({ title, paramKey, categories }: { title: string, paramKey: string, categories: Category[] }) {
-    const searchParams = useSearchParams();
-
+function CategorySection({ title, categories }: { title: string, categories: Category[] }) {
     return (
         <div className="mb-10 w-full">
             <h2 className="font-serif text-2xl text-charcoal mb-4 ml-2">{title}</h2>
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
                 {categories.map((cat) => {
-                    const isActive = searchParams?.get(paramKey) === cat.id;
-
-                    // Créer l'URL : si déjà actif on supprime le filtre, sinon on le définit
-                    const params = new URLSearchParams(searchParams?.toString() || "");
-                    if (isActive) {
-                        params.delete(paramKey);
-                    } else {
-                        params.set(paramKey, cat.id);
-                    }
-                    const href = `/explore?${params.toString()}`;
+                    const slug = cat.title.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/\s+/g, '-');
+                    const href = `/category/${slug}`;
 
                     return (
                         <Link
                             key={cat.id}
                             href={href}
-                            scroll={false}
                             className={`
                                 relative overflow-hidden rounded-xl aspect-[4/3] sm:aspect-square flex items-end p-4 shadow-sm hover:shadow-md transition-all duration-300 group
-                                ${isActive ? 'ring-4 ring-accent ring-offset-2 ring-offset-cream' : ''}
                             `}
                         >
                             <div className={`absolute inset-0 bg-gradient-to-br transition-transform duration-500 group-hover:scale-110 ${cat.color} opacity-90 group-hover:opacity-100`}></div>
@@ -81,9 +68,9 @@ function CategorySection({ title, paramKey, categories }: { title: string, param
 export default function CategoryGrid() {
     return (
         <div className="w-full mt-4 flex flex-col">
-            <CategorySection title="Thèmes" paramKey="theme" categories={THEMES} />
-            <CategorySection title="Mouvements poétiques" paramKey="movement" categories={MOVEMENTS} />
-            <CategorySection title="Époques" paramKey="period" categories={PERIODS} />
+            <CategorySection title="Thèmes" categories={THEMES} />
+            <CategorySection title="Mouvements poétiques" categories={MOVEMENTS} />
+            <CategorySection title="Époques" categories={PERIODS} />
         </div>
     );
 }

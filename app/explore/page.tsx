@@ -54,7 +54,7 @@ export default async function ExplorePage({
             <main className="flex-grow pt-[72px]">
 
                 {/* HERO SEARCH SECTION */}
-                <section className="w-full pt-16 pb-8 px-4 sm:px-6 flex flex-col items-center">
+                <section className="w-full max-w-7xl mx-auto pt-16 pb-8 px-4 sm:px-6 flex flex-col items-center">
                     <h1 className="font-serif text-4xl sm:text-5xl md:text-6xl text-charcoal mb-8 text-center leading-tight">
                         Explorer
                     </h1>
