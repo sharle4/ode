@@ -7,6 +7,7 @@ import PoemCard from "@/components/ui/PoemCard";
 import { getTrendingPoems } from "@/utils/supabase/queries";
 import { Metadata } from "next";
 import Link from "next/link";
+import FadeIn from "@/components/ui/FadeIn";
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
     const resolvedParams = await params;
@@ -50,7 +51,7 @@ export default async function AuthorPage({ params }: { params: Promise<{ slug: s
         <div className="min-h-[100dvh] bg-cream flex flex-col">
             <Navbar />
 
-            <main className="flex-grow pt-[72px]">
+            <main className="flex-grow">
                 {/* 1. Hero Header */}
                 <AuthorHeader author={mockedAuthor} />
 
@@ -60,7 +61,7 @@ export default async function AuthorPage({ params }: { params: Promise<{ slug: s
                     <div className="lg:col-span-8 flex flex-col gap-20">
 
                         {/* SECTION: Poèmes Populaires */}
-                        <section>
+                        <FadeIn delay={0.2}>
                             <h2 className="font-serif text-2xl text-charcoal mb-8 border-b border-soft-border pb-4 flex items-center justify-between">
                                 Poèmes Populaires
                                 <span className="text-sm font-sans text-warm-gray font-normal cursor-pointer hover:text-charcoal transition-colors">Tout voir</span>
@@ -80,10 +81,10 @@ export default async function AuthorPage({ params }: { params: Promise<{ slug: s
                                     </Link>
                                 ))}
                             </div>
-                        </section>
+                        </FadeIn>
 
                         {/* SECTION: Recueils */}
-                        <section>
+                        <FadeIn delay={0.4}>
                             <h2 className="font-serif text-2xl text-charcoal mb-8 border-b border-soft-border pb-4">
                                 Recueils
                             </h2>
@@ -92,7 +93,7 @@ export default async function AuthorPage({ params }: { params: Promise<{ slug: s
                                     <CollectionCard key={index} collection={collection} index={index} />
                                 ))}
                             </div>
-                        </section>
+                        </FadeIn>
 
                     </div>
 
@@ -100,7 +101,7 @@ export default async function AuthorPage({ params }: { params: Promise<{ slug: s
                     <aside className="lg:col-span-4 flex flex-col gap-12">
 
                         {/* SECTION: À propos */}
-                        <section>
+                        <FadeIn delay={0.6}>
                             <h2 className="font-serif text-xl text-charcoal mb-6">À propos</h2>
                             <div className="bg-paper p-6 md:p-8 rounded-2xl border border-soft-border">
                                 <p className="text-charcoal/80 font-serif leading-relaxed text-sm mb-6 drop-cap">
@@ -113,7 +114,7 @@ export default async function AuthorPage({ params }: { params: Promise<{ slug: s
                                     Lire la biographie complète
                                 </button>
                             </div>
-                        </section>
+                        </FadeIn>
 
                     </aside>
                 </div>

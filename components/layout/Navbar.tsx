@@ -60,7 +60,7 @@ const Navbar = React.memo(function Navbar() {
     <>
       <motion.header
         className={`fixed top-0 left-0 right-0 z-40 transition-all duration-500 ${scrolled
-          ? "bg-cream/70 backdrop-blur-xl border-b border-soft-border/60 shadow-sm"
+          ? "bg-cream/70 backdrop-blur-xl shadow-sm"
           : "bg-transparent"
           }`}
         initial={{ y: -80 }}

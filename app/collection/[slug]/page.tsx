@@ -3,6 +3,7 @@ import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
 import CollectionHeader from "@/components/collection/CollectionHeader";
 import PoemListItem from "@/components/collection/PoemListItem";
+import FadeIn from "@/components/ui/FadeIn";
 import { Metadata } from "next";
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
@@ -74,7 +75,7 @@ export default async function CollectionPage({ params }: { params: Promise<{ slu
         <div className="min-h-[100dvh] bg-cream flex flex-col">
             <Navbar />
 
-            <main className="flex-grow pt-[72px]">
+            <main className="flex-grow">
                 {/* 1. Header du Recueil */}
                 <CollectionHeader collection={mockedCollection} />
 
@@ -84,24 +85,26 @@ export default async function CollectionPage({ params }: { params: Promise<{ slu
 
                     <div className="flex flex-col gap-12">
                         {mockedSections.map((section, sIndex) => (
-                            <section key={sIndex} className="bg-paper p-6 md:p-8 rounded-2xl border border-soft-border shadow-sm">
-                                <h3 className="font-serif text-2xl text-accent mb-6 pb-4 border-b border-soft-border">
-                                    {section.title}
-                                </h3>
+                            <FadeIn key={sIndex} delay={0.2 + sIndex * 0.1}>
+                                <section className="bg-paper p-6 md:p-8 rounded-2xl border border-soft-border shadow-sm">
+                                    <h3 className="font-serif text-2xl text-accent mb-6 pb-4 border-b border-soft-border">
+                                        {section.title}
+                                    </h3>
 
-                                <div className="flex flex-col">
-                                    {section.poems.map((poem) => {
-                                        globalPoemIndex++; // Incrémentation continue
-                                        return (
-                                            <PoemListItem
-                                                key={poem.id}
-                                                poem={poem}
-                                                order={globalPoemIndex}
-                                            />
-                                        );
-                                    })}
-                                </div>
-                            </section>
+                                    <div className="flex flex-col">
+                                        {section.poems.map((poem) => {
+                                            globalPoemIndex++; // Incrémentation continue
+                                            return (
+                                                <PoemListItem
+                                                    key={poem.id}
+                                                    poem={poem}
+                                                    order={globalPoemIndex}
+                                                />
+                                            );
+                                        })}
+                                    </div>
+                                </section>
+                            </FadeIn>
                         ))}
                     </div>
                 </div>

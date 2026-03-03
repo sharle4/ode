@@ -4,6 +4,7 @@ import Footer from "@/components/layout/Footer";
 import CategoryGrid from "@/components/explore/CategoryGrid";
 import PoemCard from "@/components/ui/PoemCard";
 import CollectionCard from "@/components/author/CollectionCard";
+import FadeIn from "@/components/ui/FadeIn";
 import { getTrendingPoems } from "@/utils/supabase/queries";
 import { Metadata } from "next";
 
@@ -55,14 +56,18 @@ export default async function ExplorePage({
 
                 {/* HERO SEARCH SECTION */}
                 <section className="w-full max-w-7xl mx-auto pt-16 pb-8 px-4 sm:px-6 flex flex-col items-center">
-                    <h1 className="font-serif text-4xl sm:text-5xl md:text-6xl text-charcoal mb-8 text-center leading-tight">
-                        Explorer
-                    </h1>
+                    <FadeIn delay={0.1}>
+                        <h1 className="font-serif text-4xl sm:text-5xl md:text-6xl text-charcoal mb-8 text-center leading-tight">
+                            Explorer
+                        </h1>
+                    </FadeIn>
 
                     {/* Grille de catégories remplaçant FilterPills */}
-                    <Suspense fallback={<div className="min-h-[200px] w-full mt-10 bg-black/5 animate-pulse rounded-2xl"></div>}>
-                        <CategoryGrid />
-                    </Suspense>
+                    <FadeIn delay={0.2} className="w-full">
+                        <Suspense fallback={<div className="min-h-[200px] w-full mt-10 bg-black/5 animate-pulse rounded-2xl"></div>}>
+                            <CategoryGrid />
+                        </Suspense>
+                    </FadeIn>
                 </section>
 
                 {/* CONTENT SECTION : DISCOVERY OR SEARCH RESULTS */}
@@ -70,7 +75,7 @@ export default async function ExplorePage({
 
                     {isSearching ? (
                         /* ETAT : RECHERCHE ACTIVE */
-                        <div className="flex flex-col gap-12 animate-in fade-in duration-500">
+                        <FadeIn delay={0.3} className="flex flex-col gap-12">
                             <div>
                                 <h2 className="font-serif text-2xl text-charcoal mb-6 flex items-center gap-3">
                                     Résultats pour <span className="text-accent italic">"{query || theme || period || movement}"</span>
@@ -83,10 +88,10 @@ export default async function ExplorePage({
                                     ))}
                                 </div>
                             </div>
-                        </div>
+                        </FadeIn>
                     ) : (
                         /* ETAT : DÉCOUVERTE PAR DÉFAUT */
-                        <div className="flex flex-col gap-16 animate-in fade-in duration-500">
+                        <FadeIn delay={0.3} className="flex flex-col gap-16">
 
                             {/* Découverte: Poèmes */}
                             <div>
@@ -132,7 +137,7 @@ export default async function ExplorePage({
                                 </div>
                             </div>
 
-                        </div>
+                        </FadeIn>
                     )}
 
                 </section>

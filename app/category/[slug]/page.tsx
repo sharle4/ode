@@ -3,6 +3,7 @@ import Footer from "@/components/layout/Footer";
 import PoemCard from "@/components/ui/PoemCard";
 import CollectionCard from "@/components/author/CollectionCard";
 import { getTrendingPoems } from "@/utils/supabase/queries";
+import FadeIn from "@/components/ui/FadeIn";
 import { Metadata } from "next";
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
@@ -40,11 +41,11 @@ export default async function CategoryPage({ params }: { params: Promise<{ slug:
         <div className="min-h-[100dvh] bg-cream flex flex-col">
             <Navbar />
 
-            <main className="flex-grow pt-[72px]">
+            <main className="flex-grow">
                 {/* HERO CATEGORY */}
-                <section className="relative w-full pt-20 pb-16 flex flex-col items-center overflow-hidden bg-charcoal text-white">
+                <section className="relative w-full pt-32 pb-16 flex flex-col items-center overflow-hidden bg-charcoal text-white">
                     <div className="absolute inset-0 bg-gradient-to-br from-accent/40 to-black/80 z-0"></div>
-                    <div className="relative z-10 w-full max-w-7xl mx-auto px-4 sm:px-6 text-center">
+                    <FadeIn delay={0.1} className="relative z-10 w-full max-w-7xl mx-auto px-4 sm:px-6 text-center">
                         <span className="text-sm font-sans uppercase tracking-widest text-white/70 mb-4 block">Découverte</span>
                         <h1 className="font-serif text-5xl sm:text-6xl md:text-7xl mb-6 leading-tight drop-shadow-md">
                             {title}
@@ -52,13 +53,13 @@ export default async function CategoryPage({ params }: { params: Promise<{ slug:
                         <p className="font-serif text-lg md:text-xl text-white/80 max-w-2xl mx-auto leading-relaxed">
                             Plongez au cœur des œuvres essentielles de ce mouvement ou genre. Découvrez ses poètes majeurs, ses vers mythiques et ses recueils fondateurs.
                         </p>
-                    </div>
+                    </FadeIn>
                 </section>
 
-                <section className="w-full max-w-7xl mx-auto px-4 sm:px-6 py-12 pb-24 flex flex-col gap-16 animate-in fade-in duration-500">
+                <section className="w-full max-w-7xl mx-auto px-4 sm:px-6 py-12 pb-24 flex flex-col gap-16">
 
                     {/* Poèmes Phares */}
-                    <div>
+                    <FadeIn delay={0.2} className="w-full">
                         <div className="flex items-end justify-between mb-6 border-b border-soft-border pb-2">
                             <h2 className="font-serif text-2xl text-charcoal">Poèmes majeurs</h2>
                             <span className="text-sm uppercase tracking-widest text-warm-gray cursor-pointer hover:text-accent transition-colors">Tout voir</span>
@@ -68,10 +69,10 @@ export default async function CategoryPage({ params }: { params: Promise<{ slug:
                                 <PoemCard key={poem.id} poem={poem} index={i} layout="grid" />
                             ))}
                         </div>
-                    </div>
+                    </FadeIn>
 
                     {/* Auteurs Emblématiques */}
-                    <div>
+                    <FadeIn delay={0.3} className="w-full">
                         <h2 className="font-serif text-2xl text-charcoal mb-6 border-b border-soft-border pb-2">Figures emblématiques</h2>
                         <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 md:gap-8">
                             {mockedAuthors.map((author, idx) => (
@@ -89,17 +90,17 @@ export default async function CategoryPage({ params }: { params: Promise<{ slug:
                                 </a>
                             ))}
                         </div>
-                    </div>
+                    </FadeIn>
 
                     {/* Recueils Fondateurs */}
-                    <div>
+                    <FadeIn delay={0.4} className="w-full">
                         <h2 className="font-serif text-2xl text-charcoal mb-6 border-b border-soft-border pb-2">Recueils fondateurs</h2>
                         <div className="grid grid-cols-2 md:grid-cols-3 gap-6 md:gap-8 max-w-4xl">
                             {mockedCollections.map((collection, index) => (
                                 <CollectionCard key={index} collection={collection} index={index} />
                             ))}
                         </div>
-                    </div>
+                    </FadeIn>
 
                 </section>
             </main>

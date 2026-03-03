@@ -58,7 +58,7 @@ export default function NavbarSearch({ variant = 'desktop' }: NavbarSearchProps)
             <MagnifyingGlass
                 size={18}
                 weight="bold"
-                className={`absolute left-4 top-1/2 -translate-y-1/2 pointer-events-none transition-colors ${searchFocused ? "text-accent" : (isMobile ? "text-white/60" : "text-charcoal/70 dark:text-white/70")}`}
+                className={`absolute left-4 top-1/2 -translate-y-1/2 pointer-events-none transition-colors ${searchFocused ? "text-accent" : (isMobile ? "text-white/80" : "text-charcoal/80 dark:text-white/80")}`}
             />
 
             <input
