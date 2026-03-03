@@ -18,7 +18,7 @@ import OdeLogo from "@/components/ui/OdeLogo";
 import { useTheme } from "next-themes";
 
 const navLinks = [
-  { label: "Explorer", icon: Compass, href: "#explore" },
+  { label: "Explorer", icon: Compass, href: "/explore" },
   { label: "Mes Listes", icon: ListBullets, href: "#lists" },
   { label: "Ajouter", icon: PencilLine, href: "#log" },
 ];
