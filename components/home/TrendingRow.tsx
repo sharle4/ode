@@ -1,27 +1,16 @@
 "use client";
 
 import React, { useRef } from "react";
-import { motion } from "framer-motion";
 import { CaretRight, CaretLeft } from "@phosphor-icons/react";
 import type { Poem } from "@/types";
 import PoemCard from "@/components/ui/PoemCard";
+import FadeIn from "@/components/ui/FadeIn";
 
 interface TrendingRowProps {
   title: string;
   subtitle?: string;
   poems: Poem[];
 }
-
-const sectionVariants = {
-  hidden: { opacity: 0 },
-  visible: {
-    opacity: 1,
-    transition: {
-      staggerChildren: 0.06,
-      delayChildren: 0.1,
-    },
-  },
-};
 
 const TrendingRow = React.memo(function TrendingRow({
   title,
@@ -40,96 +29,67 @@ const TrendingRow = React.memo(function TrendingRow({
   }
 
   return (
-    <motion.section
-      className="py-8 md:py-12"
-      initial="hidden"
-      whileInView="visible"
-      viewport={{ once: true, margin: "-80px" }}
-      variants={sectionVariants}
-    >
+    <FadeIn className="py-8 md:py-12" y={40} duration={0.8} delay={0.1}>
       <div className="mx-auto max-w-[1400px] px-4 md:px-8">
         <div className="flex items-end justify-between mb-6 md:mb-8">
           <div>
-            <motion.h2
-              className="font-serif text-2xl md:text-3xl tracking-tight text-charcoal"
-              variants={{
-                hidden: { opacity: 0, x: -20 },
-                visible: {
-                  opacity: 1,
-                  x: 0,
-                  transition: {
-                    type: "spring" as const,
-                    stiffness: 100,
-                    damping: 20,
-                  },
-                },
-              }}
-            >
+            <h2 className="font-serif text-2xl md:text-3xl tracking-tight text-charcoal">
               {title}
-            </motion.h2>
+            </h2>
             {subtitle && (
-              <motion.p
-                className="mt-1.5 text-sm text-warm-gray"
-                variants={{
-                  hidden: { opacity: 0 },
-                  visible: { opacity: 1, transition: { delay: 0.15 } },
-                }}
-              >
+              <p className="mt-1.5 text-sm text-warm-gray">
                 {subtitle}
-              </motion.p>
+              </p>
             )}
           </div>
 
           <div className="hidden md:flex items-center gap-2">
-            <motion.button
+            <button
               onClick={() => scrollBy("left")}
               className="flex items-center justify-center w-9 h-9 rounded-full border border-soft-border/60 text-warm-gray hover:text-charcoal hover:border-soft-border hover:bg-paper transition-colors"
-              whileTap={{ scale: 0.92, y: 1 }}
-              transition={{
-                type: "spring",
-                stiffness: 400,
-                damping: 15,
-              }}
               aria-label="Scroll left"
             >
               <CaretLeft size={16} weight="bold" />
-            </motion.button>
-            <motion.button
+            </button>
+            <button
               onClick={() => scrollBy("right")}
               className="flex items-center justify-center w-9 h-9 rounded-full border border-soft-border/60 text-warm-gray hover:text-charcoal hover:border-soft-border hover:bg-paper transition-colors"
-              whileTap={{ scale: 0.92, y: 1 }}
-              transition={{
-                type: "spring",
-                stiffness: 400,
-                damping: 15,
-              }}
               aria-label="Scroll right"
             >
               <CaretRight size={16} weight="bold" />
-            </motion.button>
+            </button>
+          </div>
+        </div>
+
+        <div className="relative group">
+          {/* Gradients pour cacher le débordement sur Desktop */}
+          <div className="absolute left-0 top-0 bottom-0 w-8 bg-gradient-to-r from-cream to-transparent z-10 pointer-events-none hidden md:block" />
+          <div className="absolute right-0 top-0 bottom-0 w-24 bg-gradient-to-l from-cream to-transparent z-10 pointer-events-none hidden md:block" />
+
+          <div
+            ref={scrollRef}
+            className="flex overflow-x-auto gap-4 md:gap-5 pb-8 pt-2 -mx-4 px-4 md:mx-0 md:px-0 hide-scrollbar snap-x snap-mandatory scroll-smooth"
+            style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
+          >
+            {poems.slice(0, 10).map((poem, index) => (
+              <div
+                key={poem.id}
+                className="flex-none w-[280px] sm:w-[320px] lg:w-[340px] snap-center md:snap-start"
+              >
+                <PoemCard poem={poem} index={index} layout="grid" />
+              </div>
+            ))}
+
+            <div className="flex-none w-[200px] snap-center md:snap-start flex flex-col items-center justify-center border-2 border-dashed border-soft-border/40 rounded-2xl p-6 group-hover:border-soft-border transition-colors cursor-pointer bg-paper/30">
+              <div className="w-12 h-12 rounded-full border border-soft-border/60 flex items-center justify-center text-warm-gray mb-3 bg-paper group-hover:scale-105 transition-transform">
+                <CaretRight size={20} />
+              </div>
+              <span className="text-sm font-medium text-charcoal">Voir tout</span>
+            </div>
           </div>
         </div>
       </div>
-
-      <div className="relative">
-        <div
-          ref={scrollRef}
-          className="hide-scrollbar flex gap-4 md:gap-5 overflow-x-auto scroll-smooth snap-x snap-mandatory px-4 md:px-8"
-          style={{
-            paddingLeft: "max(1rem, calc((100vw - 1400px) / 2 + 2rem))",
-            paddingRight: "2rem",
-          }}
-        >
-          {poems.map((poem, index) => (
-            <div key={poem.id} className="snap-start">
-              <PoemCard poem={poem} index={index} />
-            </div>
-          ))}
-        </div>
-
-        <div className="pointer-events-none absolute right-0 top-0 bottom-0 w-24 bg-gradient-to-l from-cream to-transparent" />
-      </div>
-    </motion.section>
+    </FadeIn>
   );
 });
 

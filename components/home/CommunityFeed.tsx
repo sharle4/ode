@@ -1,48 +1,19 @@
 "use client";
 
 import React from "react";
-import { motion } from "framer-motion";
 import { communityActivities } from "@/constants/mockData";
 import ActivityCard from "@/components/ui/ActivityCard";
-
-const containerVariants = {
-  hidden: {},
-  visible: {
-    transition: {
-      staggerChildren: 0.08,
-      delayChildren: 0.15,
-    },
-  },
-};
+import FadeIn from "@/components/ui/FadeIn";
 
 const CommunityFeed = React.memo(function CommunityFeed() {
   const leftColumn = communityActivities.filter((_, i) => i % 2 === 0);
   const rightColumn = communityActivities.filter((_, i) => i % 2 !== 0);
 
   return (
-    <motion.section
-      className="py-16 md:py-24"
-      initial="hidden"
-      whileInView="visible"
-      viewport={{ once: true, margin: "-80px" }}
-      variants={containerVariants}
-    >
+    <section className="py-16 md:py-24">
       <div className="mx-auto max-w-[1400px] px-4 md:px-8">
-        <motion.div
-          className="mb-10 md:mb-14"
-          variants={{
-            hidden: { opacity: 0, y: 20 },
-            visible: {
-              opacity: 1,
-              y: 0,
-              transition: {
-                type: "spring" as const,
-                stiffness: 100,
-                damping: 20,
-              },
-            },
-          }}
-        >
+
+        <FadeIn delay={0.2} y={30} duration={0.8} className="mb-10 md:mb-14">
           <div className="flex items-center gap-3 mb-3">
             <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
             <span className="text-xs uppercase tracking-[0.15em] text-warm-gray font-medium">
@@ -55,31 +26,33 @@ const CommunityFeed = React.memo(function CommunityFeed() {
           <p className="mt-2 text-sm text-warm-gray max-w-[50ch]">
             Découvrez ce que les lecteurs du monde entier enregistrent, notent et discutent en ce moment.
           </p>
-        </motion.div>
+        </FadeIn>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-5">
           <div className="flex flex-col gap-4 md:gap-5">
             {leftColumn.map((activity, index) => (
-              <ActivityCard
-                key={activity.id}
-                activity={activity}
-                index={index}
-              />
+              <FadeIn key={activity.id} delay={0.3 + index * 0.1}>
+                <ActivityCard
+                  activity={activity}
+                  index={index}
+                />
+              </FadeIn>
             ))}
           </div>
 
           <div className="flex flex-col gap-4 md:gap-5 md:mt-8">
             {rightColumn.map((activity, index) => (
-              <ActivityCard
-                key={activity.id}
-                activity={activity}
-                index={index + leftColumn.length}
-              />
+              <FadeIn key={activity.id} delay={0.4 + index * 0.1}>
+                <ActivityCard
+                  activity={activity}
+                  index={index + leftColumn.length}
+                />
+              </FadeIn>
             ))}
           </div>
         </div>
       </div>
-    </motion.section>
+    </section>
   );
 });
 

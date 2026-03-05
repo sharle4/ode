@@ -1,52 +1,19 @@
 "use client";
 
 import React from "react";
-import { motion } from "framer-motion";
-import { Globe, BookmarkSimple } from "@phosphor-icons/react";
-import StarRating from "@/components/ui/StarRating";
+import { Globe } from "@phosphor-icons/react";
+import FadeIn from "@/components/ui/FadeIn";
 
 interface BilingualSpotlightProps {
   poem: any;
 }
 
-const containerVariants = {
-  hidden: {},
-  visible: {
-    transition: {
-      staggerChildren: 0.1,
-      delayChildren: 0.2,
-    },
-  },
-};
-
-const itemVariants = {
-  hidden: { opacity: 0, y: 24 },
-  visible: {
-    opacity: 1,
-    y: 0,
-    transition: {
-      type: "spring" as const,
-      stiffness: 80,
-      damping: 20,
-    },
-  },
-};
-
 const BilingualSpotlight = React.memo(function BilingualSpotlight({ poem }: BilingualSpotlightProps) {
 
   return (
-    <motion.section
-      className="py-20 md:py-32"
-      initial="hidden"
-      whileInView="visible"
-      viewport={{ once: true, margin: "-100px" }}
-      variants={containerVariants}
-    >
+    <section className="py-20 md:py-32">
       <div className="mx-auto max-w-[1400px] px-4 md:px-8">
-        <motion.div
-          className="mb-10 md:mb-16"
-          variants={itemVariants}
-        >
+        <FadeIn delay={0.2} duration={0.8} y={30} className="mb-10 md:mb-16">
           <div className="flex items-center gap-3 mb-3">
             <span className="h-px flex-1 max-w-[40px] bg-accent/40" />
             <span className="text-xs uppercase tracking-[0.2em] text-accent font-medium">
@@ -65,13 +32,10 @@ const BilingualSpotlight = React.memo(function BilingualSpotlight({ poem }: Bili
               </span>
             </div>
           </div>
-        </motion.div>
+        </FadeIn>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-16 lg:gap-24">
-          <motion.div
-            className="relative"
-            variants={itemVariants}
-          >
+          <FadeIn delay={0.4} duration={0.8} y={30} className="relative">
             <div className="absolute -left-4 top-0 bottom-0 w-px bg-gradient-to-b from-accent/30 via-accent/10 to-transparent hidden md:block" />
 
             <p className="text-xs uppercase tracking-[0.15em] text-warm-gray/80 mb-4 font-medium">
@@ -81,12 +45,9 @@ const BilingualSpotlight = React.memo(function BilingualSpotlight({ poem }: Bili
             <p className="drop-cap font-serif text-xl md:text-2xl leading-loose text-charcoal/90 whitespace-pre-line">
               {poem.normalized_text?.substring(0, 150) || "Poème non disponible..."}...
             </p>
-          </motion.div>
+          </FadeIn>
 
-          <motion.div
-            className="relative"
-            variants={itemVariants}
-          >
+          <FadeIn delay={0.6} duration={0.8} y={30} className="relative">
             <div className="absolute -left-4 top-0 bottom-0 w-px bg-gradient-to-b from-soft-border/60 via-soft-border/30 to-transparent hidden md:block" />
 
             <p className="text-xs uppercase tracking-[0.15em] text-warm-gray/80 mb-4 font-medium">
@@ -96,17 +57,12 @@ const BilingualSpotlight = React.memo(function BilingualSpotlight({ poem }: Bili
             <p className="font-serif text-xl md:text-2xl leading-loose text-warm-gray/80 italic whitespace-pre-line">
               {poem.normalized_text?.substring(150, 300) || ""}...
             </p>
-          </motion.div>
+          </FadeIn>
         </div>
-
-        <motion.div
-          className="mt-12 flex flex-wrap items-center gap-4 md:gap-6"
-          variants={itemVariants}
-        >
+        <FadeIn delay={0.8} duration={0.8} y={20} className="mt-12 flex flex-wrap items-center gap-4 md:gap-6">
           <div className="flex items-center gap-2">
-            <StarRating rating={4.8} size={16} />
             <span className="text-sm text-warm-gray font-mono">
-              4.8
+              Note moyenne 4.8
             </span>
           </div>
 
@@ -118,21 +74,14 @@ const BilingualSpotlight = React.memo(function BilingualSpotlight({ poem }: Bili
 
           <div className="h-4 w-px bg-soft-border/60" />
 
-          <motion.button
-            className="flex items-center gap-1.5 text-sm text-warm-gray hover:text-charcoal transition-colors"
-            whileTap={{ scale: 0.95 }}
-            transition={{
-              type: "spring",
-              stiffness: 400,
-              damping: 15,
-            }}
+          <button
+            className="flex items-center gap-1.5 text-sm text-warm-gray hover:text-charcoal transition-colors active:scale-95"
           >
-            <BookmarkSimple size={16} weight="regular" />
             Enregistrer
-          </motion.button>
-        </motion.div>
+          </button>
+        </FadeIn>
       </div>
-    </motion.section>
+    </section>
   );
 });
 
