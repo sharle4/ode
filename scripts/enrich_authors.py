@@ -503,6 +503,73 @@ def _get_entity_id_claim(claims: ClaimsDict, prop: str) -> Optional[str]:
 # ===========================================================================
 
 
+
+# P131 — "located in administrative territorial entity"
+# Walking this property escalates hyper-specific locations (e.g. a hospital,
+# a neighbourhood, a commune) up to the recognisable city/department level.
+P_LOCATED_IN: str = "P131"
+
+# Maximum number of P131 hops we follow before giving up and using whatever
+# label we have.  2 levels covers: ward → arrondissement → city.
+MAX_P131_DEPTH: int = 2
+
+
+async def _fetch_place_entity(
+    session: aiohttp.ClientSession,
+    semaphore: asyncio.Semaphore,
+    place_qid: str,
+    context: str,
+) -> Tuple[Optional[str], Optional[str]]:
+    """
+    Fetch both the French label AND the P131 parent Q-ID for a place entity
+    in a single API call by requesting `props=claims|labels`.
+
+    Args:
+        session:    Shared aiohttp.ClientSession.
+        semaphore:  Concurrency throttle.
+        place_qid:  Wikidata Q-identifier for the place (e.g. "Q178790").
+        context:    Human-readable label for log messages.
+
+    Returns:
+        A (french_label, p131_parent_qid) tuple.  Either value may be None
+        if the corresponding data is absent or the request fails.
+    """
+    params: Dict[str, str] = {
+        "action": "wbgetentities",
+        "ids": place_qid,
+        "props": "claims|labels",
+        "languages": "fr|en",  # French preferred, English fall-back
+    }
+
+    data = await _fetch_json(
+        session, semaphore, params, context=f"{context}/{place_qid}"
+    )
+    if not data:
+        return None, None
+
+    entities: Dict[str, Any] = data.get("entities", {})
+    entity: Dict[str, Any] = entities.get(place_qid, {})
+
+    if "missing" in entity:
+        return None, None
+
+    # ── Extract French/English label ──
+    labels: Dict[str, Any] = entity.get("labels", {})
+    label_value: Optional[str] = None
+    for lang in ("fr", "en"):
+        label_entry = labels.get(lang, {})
+        lv = label_entry.get("value")
+        if lv:
+            label_value = lv
+            break
+
+    # ── Extract P131 parent Q-ID (first value statement only) ──
+    claims: Dict[str, Any] = entity.get("claims", {})
+    parent_qid: Optional[str] = _get_entity_id_claim(claims, P_LOCATED_IN)
+
+    return label_value, parent_qid
+
+
 async def resolve_place_label(
     session: aiohttp.ClientSession,
     semaphore: asyncio.Semaphore,
@@ -511,54 +578,99 @@ async def resolve_place_label(
     context: str = "",
 ) -> Optional[str]:
     """
-    Resolve a place Q-identifier to its French label, with in-memory caching
-    to avoid redundant API calls for frequently occurring places.
+    Advanced city resolver — resolves a place Q-identifier to a meaningful
+    city/region name by climbing the P131 administrative hierarchy.
 
-    The cache is a plain dict passed by reference and shared across all
-    concurrent coroutines. Because the Python GIL protects dict writes from
-    thread-safety issues in a single-threaded asyncio event loop, no
-    additional locking is required.
+    Algorithm
+    ---------
+    1.  Check `place_cache` for the original Q-ID → immediate cache hit.
+    2.  Fetch the place entity (`claims|labels` in one request).
+    3.  Record the entity's own French label as the current best label.
+    4.  If a P131 parent Q-ID exists AND we have not exceeded MAX_P131_DEPTH:
+          a. Check cache for the parent Q-ID → use cached label directly.
+          b. Otherwise fetch the parent entity and repeat step 3-4 recursively
+             (depth counter decremented each hop).
+        This escalates hyper-specific locations:
+          "Hôpital Cochin" (Q178790)
+            → P131 → "14th arrondissement" (Q270230)
+            → P131 → "Paris" (Q90)   ← final resolved label
+    5.  If no P131 exists or max depth reached, use the current best label.
+    6.  Store the FINAL resolved label under the ORIGINAL Q-ID in the cache
+        (and also under any intermediate Q-IDs visited) so future callers
+        benefit without re-querying.
 
     Args:
         session:     Shared aiohttp.ClientSession.
         semaphore:   Concurrency throttle.
-        place_qid:   Wikidata Q-identifier for the place (e.g. "Q90").
-        place_cache: In-memory dict  {qid → french_label}.
-        context:     Human-readable label for log messages.
+        place_qid:   Wikidata Q-identifier for the place (e.g. "Q178790").
+        place_cache: Shared in-memory dict {qid → resolved_french_label}.
+        context:     Human-readable label for log messages (author name).
 
     Returns:
-        French label string (e.g. "Paris"), or None on failure.
+        Resolved French city/region label (e.g. "Paris"), or None on failure.
     """
-    # ── Cache hit ──
+    # ── Fast path: cache hit on original Q-ID ──
     if place_qid in place_cache:
-        return place_cache[place_qid]
+        cached = place_cache[place_qid]
+        return cached if cached else None
 
-    params: Dict[str, str] = {
-        "action": "wbgetentities",
-        "ids": place_qid,
-        "props": "labels",
-        "languages": "fr|en",   # French first, English as fall-back
-    }
+    # Collect the chain of Q-IDs visited during this resolution so we can
+    # back-fill all of them in the cache with the final resolved label.
+    visited_qids: List[str] = []
+    current_qid: str = place_qid
+    best_label: Optional[str] = None
 
-    data = await _fetch_json(session, semaphore, params, context=f"{context}/{place_qid}")
-    if not data:
+    for depth in range(MAX_P131_DEPTH + 1):  # 0, 1, 2
+        # ── Cache hit mid-chain ──
+        if current_qid in place_cache:
+            cached = place_cache[current_qid]
+            best_label = cached if cached else best_label
+            break
+
+        # ── Fetch claims + labels for the current place entity ──
+        label, parent_qid = await _fetch_place_entity(
+            session, semaphore, current_qid, context
+        )
+
+        # Update the best label we've seen so far in this chain.
+        # We always prefer more specific info if it's non-empty.
+        if label:
+            best_label = label
+
+        visited_qids.append(current_qid)
+
+        # ── Decide whether to follow P131 ──
+        if parent_qid and depth < MAX_P131_DEPTH:
+            logger.debug(
+                "🏙️   [%s] %s → P131 → %s (depth %d)",
+                context, current_qid, parent_qid, depth + 1,
+            )
+            current_qid = parent_qid
+            # If parent is already cached, grab it and stop immediately
+            if parent_qid in place_cache:
+                cached_parent = place_cache[parent_qid]
+                if cached_parent:
+                    best_label = cached_parent
+                break
+        else:
+            # No P131 or max depth reached — stop climbing
+            break
+
+    # ── Back-fill the cache for all Q-IDs we visited ──
+    cache_value: str = best_label if best_label else ""
+    for qid in visited_qids:
+        if qid not in place_cache:
+            place_cache[qid] = cache_value
+
+    if not best_label:
+        logger.warning(
+            "⚠️   [%s] Could not resolve a label for place %s.", context, place_qid
+        )
         return None
 
-    entities: Dict[str, Any] = data.get("entities", {})
-    entity: Dict[str, Any] = entities.get(place_qid, {})
-    labels: Dict[str, Any] = entity.get("labels", {})
+    logger.debug("📍  [%s] %s → %r", context, place_qid, best_label)
+    return best_label
 
-    # Prefer French label, fall back to English
-    for lang in ("fr", "en"):
-        label_entry = labels.get(lang, {})
-        label_value: Optional[str] = label_entry.get("value")
-        if label_value:
-            place_cache[place_qid] = label_value   # populate cache
-            return label_value
-
-    logger.warning("⚠️  [%s] No label found for place %s.", context, place_qid)
-    place_cache[place_qid] = ""  # cache negative result to avoid re-querying
-    return None
 
 
 # ===========================================================================

@@ -56,3 +56,5 @@ Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/bui
 - [ ] utiliser llm local résumé bio auteur et recueil (dans toutes les langues), et attribution catégories
 - [ ] remplacer lien copié partage poème par vrai partage
 - [ ] changer titre onglet
+- [ ] ajouter inspiration / inspiré
+- [ ] ajouter carte et frise
