@@ -5,24 +5,19 @@ import { flushSync } from "react-dom";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
 import {
-  MagnifyingGlass,
   Compass,
-  ListBullets,
-  PencilLine,
   X,
   List,
   Moon,
   Sun,
 } from "@phosphor-icons/react";
-import OdeLogo from "@/components/ui/OdeLogo";
+import OdeLogoStatic from "@/components/ui/OdeLogoStatic";
 import NavbarSearch from "./NavbarSearch";
 import ProfileDropdown from "./ProfileDropdown";
 import { useTheme } from "next-themes";
 
 const navLinks = [
   { label: "Explorer", icon: Compass, href: "/explore" },
-  { label: "Mes Listes", icon: ListBullets, href: "#lists" },
-  { label: "Ajouter", icon: PencilLine, href: "#log" },
 ];
 
 const Navbar = React.memo(function Navbar() {
@@ -73,8 +68,8 @@ const Navbar = React.memo(function Navbar() {
         }}
       >
         <nav className="mx-auto flex max-w-5xl items-center justify-between px-4 sm:px-6 lg:px-8 py-4">
-          <a href="/" className="flex-shrink-0 w-[72px] md:w-[88px]" aria-label="ode homepage">
-            <OdeLogo width="100%" height="auto" />
+          <a href="/" className="flex-shrink-0 w-[72px] md:w-[88px] text-charcoal" aria-label="ode homepage">
+            <OdeLogoStatic width="100%" height="auto" />
           </a>
 
           <div className="hidden md:flex flex-1 max-w-md mx-8">
