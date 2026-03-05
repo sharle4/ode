@@ -98,7 +98,7 @@ export default async function AuthorPage({ params }: { params: Promise<{ slug: s
                     </div>
 
                     {/* Colonne Latérale (À propos, Stats, Liens) */}
-                    <aside className="lg:col-span-4 flex flex-col gap-12">
+                    <aside className="lg:col-span-4 flex flex-col gap-12 min-w-0 overflow-hidden">
 
                         {/* SECTION: À propos */}
                         <FadeIn delay={0.6}>

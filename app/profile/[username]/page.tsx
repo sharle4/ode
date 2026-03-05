@@ -33,8 +33,8 @@ export default async function ProfilePage({ params }: ProfilePageProps) {
         <div className="min-h-[100dvh] bg-cream flex flex-col">
             <Navbar />
 
-            <main className="flex-grow pt-24 md:pt-32 pb-16 px-4 sm:px-6">
-                <div className="max-w-4xl mx-auto">
+            <main className="flex-grow pt-24 md:pt-32 pb-16">
+                <div className="max-w-5xl mx-auto w-full px-4 sm:px-6 lg:px-8">
                     {/* Header Profil */}
                     <FadeIn delay={0.1}>
                         <header className="flex flex-col md:flex-row items-center md:items-start gap-6 md:gap-10 mb-16">

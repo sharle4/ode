@@ -2,7 +2,6 @@
 
 import React from "react";
 import { motion } from "framer-motion";
-import { Plus } from "@phosphor-icons/react";
 
 interface AuthorHeaderProps {
     author: {
@@ -29,7 +28,7 @@ export default function AuthorHeader({ author }: AuthorHeaderProps) {
                 <div className="absolute inset-0 bg-black/30"></div>
             </div>
 
-            <div className="relative z-10 w-full max-w-5xl flex flex-col justify-end px-4 sm:px-6 pb-12 h-full gap-4">
+            <div className="relative z-10 w-full max-w-5xl mx-auto flex flex-col justify-end px-4 sm:px-6 pb-12 h-full gap-4">
                 <motion.div
                     initial={{ opacity: 0, y: 30 }}
                     animate={{ opacity: 1, y: 0 }}
@@ -44,19 +43,13 @@ export default function AuthorHeader({ author }: AuthorHeaderProps) {
                 </motion.div>
 
                 <motion.div
-                    className="flex flex-col md:flex-row md:items-end justify-between gap-6"
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
                     transition={{ duration: 0.8, delay: 0.2 }}
                 >
-                    <p className="max-w-2xl text-base sm:text-lg text-white/90 font-serif leading-relaxed drop-shadow-md">
+                    <p className="text-base sm:text-lg text-white/90 font-serif leading-relaxed drop-shadow-md">
                         {author.bioShort}
                     </p>
-
-                    <button className="flex items-center gap-2 px-6 py-2.5 bg-white text-black rounded-full uppercase tracking-wider text-xs font-semibold hover:bg-white/90 transition-colors w-fit flex-shrink-0">
-                        <Plus size={16} weight="bold" />
-                        S'abonner
-                    </button>
                 </motion.div>
             </div>
         </section>
