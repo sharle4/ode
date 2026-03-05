@@ -55,7 +55,7 @@ export default async function AuthorPage({ params }: { params: Promise<{ slug: s
                 {/* 1. Hero Header */}
                 <AuthorHeader author={mockedAuthor} />
 
-                <div className="max-w-7xl mx-auto px-4 sm:px-6 py-16 md:py-24 grid grid-cols-1 lg:grid-cols-12 gap-16 lg:gap-24">
+                <div className="max-w-5xl mx-auto px-4 sm:px-6 py-16 md:py-24 grid grid-cols-1 lg:grid-cols-12 gap-16 lg:gap-24">
 
                     {/* Colonne Principale (Top 5 & Recueils) */}
                     <div className="lg:col-span-8 flex flex-col gap-20">

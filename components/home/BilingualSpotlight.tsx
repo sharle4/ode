@@ -11,16 +11,16 @@ interface BilingualSpotlightProps {
 const BilingualSpotlight = React.memo(function BilingualSpotlight({ poem }: BilingualSpotlightProps) {
 
   return (
-    <section className="py-20 md:py-32 bg-charcoal text-cream">
+    <section id="daily-poem" className="py-20 md:py-32 bg-charcoal text-cream">
       <div className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8">
         <FadeIn delay={0.2} duration={0.8} y={30} className="mb-10 md:mb-16">
           <div className="flex items-center gap-3 mb-3">
-            <span className="h-px flex-1 max-w-[40px] bg-accent/40" />
-            <span className="text-xs uppercase tracking-[0.2em] text-accent font-medium">
+            <span className="h-px flex-1 max-w-[40px] bg-accent/60" />
+            <span className="text-xs uppercase tracking-[0.2em] text-accent font-semibold">
               Poème du jour
             </span>
           </div>
-          <h2 className="font-serif text-2xl md:text-3xl tracking-tight text-cream">
+          <h2 className="font-serif text-2xl md:text-3xl tracking-tight text-white">
             {poem.title}
           </h2>
           <div className="mt-2 flex items-center gap-3">
@@ -38,23 +38,23 @@ const BilingualSpotlight = React.memo(function BilingualSpotlight({ poem }: Bili
           <FadeIn delay={0.4} duration={0.8} y={30} className="relative">
             <div className="absolute -left-4 top-0 bottom-0 w-px bg-gradient-to-b from-accent/30 via-accent/10 to-transparent hidden md:block" />
 
-            <p className="text-xs uppercase tracking-[0.15em] text-white/60 mb-4 font-medium">
+            <p className="text-xs uppercase tracking-[0.15em] text-warm-gray/70 mb-4 font-medium">
               Extrait original
             </p>
 
-            <p className="drop-cap font-serif text-xl md:text-2xl leading-loose text-cream/90 whitespace-pre-line">
+            <p className="drop-cap font-serif text-xl md:text-2xl leading-loose text-white/95 whitespace-pre-line">
               {poem.normalized_text?.substring(0, 150) || "Poème non disponible..."}...
             </p>
           </FadeIn>
 
           <FadeIn delay={0.6} duration={0.8} y={30} className="relative">
-            <div className="absolute -left-4 top-0 bottom-0 w-px bg-gradient-to-b from-white/20 via-white/10 to-transparent hidden md:block" />
+            <div className="absolute -left-4 top-0 bottom-0 w-px bg-gradient-to-b from-white/10 via-white/5 to-transparent hidden md:block" />
 
-            <p className="text-xs uppercase tracking-[0.15em] text-white/60 mb-4 font-medium">
+            <p className="text-xs uppercase tracking-[0.15em] text-warm-gray/70 mb-4 font-medium">
               Suite de l'extrait
             </p>
 
-            <p className="font-serif text-xl md:text-2xl leading-loose text-white/70 italic whitespace-pre-line">
+            <p className="font-serif text-xl md:text-2xl leading-loose text-white/60 italic whitespace-pre-line">
               {poem.normalized_text?.substring(150, 300) || ""}...
             </p>
           </FadeIn>

@@ -51,7 +51,7 @@ const HeroSection = React.memo(function HeroSection({ dailyPoem }: HeroSectionPr
                 </Link>
 
                 {dailyPoem ? (
-                  <Link href={`/poem/${dailyPoem.slug}`}>
+                  <Link href="#daily-poem">
                     <button className="inline-flex items-center gap-2 rounded-full border-2 border-soft-border/60 px-7 py-3.5 text-sm font-medium text-charcoal transition-colors hover:bg-paper active:scale-[0.98]">
                       <BookOpenText size={18} weight="regular" />
                       Lire le poème du jour

@@ -45,7 +45,7 @@ export default async function CategoryPage({ params }: { params: Promise<{ slug:
                 {/* HERO CATEGORY */}
                 <section className="relative w-full pt-32 pb-16 flex flex-col items-center overflow-hidden bg-charcoal text-white">
                     <div className="absolute inset-0 bg-gradient-to-br from-accent/40 to-black/80 z-0"></div>
-                    <FadeIn delay={0.1} className="relative z-10 w-full max-w-7xl mx-auto px-4 sm:px-6 text-center">
+                    <FadeIn delay={0.1} className="relative z-10 w-full max-w-5xl mx-auto px-4 sm:px-6 text-center">
                         <span className="text-sm font-sans uppercase tracking-widest text-white/70 mb-4 block">Découverte</span>
                         <h1 className="font-serif text-5xl sm:text-6xl md:text-7xl mb-6 leading-tight drop-shadow-md">
                             {title}
@@ -56,7 +56,7 @@ export default async function CategoryPage({ params }: { params: Promise<{ slug:
                     </FadeIn>
                 </section>
 
-                <section className="w-full max-w-7xl mx-auto px-4 sm:px-6 py-12 pb-24 flex flex-col gap-16">
+                <section className="w-full max-w-5xl mx-auto px-4 sm:px-6 py-12 pb-24 flex flex-col gap-16">
 
                     {/* Poèmes Phares */}
                     <FadeIn delay={0.2} className="w-full">

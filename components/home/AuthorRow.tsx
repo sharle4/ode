@@ -66,7 +66,7 @@ const AuthorRow = React.memo(function AuthorRow({
                     </div>
                 </div>
 
-                <div className="relative group">
+                <div className="relative">
                     <div
                         ref={scrollRef}
                         className="flex overflow-x-auto gap-6 md:gap-10 pb-8 pt-2 -mx-4 px-4 md:mx-0 md:px-0 hide-scrollbar snap-x snap-mandatory scroll-smooth"
@@ -85,7 +85,7 @@ const AuthorRow = React.memo(function AuthorRow({
                                         className="w-full h-full object-cover grayscale opacity-80 group-hover:grayscale-0 group-hover:opacity-100 transition-all duration-500"
                                     />
                                 </div>
-                                <span className="font-serif text-center text-sm md:text-base text-cream group-hover:text-accent transition-colors block text-balance">
+                                <span className="font-medium text-center text-sm md:text-base text-cream group-hover:text-accent transition-colors block text-balance">
                                     {author.name}
                                 </span>
                             </Link>
@@ -95,7 +95,7 @@ const AuthorRow = React.memo(function AuthorRow({
                             <div className="w-24 h-24 sm:w-32 sm:h-32 md:w-36 md:h-36 rounded-full border-2 border-dashed border-white/20 flex items-center justify-center text-white/50 mb-4 bg-white/5 group-hover:border-accent group-hover:text-accent transition-all duration-300">
                                 <CaretRight size={32} weight="light" />
                             </div>
-                            <span className="font-serif text-center text-sm md:text-base text-white/50 group-hover:text-accent transition-colors block">
+                            <span className="font-medium text-center text-sm md:text-base text-white/50 group-hover:text-accent transition-colors block">
                                 Tous les auteurs
                             </span>
                         </Link>

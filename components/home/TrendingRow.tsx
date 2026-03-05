@@ -70,7 +70,7 @@ const TrendingRow = React.memo(function TrendingRow({
             {poems.slice(0, 10).map((poem, index) => (
               <div
                 key={poem.id}
-                className="flex-none w-[280px] sm:w-[320px] lg:w-[340px] snap-center md:snap-start"
+                className="flex-none w-[200px] sm:w-[220px] lg:w-[240px] snap-center md:snap-start"
               >
                 <PoemCard poem={poem} index={index} layout="grid" />
               </div>
