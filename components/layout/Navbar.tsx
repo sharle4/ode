@@ -16,6 +16,7 @@ import {
 } from "@phosphor-icons/react";
 import OdeLogo from "@/components/ui/OdeLogo";
 import NavbarSearch from "./NavbarSearch";
+import ProfileDropdown from "./ProfileDropdown";
 import { useTheme } from "next-themes";
 
 const navLinks = [
@@ -133,11 +134,7 @@ const Navbar = React.memo(function Navbar() {
               </motion.button>
             )}
 
-            <Link href="/profile/BaudelaireFan">
-              <div className="ml-3 h-8 w-8 rounded-full bg-gradient-to-br from-accent to-accent-light flex items-center justify-center text-white text-xs font-medium cursor-pointer hover:shadow-lg transition-shadow">
-                B
-              </div>
-            </Link>
+            <ProfileDropdown />
           </div>
 
           <motion.button

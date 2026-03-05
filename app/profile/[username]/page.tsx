@@ -65,9 +65,18 @@ export default async function ProfilePage({ params }: ProfilePageProps) {
 
                             {/* Edit / Follow Button */}
                             <div className="mt-4 md:mt-0">
-                                <button className="px-6 py-2 rounded-full border border-soft-border text-charcoal hover:bg-black/5 dark:hover:bg-white/10 transition-colors font-medium text-sm">
-                                    Suivre
-                                </button>
+                                {decodedUsername === "BaudelaireFan" ? (
+                                    <a
+                                        href="/settings"
+                                        className="inline-flex items-center gap-2 px-6 py-2 rounded-full border border-soft-border text-charcoal hover:bg-black/5 dark:hover:bg-white/10 transition-colors font-medium text-sm"
+                                    >
+                                        Modifier le profil
+                                    </a>
+                                ) : (
+                                    <button className="px-6 py-2 rounded-full bg-charcoal text-cream hover:bg-charcoal/90 transition-colors font-medium text-sm">
+                                        Suivre
+                                    </button>
+                                )}
                             </div>
                         </header>
                     </FadeIn>
