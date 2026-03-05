@@ -49,3 +49,4 @@ Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/bui
 - [ ] Supprimer animation navbar si changement d'onglet uniquement
 - [ ] onglets page profile doivent prendre toute la largeur
 - [ ] marquer poeme comme lu
+- [ ] page poème / recueil : ajouter note émotion et date

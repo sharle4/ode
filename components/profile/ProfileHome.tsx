@@ -11,9 +11,9 @@ interface ProfileHomeProps {
 }
 
 const BADGES = [
-    { title: "Mécène", icon: <Sparkle size={18} weight="fill" className="text-accent" /> },
-    { title: "Critique Averti", icon: <Star size={18} weight="fill" className="text-amber-500" /> },
-    { title: "Pionnier", icon: <Medal size={18} weight="fill" className="text-zinc-400" /> }
+    { title: "Mécène", desc: "A soutenu l'auteur", icon: <Sparkle size={18} weight="fill" className="text-accent" /> },
+    { title: "Critique Averti", desc: "Top 1% des critiques", icon: <Star size={18} weight="fill" className="text-amber-500" /> },
+    { title: "Pionnier", desc: "Membre depuis la bêta", icon: <Medal size={18} weight="fill" className="text-zinc-400" /> }
 ];
 
 const RATINGS = [
@@ -28,10 +28,10 @@ export default function ProfileHome({ username, favoritePoems }: ProfileHomeProp
     const maxCount = Math.max(...RATINGS.map(r => r.count));
 
     return (
-        <div className="grid grid-cols-1 md:grid-cols-12 gap-12">
+        <div className="grid grid-cols-1 md:grid-cols-12 gap-16     ">
 
             {/* Colonne Principale Gauche (Top 3, Critiques) */}
-            <div className="md:col-span-8 flex flex-col gap-12">
+            <div className="md:col-span-8 flex flex-col gap-16">
 
                 {/* SECTION: Top 3 Poèmes */}
                 <section>
@@ -49,23 +49,7 @@ export default function ProfileHome({ username, favoritePoems }: ProfileHomeProp
                     )}
                 </section>
 
-                {/* SECTION: Top Auteurs (Déplacé ici pour la proximité) */}
-                <section>
-                    <div className="flex items-center justify-between mb-4 border-b border-soft-border pb-2">
-                        <h2 className="font-serif text-xl text-charcoal">Auteurs Favoris (Top 3)</h2>
-                        <span className="text-xs text-warm-gray uppercase tracking-widest cursor-pointer hover:text-charcoal transition-colors">Modifier</span>
-                    </div>
-                    <p className="text-sm text-warm-gray italic mb-4">Ces auteurs ont été méticuleusement choisis par {username}.</p>
-                    <ul className="flex flex-col gap-3">
-                        {["Charles Baudelaire", "Arthur Rimbaud", "Victor Hugo"].map((author, i) => (
-                            <li key={i} className="flex items-center justify-between group cursor-pointer p-4 bg-paper border border-soft-border rounded-xl hover:bg-white transition-colors">
-                                <span className="text-charcoal font-serif text-lg group-hover:text-accent transition-colors flex items-center gap-3">
-                                    <span className="text-warm-gray text-sm font-sans">{i + 1}.</span> {author}
-                                </span>
-                            </li>
-                        ))}
-                    </ul>
-                </section>
+
 
                 {/* SECTION: Critiques Récentes (Mock) */}
                 <section>
@@ -123,7 +107,7 @@ export default function ProfileHome({ username, favoritePoems }: ProfileHomeProp
             </div>
 
             {/* Colonne Sidebar Droite (Graphes, Badges, Top Auteurs) */}
-            <div className="md:col-span-4 flex flex-col gap-10">
+            <div className="md:col-span-4 flex flex-col gap-14">
 
                 {/* SECTION: Graphique des Notes */}
                 <section>
@@ -156,11 +140,40 @@ export default function ProfileHome({ username, favoritePoems }: ProfileHomeProp
                 {/* SECTION: Badges */}
                 <section>
                     <h2 className="font-serif text-lg text-charcoal mb-4 border-b border-soft-border pb-2">Badges</h2>
-                    <div className="flex flex-wrap gap-2">
+                    <div className="flex flex-wrap gap-3">
                         {BADGES.map((badge, i) => (
-                            <div key={i} className="flex items-center gap-2 px-3 py-1.5 bg-paper border border-soft-border rounded-full text-xs font-medium text-charcoal">
+                            <div key={i} className="relative group flex items-center gap-2 px-3 py-1.5 bg-paper border border-soft-border hover:border-accent/40 rounded-full text-xs font-medium text-charcoal cursor-default transition-colors">
                                 {badge.icon}
                                 {badge.title}
+                                {/* Tooltip */}
+                                <div className="absolute -top-10 left-1/2 -translate-x-1/2 px-2.5 py-1.5 bg-charcoal text-cream text-[10px] uppercase tracking-widest rounded shadow-md opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none z-10 flex flex-col items-center">
+                                    {badge.desc}
+                                    <div className="absolute -bottom-[4px] w-2 h-2 bg-charcoal rotate-45" />
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                </section>
+
+                {/* SECTION: Top Auteurs Sidebar */}
+                <section>
+                    <h2 className="font-serif text-lg text-charcoal mb-4 border-b border-soft-border pb-2">Auteurs Favoris</h2>
+                    <div className="flex flex-wrap justify-center sm:justify-start gap-4">
+                        {[
+                            { name: "Charles Baudelaire", url: "https://upload.wikimedia.org/wikipedia/commons/1/16/Charles_Baudelaire%2C_by_Etienne_Carjat.jpg" },
+                            { name: "Arthur Rimbaud", url: "https://upload.wikimedia.org/wikipedia/commons/1/19/Arthur_Rimbaud.jpg" },
+                            { name: "Victor Hugo", url: "https://upload.wikimedia.org/wikipedia/commons/e/e6/Victor_Hugo_by_Étienne_Carjat_1876_-_full.jpg" }
+                        ].map((author, i) => (
+                            <div key={i} className="flex flex-col items-center group cursor-pointer">
+                                <div className="relative w-16 h-16 rounded-full overflow-hidden border-2 border-transparent group-hover:border-accent transition-colors shadow-sm mb-2">
+                                    <img src={author.url} alt={author.name} className="w-full h-full object-cover filter grayscale group-hover:grayscale-0 transition-all duration-300" />
+                                    <div className="absolute bottom-0 right-0 bg-accent text-white w-4 h-4 rounded-full flex items-center justify-center text-[10px] font-bold shadow-sm">
+                                        {i + 1}
+                                    </div>
+                                </div>
+                                <span className="text-[10px] uppercase tracking-wider text-warm-gray group-hover:text-charcoal transition-colors text-center w-20 leading-tight">
+                                    {author.name}
+                                </span>
                             </div>
                         ))}
                     </div>

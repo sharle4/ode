@@ -8,7 +8,8 @@ import {
     Star,
     ChatCircle,
     ShareNetwork,
-    X
+    X,
+    CheckCircle
 } from "@phosphor-icons/react";
 
 interface PoemActionsProps {
@@ -17,6 +18,7 @@ interface PoemActionsProps {
 
 export default function PoemActions({ poemId }: PoemActionsProps) {
     const [isLiked, setIsLiked] = useState(false);
+    const [isRead, setIsRead] = useState(false);
     const [showShareTooltip, setShowShareTooltip] = useState(false);
 
     const handleShare = () => {
@@ -26,6 +28,12 @@ export default function PoemActions({ poemId }: PoemActionsProps) {
     };
 
     const actionButtons = [
+        {
+            id: "read",
+            icon: <CheckCircle size={22} weight={isRead ? "fill" : "regular"} className={isRead ? "text-accent" : "text-charcoal"} />,
+            label: "Lu",
+            onClick: () => setIsRead(!isRead),
+        },
         {
             id: "like",
             icon: <Heart size={22} weight={isLiked ? "fill" : "regular"} className={isLiked ? "text-accent" : "text-charcoal"} />,
@@ -84,7 +92,7 @@ export default function PoemActions({ poemId }: PoemActionsProps) {
 
                 <div className="w-px h-6 bg-soft-border mx-2" />
 
-                <div className="relative">
+                <div className="relative group">
                     <motion.button
                         onClick={handleShare}
                         className="flex items-center justify-center w-12 h-12 rounded-full hover:bg-charcoal/5 transition-colors"
@@ -92,6 +100,12 @@ export default function PoemActions({ poemId }: PoemActionsProps) {
                     >
                         <ShareNetwork size={22} weight="regular" className="text-charcoal" />
                     </motion.button>
+
+                    {/* Infobulle standard au hover */}
+                    <div className="absolute -top-11 left-1/2 -translate-x-1/2 px-2.5 py-1.5 bg-paper border border-soft-border text-charcoal text-[10px] uppercase tracking-widest rounded shadow-md opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none flex flex-col items-center">
+                        Partager
+                        <div className="absolute -bottom-[5px] w-2 h-2 bg-paper border-b border-r border-soft-border rotate-45" />
+                    </div>
 
                     <AnimatePresence>
                         {showShareTooltip && (

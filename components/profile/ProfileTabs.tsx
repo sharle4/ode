@@ -48,7 +48,7 @@ export default function ProfileTabs({ username, favoritePoems }: ProfileTabsProp
 
     return (
         <div className="w-full">
-            <div className="flex items-center justify-start gap-6 border-b border-soft-border mb-8 overflow-x-auto hide-scrollbar">
+            <div className="flex items-center justify-start gap-8 border-b border-soft-border mb-12 overflow-x-auto hide-scrollbar">
                 {TABS.map((tab) => (
                     <button
                         key={tab.id}
