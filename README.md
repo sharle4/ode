@@ -53,5 +53,6 @@ Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/bui
 - [ ] centrer les onglets de la page profile ?
 - [ ] rendre graphique de note interactif
 - [ ] scrap wikipedia date naissance/mort auteur + lieu 
-- [ ] utiliser llm local résumé bio auteur et recueil (dans toutes les langues) 
+- [ ] utiliser llm local résumé bio auteur et recueil (dans toutes les langues), et attribution catégories
 - [ ] remplacer lien copié partage poème par vrai partage
+- [ ] changer titre onglet

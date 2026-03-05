@@ -31,6 +31,7 @@ export default async function AuthorPage({ params }: { params: Promise<{ slug: s
         deathYear: 1867,
         bioShort: "Poète français, Charles Baudelaire est l'un des poètes les plus célèbres du XIXe siècle. Il est connu pour son recueil de poèmes, Les Fleurs du mal, qui a fait scandale à sa parution en 1857 pour son exploration de thèmes sulfureux.",
         coverImage: "https://upload.wikimedia.org/wikipedia/commons/1/16/Charles_Baudelaire%2C_by_Etienne_Carjat.jpg", // Photo libre de droits
+        signatureImage: "https://upload.wikimedia.org/wikipedia/commons/thumb/f/f3/Baudelaire_signatur.svg/langfr-3840px-Baudelaire_signatur.svg.png",
     };
 
     const mockedCollections = [
