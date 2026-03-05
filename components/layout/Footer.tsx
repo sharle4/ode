@@ -43,7 +43,7 @@ const footerColumns = [
 export default function Footer() {
   return (
     <footer className="border-t border-soft-border/60 bg-paper">
-      <div className="mx-auto max-w-[1400px] px-4 md:px-8 py-16 md:py-24">
+      <div className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8 py-16 md:py-24">
         <div className="grid grid-cols-2 gap-8 md:grid-cols-4 lg:gap-12">
           {footerColumns.map((column) => (
             <div key={column.title}>

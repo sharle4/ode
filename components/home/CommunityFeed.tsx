@@ -11,7 +11,7 @@ const CommunityFeed = React.memo(function CommunityFeed() {
 
   return (
     <section className="py-16 md:py-24">
-      <div className="mx-auto max-w-[1400px] px-4 md:px-8">
+      <div className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8">
 
         <FadeIn delay={0.2} y={30} duration={0.8} className="mb-10 md:mb-14">
           <div className="flex items-center gap-3 mb-3">

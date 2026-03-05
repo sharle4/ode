@@ -1,7 +1,8 @@
 "use client";
 
 import React from "react";
-import { ArrowRight, BookOpen } from "@phosphor-icons/react";
+import Link from "next/link";
+import { ArrowRight, BookOpen, BookOpenText } from "@phosphor-icons/react";
 import OdeLogo from "@/components/ui/OdeLogo";
 import FadeIn from "@/components/ui/FadeIn";
 
@@ -12,55 +13,58 @@ interface HeroSectionProps {
 const HeroSection = React.memo(function HeroSection({ dailyPoem }: HeroSectionProps) {
   return (
     <section className="relative min-h-[100dvh] overflow-hidden">
-      <div className="mx-auto max-w-[1400px] px-4 md:px-8">
+      <div className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-0 min-h-[100dvh] items-center">
 
           {/* Ligne 1 : Présentation ou Daily Poem Intro */}
           <div className="flex flex-col justify-center pt-28 pb-8 md:pt-0 md:pb-0 md:pr-16 lg:pr-24">
 
-            <FadeIn delay={0.1}>
-              <div className="mb-6">
-                <span className="inline-flex items-center gap-2 rounded-full border border-soft-border bg-paper/50 backdrop-blur-sm px-3.5 py-1.5 text-xs text-warm-gray shadow-[inset_0_1px_0_rgba(26,26,26,0.05)]">
-                  <span className="h-1.5 w-1.5 rounded-full bg-accent animate-pulse" />
-                  La plus grande base de données de poésie
-                </span>
-              </div>
-            </FadeIn>
-
             <FadeIn delay={0.2}>
-              <h1 className="font-serif text-4xl md:text-6xl tracking-tighter leading-none text-charcoal text-balance">
+              <h1 className="font-serif text-5xl md:text-7xl tracking-tighter leading-none text-charcoal text-balance">
                 {dailyPoem ? (
                   <>
-                    Plongez dans l'œuvre de <br />
+                    Lumière sur <br />
                     <span className="italic text-warm-gray">{dailyPoem.authors?.name}</span>
                   </>
                 ) : (
                   <>
-                    Découvrez, notez et
-                    <br />
-                    <span className="italic text-warm-gray">partagez la poésie.</span>
+                    La maison de <br />
+                    <span className="italic text-warm-gray">la poésie.</span>
                   </>
                 )}
               </h1>
             </FadeIn>
 
             <FadeIn delay={0.3}>
-              <p className="mt-6 text-base text-warm-gray leading-relaxed max-w-[52ch]">
-                Explorez la plus grande base de données de poèmes au monde. Lisez des œuvres de toutes les époques, notez vos coups de cœur et créez votre propre anthologie avec notre communauté de lecteurs passionnés.
+              <p className="mt-8 text-lg font-medium text-warm-gray/90 leading-relaxed max-w-[45ch]">
+                Lisez, notez et partagez des milliers de poèmes. Rejoignez la communauté francophone de la poésie.
               </p>
             </FadeIn>
 
             <FadeIn delay={0.4}>
               <div className="mt-10 flex flex-wrap items-center gap-4">
-                <button className="inline-flex items-center gap-2 rounded-full bg-charcoal px-6 py-3 text-sm font-medium text-cream transition-colors hover:bg-charcoal/90 active:scale-[0.98] active:-translate-y-[1px]">
-                  Explorer
-                  <ArrowRight size={16} weight="bold" />
-                </button>
+                <Link href="/explore">
+                  <button className="inline-flex items-center gap-2 rounded-full bg-charcoal px-7 py-3.5 text-sm font-medium text-cream transition-colors hover:bg-charcoal/90 active:scale-[0.98]">
+                    Explorer
+                    <ArrowRight size={16} weight="bold" />
+                  </button>
+                </Link>
 
-                <button className="inline-flex items-center gap-2 rounded-full border border-soft-border/60 px-6 py-3 text-sm font-medium text-charcoal transition-colors hover:bg-paper active:scale-[0.98] active:-translate-y-[1px]">
-                  <BookOpen size={16} weight="regular" />
-                  Ajouter un poème
-                </button>
+                {dailyPoem ? (
+                  <Link href={`/poem/${dailyPoem.slug}`}>
+                    <button className="inline-flex items-center gap-2 rounded-full border-2 border-soft-border/60 px-7 py-3.5 text-sm font-medium text-charcoal transition-colors hover:bg-paper active:scale-[0.98]">
+                      <BookOpenText size={18} weight="regular" />
+                      Lire le poème du jour
+                    </button>
+                  </Link>
+                ) : (
+                  <Link href="/explore">
+                    <button className="inline-flex items-center gap-2 rounded-full border-2 border-soft-border/60 px-7 py-3.5 text-sm font-medium text-charcoal transition-colors hover:bg-paper active:scale-[0.98]">
+                      <BookOpen size={18} weight="regular" />
+                      Parcourir les œuvres
+                    </button>
+                  </Link>
+                )}
               </div>
             </FadeIn>
 

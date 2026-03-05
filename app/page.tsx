@@ -38,20 +38,6 @@ export default async function Home() {
             poems={trendingPoems}
           />
 
-          <FadeIn delay={0.2} duration={0.8} y={40} className="mx-auto max-w-[1400px] px-4 md:px-8 py-12 md:py-20">
-            <div className="flex items-end justify-between mb-8 md:mb-10">
-              <div>
-                <h2 className="font-serif text-2xl md:text-3xl tracking-tight text-charcoal">
-                  Explorer par
-                </h2>
-                <p className="mt-1.5 text-sm text-warm-gray">
-                  Thèmes, Mouvements et Époques
-                </p>
-              </div>
-            </div>
-            <CategoryGrid />
-          </FadeIn>
-
           <AuthorRow
             title="Auteurs à la une"
             subtitle="Plumes intemporelles et vers inoubliables"

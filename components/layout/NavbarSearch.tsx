@@ -58,7 +58,7 @@ export default function NavbarSearch({ variant = 'desktop' }: NavbarSearchProps)
             <MagnifyingGlass
                 size={18}
                 weight="bold"
-                className={`absolute left-4 top-1/2 -translate-y-1/2 pointer-events-none transition-colors ${searchFocused ? "text-accent" : (isMobile ? "text-white/80" : "text-charcoal/80 dark:text-white/80")}`}
+                className="absolute left-4 top-1/2 -translate-y-1/2 pointer-events-none text-charcoal/80 dark:text-white/80"
             />
 
             <input
@@ -69,7 +69,7 @@ export default function NavbarSearch({ variant = 'desktop' }: NavbarSearchProps)
                 className={`w-full rounded-full outline-none transition-all duration-300 shadow-sm border-2 
                     ${isMobile
                         ? "bg-zinc-900 border-zinc-800 text-white placeholder:text-zinc-500 py-3 pl-12 pr-10 focus:border-accent/50 focus:bg-zinc-900 focus:ring-4 focus:ring-accent/10"
-                        : "bg-paper/80 backdrop-blur border-soft-border/50 py-2.5 pl-12 pr-10 text-sm md:text-base text-charcoal placeholder:text-warm-gray/60 focus:bg-paper focus:border-accent/40 focus:ring-4 focus:ring-accent/10"
+                        : "bg-paper border-soft-border py-2.5 pl-12 pr-10 text-sm md:text-base text-charcoal placeholder:text-warm-gray/60 focus:bg-paper focus:border-accent/40 focus:ring-4 focus:ring-accent/10"
                     }`}
                 onFocus={() => setSearchFocused(true)}
                 onBlur={() => setSearchFocused(false)}

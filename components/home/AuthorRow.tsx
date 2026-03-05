@@ -35,7 +35,7 @@ const AuthorRow = React.memo(function AuthorRow({
 
     return (
         <FadeIn className="py-8 md:py-12 bg-charcoal text-cream" y={40} duration={0.8} delay={0.2}>
-            <div className="mx-auto max-w-[1400px] px-4 md:px-8">
+            <div className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8">
                 <div className="flex items-end justify-between mb-8 md:mb-12">
                     <div>
                         <h2 className="font-serif text-2xl md:text-3xl tracking-tight text-cream">
@@ -67,10 +67,6 @@ const AuthorRow = React.memo(function AuthorRow({
                 </div>
 
                 <div className="relative group">
-                    {/* Gradients pour cacher le débordement sur Desktop */}
-                    <div className="absolute left-0 top-0 bottom-0 w-12 bg-gradient-to-r from-charcoal to-transparent z-10 pointer-events-none hidden md:block" />
-                    <div className="absolute right-0 top-0 bottom-0 w-24 bg-gradient-to-l from-charcoal to-transparent z-10 pointer-events-none hidden md:block" />
-
                     <div
                         ref={scrollRef}
                         className="flex overflow-x-auto gap-6 md:gap-10 pb-8 pt-2 -mx-4 px-4 md:mx-0 md:px-0 hide-scrollbar snap-x snap-mandatory scroll-smooth"
