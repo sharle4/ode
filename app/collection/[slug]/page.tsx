@@ -3,6 +3,7 @@ import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
 import CollectionHeader from "@/components/collection/CollectionHeader";
 import PoemListItem from "@/components/collection/PoemListItem";
+import RatingSection from "@/components/ui/RatingSection";
 import FadeIn from "@/components/ui/FadeIn";
 import { Metadata } from "next";
 
@@ -80,7 +81,7 @@ export default async function CollectionPage({ params }: { params: Promise<{ slu
                 <CollectionHeader collection={mockedCollection} />
 
                 {/* 2. Table des Matières (Liste des poèmes organisée par sections) */}
-                <div className="max-w-4xl mx-auto px-4 sm:px-6 py-12 md:py-20">
+                <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-12 md:py-20">
                     <h2 className="font-serif text-3xl text-charcoal mb-10 text-center">Table des Matières</h2>
 
                     <div className="flex flex-col gap-12">
@@ -108,6 +109,9 @@ export default async function CollectionPage({ params }: { params: Promise<{ slu
                         ))}
                     </div>
                 </div>
+
+                {/* Avis & Notes */}
+                <RatingSection averageRating={4.6} totalRatings={892} variant="full" />
 
             </main>
 

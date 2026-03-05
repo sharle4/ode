@@ -20,7 +20,7 @@ interface CollectionHeaderProps {
 export default function CollectionHeader({ collection }: CollectionHeaderProps) {
     return (
         <section className="relative w-full pt-32 pb-16 flex justify-center text-charcoal">
-            <div className="w-full max-w-5xl px-4 sm:px-6 flex flex-col md:flex-row items-center md:items-start gap-8 md:gap-16">
+            <div className="w-full max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col md:flex-row items-center md:items-start gap-8 md:gap-16">
 
                 {/* Couverture du Livre */}
                 <motion.div

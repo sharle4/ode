@@ -4,6 +4,7 @@ import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
 import PoemReader from "@/components/poem/PoemReader";
 import PoemActions from "@/components/poem/PoemActions";
+import RatingSection from "@/components/ui/RatingSection";
 import { Metadata } from "next";
 import Link from "next/link";
 import FadeIn from "@/components/ui/FadeIn";
@@ -97,6 +98,9 @@ export default async function PoemPage({ params }: PoemPageProps) {
                 <FadeIn delay={0.5}>
                     <PoemReader content={poem.content} />
                 </FadeIn>
+
+                {/* Avis & Notes — placed after reading, not intrusive */}
+                <RatingSection averageRating={4.8} totalRatings={1247} variant="minimal" />
 
             </main>
 
