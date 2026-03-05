@@ -51,7 +51,7 @@ const supabase = createClient(supabaseUrl, supabaseKey, {
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
-const POEMS_FILE_PATH = path.join(__dirname, '..', 'poems', 'poems.cleaned.jsonl.gz');
+const POEMS_FILE_PATH = path.join(__dirname, '..', 'scripts', 'poems.jsonl.gz');
 
 // --- In-Memory Caches ---
 // We preload data to avoid 50,000+ sequential GET requests that exhaust local ports. 
