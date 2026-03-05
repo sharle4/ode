@@ -50,3 +50,8 @@ Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/bui
 - [ ] onglets page profile doivent prendre toute la largeur
 - [ ] marquer poeme comme lu
 - [ ] page poème / recueil : ajouter note émotion et date
+- [ ] centrer les onglets de la page profile ?
+- [ ] rendre graphique de note interactif
+- [ ] scrap wikipedia date naissance/mort auteur + lieu 
+- [ ] utiliser llm local résumé bio auteur et recueil (dans toutes les langues) 
+- [ ] remplacer lien copié partage poème par vrai partage

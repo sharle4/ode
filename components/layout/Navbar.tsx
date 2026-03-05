@@ -20,7 +20,10 @@ const navLinks = [
   { label: "Explorer", icon: Compass, href: "/explore" },
 ];
 
+let hasAnimated = false;
+
 const Navbar = React.memo(function Navbar() {
+  const isFirstMount = !hasAnimated;
   const [scrolled, setScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const { theme, setTheme, resolvedTheme } = useTheme();
@@ -28,6 +31,7 @@ const Navbar = React.memo(function Navbar() {
 
   useEffect(() => {
     setMounted(true);
+    hasAnimated = true;
   }, []);
 
   const handleThemeToggle = () => {
@@ -59,7 +63,7 @@ const Navbar = React.memo(function Navbar() {
           ? "bg-cream/70 backdrop-blur-xl shadow-sm"
           : "bg-transparent"
           }`}
-        initial={{ y: -80 }}
+        initial={isFirstMount ? { y: -80 } : false}
         animate={{ y: 0 }}
         transition={{
           type: "spring",

@@ -109,6 +109,30 @@ export default function ProfileHome({ username, favoritePoems }: ProfileHomeProp
             {/* Colonne Sidebar Droite (Graphes, Badges, Top Auteurs) */}
             <div className="md:col-span-4 flex flex-col gap-14">
 
+                {/* SECTION: Top Auteurs Sidebar */}
+                <section>
+                    <h2 className="font-serif text-lg text-charcoal mb-4 border-b border-soft-border pb-2">Auteurs Favoris</h2>
+                    <div className="flex flex-wrap justify-center sm:justify-start gap-4">
+                        {[
+                            { name: "Charles Baudelaire", url: "https://upload.wikimedia.org/wikipedia/commons/1/16/Charles_Baudelaire%2C_by_Etienne_Carjat.jpg" },
+                            { name: "Arthur Rimbaud", url: "https://upload.wikimedia.org/wikipedia/commons/1/19/Arthur_Rimbaud.jpg" },
+                            { name: "Victor Hugo", url: "https://upload.wikimedia.org/wikipedia/commons/e/e6/Victor_Hugo_by_Étienne_Carjat_1876_-_full.jpg" }
+                        ].map((author, i) => (
+                            <div key={i} className="flex flex-col items-center group cursor-pointer">
+                                <div className="relative w-16 h-16 rounded-full overflow-hidden border-2 border-transparent group-hover:border-accent transition-colors shadow-sm mb-2">
+                                    <img src={author.url} alt={author.name} className="w-full h-full object-cover filter grayscale group-hover:grayscale-0 transition-all duration-300" />
+                                    <div className="absolute bottom-0 right-0 bg-accent text-white w-4 h-4 rounded-full flex items-center justify-center text-[10px] font-bold shadow-sm">
+                                        {i + 1}
+                                    </div>
+                                </div>
+                                <span className="text-[10px] uppercase tracking-wider text-warm-gray group-hover:text-charcoal transition-colors text-center w-20 leading-tight">
+                                    {author.name}
+                                </span>
+                            </div>
+                        ))}
+                    </div>
+                </section>
+
                 {/* SECTION: Graphique des Notes */}
                 <section>
                     <h2 className="font-serif text-lg text-charcoal mb-6 border-b border-soft-border pb-2">Répartition des Notes</h2>
@@ -154,32 +178,6 @@ export default function ProfileHome({ username, favoritePoems }: ProfileHomeProp
                         ))}
                     </div>
                 </section>
-
-                {/* SECTION: Top Auteurs Sidebar */}
-                <section>
-                    <h2 className="font-serif text-lg text-charcoal mb-4 border-b border-soft-border pb-2">Auteurs Favoris</h2>
-                    <div className="flex flex-wrap justify-center sm:justify-start gap-4">
-                        {[
-                            { name: "Charles Baudelaire", url: "https://upload.wikimedia.org/wikipedia/commons/1/16/Charles_Baudelaire%2C_by_Etienne_Carjat.jpg" },
-                            { name: "Arthur Rimbaud", url: "https://upload.wikimedia.org/wikipedia/commons/1/19/Arthur_Rimbaud.jpg" },
-                            { name: "Victor Hugo", url: "https://upload.wikimedia.org/wikipedia/commons/e/e6/Victor_Hugo_by_Étienne_Carjat_1876_-_full.jpg" }
-                        ].map((author, i) => (
-                            <div key={i} className="flex flex-col items-center group cursor-pointer">
-                                <div className="relative w-16 h-16 rounded-full overflow-hidden border-2 border-transparent group-hover:border-accent transition-colors shadow-sm mb-2">
-                                    <img src={author.url} alt={author.name} className="w-full h-full object-cover filter grayscale group-hover:grayscale-0 transition-all duration-300" />
-                                    <div className="absolute bottom-0 right-0 bg-accent text-white w-4 h-4 rounded-full flex items-center justify-center text-[10px] font-bold shadow-sm">
-                                        {i + 1}
-                                    </div>
-                                </div>
-                                <span className="text-[10px] uppercase tracking-wider text-warm-gray group-hover:text-charcoal transition-colors text-center w-20 leading-tight">
-                                    {author.name}
-                                </span>
-                            </div>
-                        ))}
-                    </div>
-                </section>
-
-
 
             </div>
         </div>

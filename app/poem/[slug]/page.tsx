@@ -74,7 +74,7 @@ export default async function PoemPage({ params }: PoemPageProps) {
                                     href={`/author/${poem.authors?.id || '#'}`}
                                     className="text-lg md:text-xl text-warm-gray hover:text-charcoal transition-colors italic"
                                 >
-                                    Par {authorName}
+                                    Par {authorName} {poem.publicationYear ? `(${poem.publicationYear})` : ""}
                                 </Link>
 
                                 {collectionTitle && (

@@ -9,7 +9,8 @@ import {
     ChatCircle,
     ShareNetwork,
     X,
-    CheckCircle
+    CheckCircle,
+    Smiley
 } from "@phosphor-icons/react";
 
 interface PoemActionsProps {
@@ -45,6 +46,12 @@ export default function PoemActions({ poemId }: PoemActionsProps) {
             icon: <ListPlus size={22} weight="regular" className="text-charcoal" />,
             label: "Ajouter",
             onClick: () => console.log("Open List Modal"),
+        },
+        {
+            id: "emotion",
+            icon: <Smiley size={22} weight="regular" className="text-charcoal" />,
+            label: "Émotions",
+            onClick: () => console.log("Open Emotion Modal"),
         },
         {
             id: "rate",
@@ -101,8 +108,8 @@ export default function PoemActions({ poemId }: PoemActionsProps) {
                         <ShareNetwork size={22} weight="regular" className="text-charcoal" />
                     </motion.button>
 
-                    {/* Infobulle standard au hover */}
-                    <div className="absolute -top-11 left-1/2 -translate-x-1/2 px-2.5 py-1.5 bg-paper border border-soft-border text-charcoal text-[10px] uppercase tracking-widest rounded shadow-md opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none flex flex-col items-center">
+                    {/* Infobulle standard au hover (masquée si showShareTooltip est vrai) */}
+                    <div className={`absolute -top-11 left-1/2 -translate-x-1/2 px-2.5 py-1.5 bg-paper border border-soft-border text-charcoal text-[10px] uppercase tracking-widest rounded shadow-md transition-opacity whitespace-nowrap pointer-events-none flex flex-col items-center ${showShareTooltip ? 'opacity-0' : 'opacity-0 group-hover:opacity-100'}`}>
                         Partager
                         <div className="absolute -bottom-[5px] w-2 h-2 bg-paper border-b border-r border-soft-border rotate-45" />
                     </div>
