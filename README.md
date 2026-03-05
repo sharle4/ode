@@ -41,5 +41,11 @@ Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/bui
 - [ ] Titre header accueil défilant
 - [ ] Faut-il aligner le haut du panneau d'informations du poème du jour avec le titre "poème du jour" ?
 - [ ] Faut-il aligner le haut de la lettrine avec le haut du premier vers ?
-- [ ] Refonte navbar
 - [ ] Récupérer photos auteurs et signatures
+- [ ] Réfléchir à l'impact du choix de la couleur de surlignage
+- [ ] Ajouter bannière utilisateur ?
+- [ ] Ajouter description / infobulles aux badges
+- [ ] Ajouter une barre de recherche sur onglet page profile (arg de recherche profile:username)
+- [ ] Supprimer animation navbar si changement d'onglet uniquement
+- [ ] onglets page profile doivent prendre toute la largeur
+- [ ] marquer poeme comme lu

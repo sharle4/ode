@@ -1,7 +1,8 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import { useSearchParams, useRouter, usePathname } from "next/navigation";
 import PoemCard from "@/components/ui/PoemCard";
 import ProfileHome from "@/components/profile/ProfileHome";
 
@@ -11,17 +12,39 @@ interface ProfileTabsProps {
 }
 
 const TABS = [
-    { id: "profil", label: "Profil" },
-    { id: "poemes", label: "Poèmes" },
-    { id: "journal", label: "Journal" },
-    { id: "critiques", label: "Critiques" },
-    { id: "listes", label: "Listes" },
-    { id: "likes", label: "Likes" },
-    { id: "reseau", label: "Réseau" },
+    { id: "profil", label: "Profil", param: undefined },
+    { id: "poemes", label: "Poèmes", param: "poems" },
+    { id: "journal", label: "Journal", param: "journal" },
+    { id: "critiques", label: "Critiques", param: "reviews" },
+    { id: "listes", label: "Listes", param: "lists" },
+    { id: "likes", label: "Likes", param: "likes" },
+    { id: "reseau", label: "Réseau", param: "network" },
 ];
 
 export default function ProfileTabs({ username, favoritePoems }: ProfileTabsProps) {
-    const [activeTab, setActiveTab] = useState(TABS[0].id);
+    const searchParams = useSearchParams();
+    const router = useRouter();
+    const pathname = usePathname();
+
+    const activeTab = useMemo(() => {
+        const tabParam = searchParams.get("tab");
+        if (!tabParam) return "profil";
+        const found = TABS.find((t) => t.param === tabParam);
+        return found ? found.id : "profil";
+    }, [searchParams]);
+
+    function setActiveTab(tabId: string) {
+        const tab = TABS.find((t) => t.id === tabId);
+        if (!tab) return;
+        const params = new URLSearchParams(searchParams.toString());
+        if (tab.param) {
+            params.set("tab", tab.param);
+        } else {
+            params.delete("tab");
+        }
+        const qs = params.toString();
+        router.replace(`${pathname}${qs ? `?${qs}` : ""}`, { scroll: false });
+    }
 
     return (
         <div className="w-full">

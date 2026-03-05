@@ -68,7 +68,7 @@ const Navbar = React.memo(function Navbar() {
         }}
       >
         <nav className="mx-auto flex max-w-5xl items-center justify-between px-4 sm:px-6 lg:px-8 py-4">
-          <a href="/" className="flex-shrink-0 w-[72px] md:w-[88px] text-charcoal" aria-label="ode homepage">
+          <a href="/" className="flex-shrink-0 w-[90px] md:w-[110px] text-charcoal" aria-label="ode homepage">
             <OdeLogoStatic width="100%" height="auto" />
           </a>
 
@@ -150,7 +150,7 @@ const Navbar = React.memo(function Navbar() {
             )}
           </motion.button>
         </nav>
-      </motion.header>
+      </motion.header >
 
       <AnimatePresence>
         {mobileMenuOpen && (
