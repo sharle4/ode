@@ -36,7 +36,7 @@ const HeroSection = React.memo(function HeroSection({ dailyPoem }: HeroSectionPr
             </FadeIn>
 
             <FadeIn delay={0.3}>
-              <p className="mt-8 text-lg font-medium text-warm-gray/90 leading-relaxed max-w-[45ch]">
+              <p className="mt-8 text-base text-warm-gray leading-relaxed max-w-[45ch]">
                 Lisez, notez et partagez des milliers de poèmes. Rejoignez la communauté francophone de la poésie.
               </p>
             </FadeIn>

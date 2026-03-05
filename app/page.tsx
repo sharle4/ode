@@ -5,6 +5,7 @@ import TrendingRow from "@/components/home/TrendingRow";
 import BilingualSpotlight from "@/components/home/BilingualSpotlight";
 import CommunityFeed from "@/components/home/CommunityFeed";
 import AuthorRow from "@/components/home/AuthorRow";
+import CollectionRow from "@/components/home/CollectionRow";
 import CategoryGrid from "@/components/explore/CategoryGrid";
 import FadeIn from "@/components/ui/FadeIn";
 import { getDailyPoem, getTrendingPoems } from "@/utils/supabase/queries";
@@ -22,6 +23,17 @@ export default async function Home() {
     { name: "Paul Verlaine", slug: "paul-verlaine", img: "https://upload.wikimedia.org/wikipedia/commons/4/4e/Paul_Verlaine_1893_2.jpg" },
     { name: "Guillaume Apollinaire", slug: "guillaume-apollinaire", img: "https://upload.wikimedia.org/wikipedia/commons/8/86/Guillaume_Apollinaire.jpg" },
     { name: "Stéphane Mallarmé", slug: "stephane-mallarme", img: "https://upload.wikimedia.org/wikipedia/commons/4/49/Nadar_-_Stéphane_Mallarmé.jpg" }
+  ];
+
+  const trendingCollections = [
+    { title: "Les Fleurs du mal", slug: "les-fleurs-du-mal", author: "Charles Baudelaire", year: 1857, poemCount: 163, coverColor: "from-zinc-800 to-black" },
+    { title: "Les Contemplations", slug: "les-contemplations", author: "Victor Hugo", year: 1856, poemCount: 158, coverColor: "from-indigo-900 to-zinc-900" },
+    { title: "Alcools", slug: "alcools", author: "Guillaume Apollinaire", year: 1913, poemCount: 50, coverColor: "from-amber-900 to-zinc-900" },
+    { title: "Le Spleen de Paris", slug: "le-spleen-de-paris", author: "Charles Baudelaire", year: 1869, poemCount: 50, coverColor: "from-stone-700 to-zinc-900" },
+    { title: "Romances sans paroles", slug: "romances-sans-paroles", author: "Paul Verlaine", year: 1874, poemCount: 21, coverColor: "from-emerald-900 to-zinc-900" },
+    { title: "Une Saison en enfer", slug: "une-saison-en-enfer", author: "Arthur Rimbaud", year: 1873, poemCount: 9, coverColor: "from-red-900 to-zinc-900" },
+    { title: "Les Épaves", slug: "les-epaves", author: "Charles Baudelaire", year: 1866, poemCount: 23, coverColor: "from-violet-900 to-zinc-900" },
+    { title: "L'Après-midi d'un faune", slug: "lapres-midi-dun-faune", author: "Stéphane Mallarmé", year: 1876, poemCount: 1, coverColor: "from-teal-900 to-zinc-900" },
   ];
 
   return (
@@ -44,6 +56,12 @@ export default async function Home() {
             authors={keyAuthors}
           />
 
+          <CollectionRow
+            title="Recueils en vogue"
+            subtitle="Les recueils qui font parler d'eux en ce moment"
+            collections={trendingCollections}
+          />
+
           <TrendingRow
             title="Notre sélection pour vous"
             subtitle="Basé sur l'évolution de vos lectures"
@@ -62,3 +80,4 @@ export default async function Home() {
     </div>
   );
 }
+

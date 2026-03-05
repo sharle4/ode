@@ -39,3 +39,7 @@ Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/bui
 - [ ] Section à propos de poème du jour : ajouter lien clicable pour date, langue => créer une option de recherche par date et par langue
 - [ ] Vérifier longueur extrait poème du jour
 - [ ] Titre header accueil défilant
+- [ ] Faut-il aligner le haut du panneau d'informations du poème du jour avec le titre "poème du jour" ?
+- [ ] Faut-il aligner le haut de la lettrine avec le haut du premier vers ?
+- [ ] Refonte navbar
+- [ ] Récupérer photos auteurs et signatures
