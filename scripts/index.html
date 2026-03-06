@@ -83,15 +83,137 @@
       -webkit-backdrop-filter: blur(18px) saturate(160%);
       border-bottom: 1px solid var(--border-subtle);
       padding: 0 clamp(16px, 4vw, 48px);
+      display: flex;
+      flex-direction: column;
     }
 
     .header-inner {
       max-width: 1600px;
       margin: 0 auto;
+      width: 100%;
       display: flex;
       align-items: center;
       gap: 24px;
       height: 72px;
+    }
+
+    /* =========================================================
+       FILTERS ROW
+    ========================================================= */
+    .filters-row {
+      max-width: 1600px;
+      margin: 0 auto;
+      width: 100%;
+      display: none;
+      align-items: center;
+      gap: 12px;
+      padding-bottom: 16px;
+      animation: fadeIn 0.4s ease forwards;
+      flex-wrap: wrap;
+    }
+
+    .filters-row.active {
+      display: flex;
+    }
+
+    .filters-label {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      margin-right: 4px;
+    }
+
+    .filter-pill {
+      background: var(--bg-input);
+      border: 1px solid var(--border-card);
+      color: var(--text-secondary);
+      padding: 6px 14px;
+      border-radius: 20px;
+      font-size: 0.75rem;
+      font-weight: 500;
+      cursor: pointer;
+      user-select: none;
+      transition: all var(--transition);
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .filter-pill:hover {
+      background: var(--bg-card-hover);
+      color: var(--text-primary);
+      border-color: var(--border-focus);
+    }
+
+    .filter-pill:has(input:checked) {
+      background: var(--accent-dim);
+      border-color: var(--accent-glow);
+      color: var(--accent);
+    }
+
+    .filter-pill:has(input:checked) .filter-icon-off {
+      display: none;
+    }
+
+    .filter-pill:has(input:checked) .filter-icon-on {
+      display: block !important;
+    }
+
+    /* ── Select Dropdowns ── */
+    .filter-select {
+      appearance: none;
+      -webkit-appearance: none;
+      background: var(--bg-input);
+      border: 1px solid var(--border-card);
+      color: var(--text-primary);
+      padding: 6px 30px 6px 14px;
+      border-radius: 20px;
+      font-size: 0.75rem;
+      font-weight: 500;
+      cursor: pointer;
+      outline: none;
+      transition: all var(--transition);
+      background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23adaabf' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+      background-repeat: no-repeat;
+      background-position: right 10px center;
+      background-size: 14px;
+    }
+
+    .filter-select:hover {
+      background-color: var(--bg-card-hover);
+      border-color: var(--border-focus);
+    }
+
+    .filter-select:focus {
+      border-color: var(--accent-glow);
+      box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.2);
+    }
+
+    /* Highlight select if an option other than 'All' is chosen */
+    .filter-select.active-filter {
+      background-color: var(--accent-dim);
+      border-color: var(--accent-glow);
+      color: var(--accent);
+      background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23818cf8' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+    }
+
+    .filter-select option {
+      background: var(--bg-card);
+      color: var(--text-primary);
+    }
+
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+        transform: translateY(-4px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
     }
 
     .site-logo {
@@ -476,7 +598,46 @@
       letter-spacing: -0.01em;
     }
 
-    /* Lifespan row */
+    /* Native name shown under the main name in a lighter italic */
+    .card-native-name {
+      font-family: 'Playfair Display', Georgia, serif;
+      font-size: 0.82rem;
+      font-style: italic;
+      color: var(--text-muted);
+      margin-top: -4px;
+      letter-spacing: 0.01em;
+      line-height: 1.3;
+    }
+
+    /* Row of small metadata pills: movement · language · nationality */
+    .card-meta-pills {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 5px;
+      margin-top: 2px;
+    }
+
+    .card-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      font-size: 0.7rem;
+      font-weight: 500;
+      padding: 3px 9px;
+      border-radius: 20px;
+      background: rgba(180, 158, 255, 0.08);
+      border: 1px solid rgba(180, 158, 255, 0.18);
+      color: var(--accent);
+      letter-spacing: 0.03em;
+      white-space: nowrap;
+    }
+
+    .card-pill svg {
+      flex-shrink: 0;
+      opacity: 0.7;
+    }
+
+
     .card-lifespan {
       display: flex;
       align-items: center;
@@ -515,6 +676,52 @@
       height: 1px;
       background: var(--border-subtle);
       margin: 4px 0;
+    }
+
+    /* Influenced by */
+    .card-influenced-wrap {
+      margin-top: 4px;
+      margin-bottom: 6px;
+    }
+
+    .influenced-label {
+      font-size: 0.68rem;
+      color: var(--text-muted);
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      display: block;
+      margin-bottom: 6px;
+    }
+
+    .card-influenced-list {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+    }
+
+    .influenced-tag {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      font-size: 0.72rem;
+      font-weight: 500;
+      padding: 3px 8px;
+      border-radius: 6px;
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid rgba(255, 255, 255, 0.07);
+      color: var(--text-primary);
+      transition: all var(--transition);
+    }
+
+    .influenced-tag:hover {
+      background: rgba(255, 255, 255, 0.08);
+      border-color: rgba(255, 255, 255, 0.15);
+    }
+
+    .influenced-tag svg {
+      color: var(--text-muted);
+      flex-shrink: 0;
     }
 
     /* Signature */
@@ -732,6 +939,105 @@
         Chargez un fichier <kbd class="dz-box-kbd">.jsonl</kbd>
       </div>
     </div>
+
+    <!-- ──  Filters Row ── -->
+    <div class="filters-row" id="filters-row">
+      <span class="filters-label">Filtres :</span>
+      <label class="filter-pill">
+        <input type="checkbox" class="filter-cb" value="has_portrait" hidden />
+        <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none"
+          stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"
+          class="filter-icon-off">
+          <circle cx="12" cy="12" r="10" />
+        </svg>
+        <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none"
+          stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="filter-icon-on"
+          style="display:none;">
+          <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
+          <polyline points="22 4 12 14.01 9 11.01" />
+        </svg>
+        Portrait
+      </label>
+      <label class="filter-pill">
+        <input type="checkbox" class="filter-cb" value="has_signature" hidden />
+        <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none"
+          stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"
+          class="filter-icon-off">
+          <circle cx="12" cy="12" r="10" />
+        </svg>
+        <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none"
+          stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="filter-icon-on"
+          style="display:none;">
+          <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
+          <polyline points="22 4 12 14.01 9 11.01" />
+        </svg>
+        Signature
+      </label>
+      <label class="filter-pill">
+        <input type="checkbox" class="filter-cb" value="fully_enriched" hidden />
+        <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none"
+          stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"
+          class="filter-icon-off">
+          <circle cx="12" cy="12" r="10" />
+        </svg>
+        <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none"
+          stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="filter-icon-on"
+          style="display:none;">
+          <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
+          <polyline points="22 4 12 14.01 9 11.01" />
+        </svg>
+        100% complet
+      </label>
+
+      <!-- Advanced Selects -->
+      <select class="filter-select" id="sel-movement" data-field="movement">
+        <option value="">Tous les Mouvements</option>
+      </select>
+
+      <select class="filter-select" id="sel-language" data-field="language">
+        <option value="">Toutes les Langues</option>
+      </select>
+
+      <select class="filter-select" id="sel-nationality" data-field="nationality">
+        <option value="">Toutes les Nationalités</option>
+      </select>
+
+      <select class="filter-select" id="sel-birth_place" data-field="birth_place">
+        <option value="">Tous Lieux (Naissance)</option>
+      </select>
+
+      <select class="filter-select" id="sel-death_place" data-field="death_place">
+        <option value="">Tous Lieux (Décès)</option>
+      </select>
+
+      <select class="filter-select" id="sel-influenced_by" data-field="influenced_by">
+        <option value="">Toutes les Influences</option>
+      </select>
+    </div>
+    <circle cx="12" cy="12" r="10" />
+    </svg>
+    <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="filter-icon-on" style="display:none;">
+      <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
+      <polyline points="22 4 12 14.01 9 11.01" />
+    </svg>
+    Nom natif
+    </label>
+    <label class="filter-pill">
+      <input type="checkbox" class="filter-cb" value="fully_enriched" hidden />
+      <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none"
+        stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="filter-icon-off">
+        <circle cx="12" cy="12" r="10" />
+      </svg>
+      <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none"
+        stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="filter-icon-on"
+        style="display:none;">
+        <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
+        <polyline points="22 4 12 14.01 9 11.01" />
+      </svg>
+      100% complet
+    </label>
+    </div>
   </header>
 
   <!-- ═══════════════════════════════════════════════════════
@@ -918,6 +1224,10 @@
         // Transition UI from drop zone to dashboard
         dropZone.style.display = 'none';
         appContent.style.display = 'block';
+
+        populateFilterDropdowns(); // Populate the new <select> elements
+
+        document.getElementById('filters-row').classList.add('active');
         searchInput.disabled = false;
         searchInput.focus();
 
@@ -1058,7 +1368,13 @@
       const qid = esc(author.wikidata_id || '');
       const imageUrl = author.image_url || null;
       const sigUrl = author.signature_url || null;
+      const nativeName = author.native_name || null;
+      const movement = author.movement || null;
+      const language = author.language || null;
+      const nationality = author.nationality || null;
+      const influencedBy = Array.isArray(author.influenced_by) ? author.influenced_by : [];
       const missing = Array.isArray(author.missing_fields) ? author.missing_fields : [];
+
 
       const lifespan = formatLifespan(author.birth_date, author.death_date);
       const places = formatPlaces(author.birth_place, author.death_place);
@@ -1083,6 +1399,11 @@
              </svg>
            </div>`;
 
+      // ── Native name ──
+      const nativeNameHTML = (nativeName && nativeName !== author.name)
+        ? `<p class="card-native-name">${esc(nativeName)}</p>`
+        : '';
+
       // ── Lifespan row ──
       const lifespanHTML = lifespan
         ? `<div class="card-lifespan">
@@ -1096,6 +1417,41 @@
         ? `<div class="card-places">
              <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
              <span>${esc(places)}</span>
+           </div>`
+        : '';
+
+      // ── Metadata pills: movement · language · nationality ──
+      const pillDefs = [
+        {
+          val: movement,
+          icon: `<svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>`,
+        },
+        {
+          val: language,
+          icon: `<svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>`,
+        },
+        {
+          val: nationality,
+          icon: `<svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"/><line x1="4" y1="22" x2="4" y2="15"/></svg>`,
+        },
+      ];
+
+      const pillsInner = pillDefs
+        .filter(p => p.val)
+        .map(p => `<span class="card-pill">${p.icon}${esc(p.val)}</span>`)
+        .join('');
+
+      const metaPillsHTML = pillsInner
+        ? `<div class="card-meta-pills">${pillsInner}</div>`
+        : '';
+
+      // ── Influenced By ──
+      const influencedByHTML = influencedBy.length > 0
+        ? `<div class="card-influenced-wrap">
+             <span class="influenced-label">Influencé par</span>
+             <div class="card-influenced-list">
+               ${influencedBy.map(v => `<span class="influenced-tag"><svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg> ${esc(v)}</span>`).join('')}
+             </div>
            </div>`
         : '';
 
@@ -1123,6 +1479,10 @@
         'death_date': 'Date décès',
         'birth_place': 'Lieu naissance',
         'death_place': 'Lieu décès',
+        'native_name': 'Nom natif',
+        'movement': 'Mouvement',
+        'language': 'Langue',
+        'nationality': 'Nationalité',
       };
 
       const badgesHTML = missing.length > 0
@@ -1146,14 +1506,33 @@
           </div>
           <div class="card-body">
             <h2 class="card-name">${name}</h2>
+            ${nativeNameHTML}
+            ${metaPillsHTML}
             ${lifespanHTML}
             ${placesHTML}
             <div class="card-divider"></div>
+            ${influencedByHTML}
             ${signatureHTML}
             ${badgesHTML}
           </div>
         </article>`;
     }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
     /**
      * Returns a safely escaped inline SVG for the error handler string.
@@ -1195,25 +1574,113 @@
     }
 
     // ─────────────────────────────────────────────────────────
+    // DYNAMIC DROPDOWNS POPULATION
+    // ─────────────────────────────────────────────────────────
+    /**
+     * Extracts all unique string values for specific fields across the dataset
+     * and populates the `<select>` elements.
+     */
+    function populateFilterDropdowns() {
+      const selects = document.querySelectorAll('.filter-select');
+      selects.forEach(select => {
+        const field = select.getAttribute('data-field');
+        if (!field) return;
+
+        // Collect all unique values and their frequencies
+        const valCounts = new Map();
+        AUTHORS.forEach(author => {
+          const val = author[field];
+          if (!val) return;
+
+          if (Array.isArray(val)) {
+            val.forEach(v => {
+              if (typeof v === 'string') {
+                valCounts.set(v, (valCounts.get(v) || 0) + 1);
+              }
+            });
+          } else if (typeof val === 'string') {
+            valCounts.set(val, (valCounts.get(val) || 0) + 1);
+          }
+        });
+
+        const sortedVals = Array.from(valCounts.entries()).sort((a, b) => a[0].localeCompare(b[0], 'fr'));
+
+        // Keep the first "Tous..." option
+        const placeholder = select.options[0];
+        select.innerHTML = '';
+        select.appendChild(placeholder);
+
+        // Add dynamic options with counts
+        sortedVals.forEach(([val, count]) => {
+          const opt = document.createElement('option');
+          opt.value = val;
+          opt.textContent = `${val} (${count})`;
+          select.appendChild(opt);
+        });
+
+        // Add event listener to style when active
+        select.addEventListener('change', (e) => {
+          if (e.target.value !== "") {
+            e.target.classList.add('active-filter');
+          } else {
+            e.target.classList.remove('active-filter');
+          }
+          filterAuthors(searchInput.value);
+        });
+      });
+    }
+
+    // ─────────────────────────────────────────────────────────
     // FILTER AUTHORS
     // ─────────────────────────────────────────────────────────
     /**
-     * Filters the global AUTHORS array by the search query and re-renders.
+     * Filters the global AUTHORS array by the search query and active metadata filters.
      * @param {string} query
      */
     function filterAuthors(query) {
       const q = query.trim().toLowerCase();
 
-      if (!q) {
+      const filterCboxes = Array.from(document.querySelectorAll('.filter-cb'));
+      const activeFilters = filterCboxes.filter(cb => cb.checked).map(cb => cb.value);
+
+      const filterSelects = Array.from(document.querySelectorAll('.filter-select'));
+      const activeSelects = filterSelects.filter(sel => sel.value !== "").map(sel => ({
+        field: sel.getAttribute('data-field'),
+        value: sel.value
+      }));
+
+      if (!q && activeFilters.length === 0 && activeSelects.length === 0) {
         FILTERED = [...AUTHORS];
       } else {
         FILTERED = AUTHORS.filter(a => {
-          const name = (a.name || '').toLowerCase();
-          return name.includes(q);
+          // Text search (name matching)
+          if (q) {
+            const name = (a.name || '').toLowerCase();
+            if (!name.includes(q)) return false;
+          }
+
+          // Boolean Checkbox Filters
+          if (activeFilters.includes('has_portrait') && !a.image_url) return false;
+          if (activeFilters.includes('has_signature') && !a.signature_url) return false;
+          if (activeFilters.includes('fully_enriched') && (a.missing_fields && a.missing_fields.length > 0)) return false;
+
+          // Advanced Dropdown Select Filters
+          for (const sel of activeSelects) {
+            const val = a[sel.field];
+            if (!val) return false; // If the author doesn't have this field, it doesn't match
+
+            if (Array.isArray(val)) {
+              if (!val.includes(sel.value)) return false;
+            } else {
+              if (val !== sel.value) return false;
+            }
+          }
+
+          return true;
         });
       }
 
-      emptyMsg.textContent = `Aucun auteur ne correspond à "${query}".`;
+      emptyMsg.textContent = `Aucun auteur ne correspond à vos critères de recherche.`;
       updateStats();
       renderCards(FILTERED);
     }
@@ -1297,6 +1764,13 @@
       searchClear.classList.remove('visible');
       filterAuthors('');
       searchInput.focus();
+    });
+
+    // Handle filter pills change
+    document.querySelectorAll('.filter-cb').forEach(cb => {
+      cb.addEventListener('change', () => {
+        filterAuthors(searchInput.value);
+      });
     });
 
     // ─────────────────────────────────────────────────────────

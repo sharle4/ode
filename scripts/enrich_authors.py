@@ -77,6 +77,12 @@ P_BIRTH_DATE: str = "P569"    # Date of birth
 P_DEATH_DATE: str = "P570"    # Date of death
 P_BIRTH_PLACE: str = "P19"    # Place of birth (returns Q-ID)
 P_DEATH_PLACE: str = "P20"    # Place of death (returns Q-ID)
+P_NATIVE_NAME: str = "P1559"  # Name in native language (monolingualtext)
+P_MOVEMENT: str = "P135"      # Literary/artistic movement (returns Q-ID)
+P_LANGUAGE: str = "P1412"     # Languages spoken/written/signed (returns Q-ID)
+P_NATIONALITY: str = "P27"    # Country of citizenship / nationality (returns Q-ID)
+P_INFLUENCED_BY: str = "P737" # Influenced by (returns Q-ID, multi-valued)
+
 
 # ===========================================================================
 # ── LOGGING ────────────────────────────────────────────────────────────────
@@ -498,20 +504,215 @@ def _get_entity_id_claim(claims: ClaimsDict, prop: str) -> Optional[str]:
     return None
 
 
+def _get_entity_id_claims_all(claims: ClaimsDict, prop: str) -> List[str]:
+    """
+    Extract ALL Q-identifiers from the main-snaks of a claims property
+    whose datatype is `wikibase-entityid`.  Used for multi-valued properties
+    such as P1412 (languages) and P135 (movements).
+
+    Args:
+        claims: The raw claims dict.
+        prop:   Property ID (e.g. "P1412").
+
+    Returns:
+        A list of Q-identifier strings (may be empty).
+    """
+    result: List[str] = []
+    statements: List[Any] = claims.get(prop, [])
+    for stmt in statements:
+        snak: Dict[str, Any] = stmt.get("mainsnak", {})
+        if snak.get("snaktype") != "value":
+            continue
+        data_value: Dict[str, Any] = snak.get("datavalue", {})
+        if data_value.get("type") == "wikibase-entityid":
+            entity_val: Dict[str, Any] = data_value.get("value", {})
+            qid = entity_val.get("id")
+            if qid:
+                result.append(str(qid))
+    return result
+
+
+def _get_monolingual_claim(claims: ClaimsDict, prop: str) -> Optional[str]:
+    """
+    Extract the text value from the first main-snak of a claims property
+    whose datatype is `monolingualtext` (used for P1559 — name in native
+    language, which Wikidata stores as {"text": "...", "language": "..."}).
+
+    We iterate all statements and prefer ones whose language is "fr", then
+    fall back to native-script languages (e.g. "ar", "zh", "ja"), and finally
+    fall back to any non-empty value.
+
+    Args:
+        claims: The raw claims dict from Wikidata.
+        prop:   Property ID (e.g. "P1559").
+
+    Returns:
+        The native-name text string, or None if not present.
+    """
+    statements: List[Any] = claims.get(prop, [])
+    # Collect all (language, text) pairs first so we can apply preference logic.
+    candidates: List[Tuple[str, str]] = []
+    for stmt in statements:
+        snak: Dict[str, Any] = stmt.get("mainsnak", {})
+        if snak.get("snaktype") != "value":
+            continue
+        dv: Dict[str, Any] = snak.get("datavalue", {})
+        if dv.get("type") == "monolingualtext":
+            val: Dict[str, Any] = dv.get("value", {})
+            text: str = val.get("text", "")
+            lang: str = val.get("language", "")
+            if text:
+                candidates.append((lang, text))
+
+    if not candidates:
+        return None
+
+    # Prefer French, then fall back to the first available value.
+    for lang, text in candidates:
+        if lang == "fr":
+            return text
+    return candidates[0][1]
+
+
 # ===========================================================================
-# ── STEP C – PLACE NAME RESOLUTION ─────────────────────────────────────────
+# ── STEP C½ – GENERIC ENTITY LABEL RESOLUTION ───────────────────────────────
+# (for non-place Q-IDs: movements, languages, nationalities)
 # ===========================================================================
 
 
+async def resolve_entity_label(
+    session: aiohttp.ClientSession,
+    semaphore: asyncio.Semaphore,
+    qid: str,
+    entity_cache: Dict[str, str],
+    context: str = "",
+) -> Optional[str]:
+    """
+    Resolve any Wikidata Q-identifier to its French label using a single
+    `wbgetentities?props=labels` call.  Results are cached in `entity_cache`
+    (shared with all other coroutines) so common entities like "français" or
+    "France" are never fetched more than once.
 
-# P131 — "located in administrative territorial entity"
-# Walking this property escalates hyper-specific locations (e.g. a hospital,
-# a neighbourhood, a commune) up to the recognisable city/department level.
+    This function is intentionally simpler than `resolve_place_label` — it
+    does NOT walk P131 or check P31, because non-place entities (movements,
+    languages, nationalities) do not need city-forcing.
+
+    Args:
+        session:      Shared aiohttp.ClientSession.
+        semaphore:    Concurrency throttle.
+        qid:          Wikidata Q-identifier to resolve (e.g. "Q150").
+        entity_cache: Shared in-memory dict {qid → french_label}.
+        context:      Human-readable log label.
+
+    Returns:
+        French label string (e.g. "français"), or None on failure.
+    """
+    if qid in entity_cache:
+        cached = entity_cache[qid]
+        return cached if cached else None
+
+    params: Dict[str, str] = {
+        "action": "wbgetentities",
+        "ids": qid,
+        "props": "labels",
+        "languages": "fr|en",
+    }
+
+    data = await _fetch_json(
+        session, semaphore, params, context=f"{context}/{qid}"
+    )
+    if not data:
+        entity_cache[qid] = ""
+        return None
+
+    entities: Dict[str, Any] = data.get("entities", {})
+    entity: Dict[str, Any] = entities.get(qid, {})
+
+    if "missing" in entity:
+        entity_cache[qid] = ""
+        return None
+
+    labels: Dict[str, Any] = entity.get("labels", {})
+    for lang in ("fr", "en"):
+        lv = labels.get(lang, {}).get("value")
+        if lv:
+            entity_cache[qid] = lv
+            return lv
+
+    logger.warning("⚠️   [%s] No label found for entity %s.", context, qid)
+    entity_cache[qid] = ""
+    return None
+
+
+# ===========================================================================
+
+# Wikidata property: "instance of" — used to test whether an entity IS a city.
+P_INSTANCE_OF: str = "P31"
+# Wikidata property: "located in administrative territorial entity"
 P_LOCATED_IN: str = "P131"
 
-# Maximum number of P131 hops we follow before giving up and using whatever
-# label we have.  2 levels covers: ward → arrondissement → city.
-MAX_P131_DEPTH: int = 2
+# ── City-level Wikidata Q-identifiers ──────────────────────────────────────
+# When a place's P31 contains any of these, it is already at city/municipality
+# level and we can stop climbing P131.
+#
+# Key entries:
+#   Q515       — city
+#   Q1549591   — big city
+#   Q484170    — municipality
+#   Q532       — village
+#   Q5119      — capital city
+#   Q200250    — metropolis
+#   Q3957      — town
+#   Q3624078   — sovereign state (Paris / Londn treated as cities directly)
+#   Q208511    — global city
+#   Q1637706   — city with millions of inhabitants
+#   Q3910384   — urban municipality (Canada / Québec-style)
+#   Q134626    — arrondissement of France  ← accept Paris/Lyon arrondissements
+#   Q702492    — arrondissement of Paris   ← direct arrondissement type
+#   Q2981684   — arrondissement of Lyon
+#   Q107390    — commune of France
+#   Q15284     — municipality of Switzerland
+#   Q22927512  — city in the United States
+#   Q15221015  — municipality of Belgium
+#   Q2514025   — municipality of Spain
+#   Q747074    — municipality of Italy
+#   Q2616791   — municipality of Germany (Gemeinde)
+#   Q253019    — urban district / kreisfreie Stadt
+#   Q5624962   — administrative seat
+#   Q494721    — borough (treated as city-level)
+CITY_QIDS: frozenset = frozenset({
+    "Q515",       # city
+    "Q1549591",   # big city
+    "Q484170",    # municipality
+    "Q532",       # village
+    "Q5119",      # capital city
+    "Q200250",    # metropolis
+    "Q3957",      # town
+    "Q208511",    # global city
+    "Q1637706",   # city with millions of inhabitants
+    "Q3910384",   # urban municipality
+    "Q134626",    # arrondissement of France
+    "Q702492",    # arrondissement of Paris
+    "Q2981684",   # arrondissement of Lyon
+    "Q107390",    # commune of France
+    "Q15284",     # municipality of Switzerland
+    "Q22927512",  # city in the United States
+    "Q15221015",  # municipality of Belgium
+    "Q2514025",   # municipality of Spain
+    "Q747074",    # municipality of Italy
+    "Q2616791",   # municipality of Germany
+    "Q253019",    # urban district (kreisfreie Stadt)
+    "Q5624962",   # administrative seat
+    "Q494721",    # borough
+    "Q1852859",   # commune of Belgium
+    "Q278715",    # urban commune of France
+    "Q484021",    # administrative seat of a first-level administrative division
+    "Q15916867",  # municipality of France (pre-2016 administrative division)
+})
+
+# Maximum P131 hops before we give up climbing and accept whatever label we have.
+# 4 covers:  hospital → neighbourhood → arrondissement → city → (stop)
+MAX_P131_DEPTH: int = 4
 
 
 async def _fetch_place_entity(
@@ -519,20 +720,23 @@ async def _fetch_place_entity(
     semaphore: asyncio.Semaphore,
     place_qid: str,
     context: str,
-) -> Tuple[Optional[str], Optional[str]]:
+) -> Tuple[Optional[str], Optional[str], bool]:
     """
-    Fetch both the French label AND the P131 parent Q-ID for a place entity
-    in a single API call by requesting `props=claims|labels`.
+    Fetch the French label, the P131 parent Q-ID, and the P31 city-detection
+    flag for a place entity in a single API call (`props=claims|labels`).
 
     Args:
         session:    Shared aiohttp.ClientSession.
         semaphore:  Concurrency throttle.
         place_qid:  Wikidata Q-identifier for the place (e.g. "Q178790").
-        context:    Human-readable label for log messages.
+        context:    Human-readable log label (usually the author name).
 
     Returns:
-        A (french_label, p131_parent_qid) tuple.  Either value may be None
-        if the corresponding data is absent or the request fails.
+        A 3-tuple:
+            french_label  (str | None)  — the entity's own label in fr/en.
+            p131_qid      (str | None)  — Q-ID of the P131 parent entity.
+            is_city       (bool)        — True if P31 contains a CITY_QIDS entry,
+                                          meaning we can stop climbing here.
     """
     params: Dict[str, str] = {
         "action": "wbgetentities",
@@ -545,29 +749,48 @@ async def _fetch_place_entity(
         session, semaphore, params, context=f"{context}/{place_qid}"
     )
     if not data:
-        return None, None
+        return None, None, False
 
     entities: Dict[str, Any] = data.get("entities", {})
     entity: Dict[str, Any] = entities.get(place_qid, {})
 
     if "missing" in entity:
-        return None, None
+        return None, None, False
 
-    # ── Extract French/English label ──
+    # ── Extract French / English label ──
     labels: Dict[str, Any] = entity.get("labels", {})
     label_value: Optional[str] = None
     for lang in ("fr", "en"):
-        label_entry = labels.get(lang, {})
-        lv = label_entry.get("value")
+        lv = labels.get(lang, {}).get("value")
         if lv:
             label_value = lv
             break
 
-    # ── Extract P131 parent Q-ID (first value statement only) ──
     claims: Dict[str, Any] = entity.get("claims", {})
+
+    # ── Check P31 (instance of) against the city frozenset ──
+    # A place qualifies as "city-level" if ANY of its P31 values is in CITY_QIDS.
+    is_city: bool = False
+    p31_statements: List[Any] = claims.get(P_INSTANCE_OF, [])
+    for stmt in p31_statements:
+        snak = stmt.get("mainsnak", {})
+        if snak.get("snaktype") != "value":
+            continue
+        dv = snak.get("datavalue", {})
+        if dv.get("type") == "wikibase-entityid":
+            p31_qid = dv.get("value", {}).get("id", "")
+            if p31_qid in CITY_QIDS:
+                is_city = True
+                logger.debug(
+                    "🏙️   [%s] %s is city-level via P31=%s — stopping climb.",
+                    context, place_qid, p31_qid,
+                )
+                break
+
+    # ── Extract P131 parent Q-ID (first preferred/normal-rank value only) ──
     parent_qid: Optional[str] = _get_entity_id_claim(claims, P_LOCATED_IN)
 
-    return label_value, parent_qid
+    return label_value, parent_qid, is_city
 
 
 async def resolve_place_label(
@@ -578,33 +801,31 @@ async def resolve_place_label(
     context: str = "",
 ) -> Optional[str]:
     """
-    Advanced city resolver — resolves a place Q-identifier to a meaningful
-    city/region name by climbing the P131 administrative hierarchy.
+    City-forced place resolver — resolves a place Q-identifier to a city-level
+    French label by combining P31 type-checking with P131 hierarchy climbing.
 
     Algorithm
     ---------
-    1.  Check `place_cache` for the original Q-ID → immediate cache hit.
-    2.  Fetch the place entity (`claims|labels` in one request).
-    3.  Record the entity's own French label as the current best label.
-    4.  If a P131 parent Q-ID exists AND we have not exceeded MAX_P131_DEPTH:
-          a. Check cache for the parent Q-ID → use cached label directly.
-          b. Otherwise fetch the parent entity and repeat step 3-4 recursively
-             (depth counter decremented each hop).
-        This escalates hyper-specific locations:
-          "Hôpital Cochin" (Q178790)
-            → P131 → "14th arrondissement" (Q270230)
-            → P131 → "Paris" (Q90)   ← final resolved label
-    5.  If no P131 exists or max depth reached, use the current best label.
-    6.  Store the FINAL resolved label under the ORIGINAL Q-ID in the cache
-        (and also under any intermediate Q-IDs visited) so future callers
-        benefit without re-querying.
+    1.  Cache hit on the original Q-ID → return immediately.
+    2.  Fetch the entity's label, P131 parent, and P31 city flag.
+    3.  If `is_city` is True, the current entity IS already a city/municipality
+        → use its label and stop.  No unnecessary P131 hops.
+    4.  If `is_city` is False and a P131 parent exists AND depth < MAX_P131_DEPTH,
+        climb to the parent and repeat from step 2.
+        Example chain:
+          "Hôpital Cochin"   [Q178790] → P31=hospital       → NOT a city → climb
+          "14ᵉ arrondissement" [Q270230] → P31=Q702492 (arrondissement of Paris)
+                                                              → IS a city → STOP ✅
+    5.  If depth is exhausted before hitting a city, return the best label seen.
+    6.  Back-fill the cache with the resolved label for ALL Q-IDs visited
+        (including intermediate hops), so future callers hit the cache immediately.
 
     Args:
         session:     Shared aiohttp.ClientSession.
         semaphore:   Concurrency throttle.
         place_qid:   Wikidata Q-identifier for the place (e.g. "Q178790").
         place_cache: Shared in-memory dict {qid → resolved_french_label}.
-        context:     Human-readable label for log messages (author name).
+        context:     Human-readable log label (usually the author name).
 
     Returns:
         Resolved French city/region label (e.g. "Paris"), or None on failure.
@@ -614,49 +835,61 @@ async def resolve_place_label(
         cached = place_cache[place_qid]
         return cached if cached else None
 
-    # Collect the chain of Q-IDs visited during this resolution so we can
-    # back-fill all of them in the cache with the final resolved label.
+    # Track every Q-ID visited in this chain so we can back-fill the cache.
     visited_qids: List[str] = []
     current_qid: str = place_qid
     best_label: Optional[str] = None
 
-    for depth in range(MAX_P131_DEPTH + 1):  # 0, 1, 2
-        # ── Cache hit mid-chain ──
+    for depth in range(MAX_P131_DEPTH + 1):  # 0 … MAX_P131_DEPTH inclusive
+
+        # ── Cache hit mid-chain: borrow the already-resolved label ──
         if current_qid in place_cache:
             cached = place_cache[current_qid]
-            best_label = cached if cached else best_label
+            if cached:
+                best_label = cached
             break
 
-        # ── Fetch claims + labels for the current place entity ──
-        label, parent_qid = await _fetch_place_entity(
+        # ── API fetch: label + P131 parent + P31 city flag ──
+        label, parent_qid, is_city = await _fetch_place_entity(
             session, semaphore, current_qid, context
         )
 
-        # Update the best label we've seen so far in this chain.
-        # We always prefer more specific info if it's non-empty.
         if label:
-            best_label = label
+            best_label = label  # always keep the most recent non-empty label
 
         visited_qids.append(current_qid)
 
-        # ── Decide whether to follow P131 ──
+        # ── City detected via P31 → stop climbing NOW ──
+        if is_city:
+            logger.debug(
+                "📍  [%s] Resolved city: %s → %r (depth=%d, P31 match)",
+                context, current_qid, best_label, depth,
+            )
+            break
+
+        # ── No P31 city match: try climbing P131 if we still have budget ──
         if parent_qid and depth < MAX_P131_DEPTH:
             logger.debug(
-                "🏙️   [%s] %s → P131 → %s (depth %d)",
+                "🔼  [%s] %s → P131 → %s (depth %d)",
                 context, current_qid, parent_qid, depth + 1,
             )
             current_qid = parent_qid
-            # If parent is already cached, grab it and stop immediately
+
+            # Shortcut: if the parent is already cached, use it immediately
             if parent_qid in place_cache:
                 cached_parent = place_cache[parent_qid]
                 if cached_parent:
                     best_label = cached_parent
                 break
         else:
-            # No P131 or max depth reached — stop climbing
+            # No P131 available OR depth budget spent — use best_label as-is.
+            logger.debug(
+                "📍  [%s] %s → %r (depth=%d, no further P131)",
+                context, place_qid, best_label, depth,
+            )
             break
 
-    # ── Back-fill the cache for all Q-IDs we visited ──
+    # ── Back-fill cache for every Q-ID visited in this chain ──
     cache_value: str = best_label if best_label else ""
     for qid in visited_qids:
         if qid not in place_cache:
@@ -664,11 +897,11 @@ async def resolve_place_label(
 
     if not best_label:
         logger.warning(
-            "⚠️   [%s] Could not resolve a label for place %s.", context, place_qid
+            "⚠️   [%s] Could not resolve a city label for place %s.",
+            context, place_qid,
         )
         return None
 
-    logger.debug("📍  [%s] %s → %r", context, place_qid, best_label)
     return best_label
 
 
@@ -774,6 +1007,7 @@ async def enrich_author(
     semaphore: asyncio.Semaphore,
     author_name: str,
     place_cache: Dict[str, str],
+    entity_cache: Dict[str, str],
     output_lock: asyncio.Lock,
     output_file: "aiofiles.threadpool.text.AsyncTextIOWrapper",
     stats: Dict[str, Any],
@@ -781,14 +1015,17 @@ async def enrich_author(
     """
     Full enrichment pipeline for a single author name.
 
-    Executes Steps A → E and writes the result to the output file
+    Executes Steps A → F and writes the result to the output file
     immediately upon completion (to prevent data loss on crash).
 
     Args:
         session:      Shared aiohttp.ClientSession.
         semaphore:    Concurrency limit (max 5 parallel requests).
         author_name:  The author name to enrich.
-        place_cache:  Shared in-memory dict for place Q-ID → label caching.
+        place_cache:  Shared in-memory dict for place Q-ID → city label (with
+                      P31 city-forcing and P131 hierarchy climbing).
+        entity_cache: Shared in-memory dict for non-place Q-IDs → French label
+                      (movements, languages, nationalities — simple label fetch).
         output_lock:  asyncio.Lock protecting concurrent writes to the file.
         output_file:  Open aiofiles text file handle for writing.
         stats:        Shared statistics dict updated in-place.
@@ -818,50 +1055,77 @@ async def enrich_author(
             stats["not_found"].append(author_name)
         return
 
-    # ── Extract raw values from claims ──
-    portrait_filename: Optional[str] = _get_string_claim(claims, P_IMAGE)
+    # ── Extract raw values from claims ──────────────────────────────────
+    portrait_filename: Optional[str]  = _get_string_claim(claims, P_IMAGE)
     signature_filename: Optional[str] = _get_string_claim(claims, P_SIGNATURE)
-    raw_birth_date: Optional[str] = _get_time_claim(claims, P_BIRTH_DATE)
-    raw_death_date: Optional[str] = _get_time_claim(claims, P_DEATH_DATE)
-    birth_place_qid: Optional[str] = _get_entity_id_claim(claims, P_BIRTH_PLACE)
-    death_place_qid: Optional[str] = _get_entity_id_claim(claims, P_DEATH_PLACE)
+    raw_birth_date: Optional[str]     = _get_time_claim(claims, P_BIRTH_DATE)
+    raw_death_date: Optional[str]     = _get_time_claim(claims, P_DEATH_DATE)
+    native_name: Optional[str]        = _get_monolingual_claim(claims, P_NATIVE_NAME)
+
+    # Q-IDs that need external resolution
+    birth_place_qid: Optional[str]    = _get_entity_id_claim(claims, P_BIRTH_PLACE)
+    death_place_qid: Optional[str]    = _get_entity_id_claim(claims, P_DEATH_PLACE)
+    nationality_qid: Optional[str]    = _get_entity_id_claim(claims, P_NATIONALITY)
+
+    # P1412 (languages) can have multiple values — take the first for output.
+    language_qids: List[str]          = _get_entity_id_claims_all(claims, P_LANGUAGE)
+    language_qid: Optional[str]       = language_qids[0] if language_qids else None
+
+    # P135 (movement) can have multiple values — we want ALL of them
+    movement_qids: List[str]          = _get_entity_id_claims_all(claims, P_MOVEMENT)
+
+    # P737 (influenced by) can have multiple values — we want ALL of them
+    influenced_by_qids: List[str]     = _get_entity_id_claims_all(claims, P_INFLUENCED_BY)
 
     # ──────────────────────────────────────────────────────────────────────
-    # Step C: Place Name Resolution (concurrent, both places at once)
+    # Step C / C½: Concurrent Q-ID Resolution
+    # Resolve all Q-based fields in one asyncio.gather call so we only
+    # consume wall-clock time equal to the slowest single request.
     # ──────────────────────────────────────────────────────────────────────
-    birth_place_label: Optional[str] = None
-    death_place_label: Optional[str] = None
-
     async def _noop() -> None:
-        """Async no-op used as a placeholder in asyncio.gather when a place
-        Q-ID is absent, so gather always receives exactly two awaitables."""
+        """Async no-op placeholder for asyncio.gather when a Q-ID is absent."""
         return None
 
-    birth_place_task = (
-        asyncio.create_task(
-            resolve_place_label(
-                session, semaphore, birth_place_qid, place_cache, context=author_name
+    def _place_task(qid_val: Optional[str]):
+        if qid_val:
+            return asyncio.create_task(
+                resolve_place_label(session, semaphore, qid_val, place_cache, context=author_name)
             )
-        )
-        if birth_place_qid
-        else asyncio.create_task(_noop())
-    )
+        return asyncio.create_task(_noop())
 
-    death_place_task = (
-        asyncio.create_task(
-            resolve_place_label(
-                session, semaphore, death_place_qid, place_cache, context=author_name
+    def _entity_task(qid_val: Optional[str]):
+        if qid_val:
+            return asyncio.create_task(
+                resolve_entity_label(session, semaphore, qid_val, entity_cache, context=author_name)
             )
-        )
-        if death_place_qid
-        else asyncio.create_task(_noop())
-    )
+        return asyncio.create_task(_noop())
 
-    place_results: List[Optional[str]] = await asyncio.gather(
-        birth_place_task, death_place_task
-    )
-    birth_place_label = place_results[0] if birth_place_qid else None
-    death_place_label = place_results[1] if death_place_qid else None
+    movement_tasks = [_entity_task(q) for q in movement_qids]
+    influenced_by_tasks = [_entity_task(q) for q in influenced_by_qids]
+
+    all_tasks: List[Any] = [
+        _place_task(birth_place_qid),   # index 0
+        _place_task(death_place_qid),   # index 1
+        _entity_task(language_qid),     # index 2
+        _entity_task(nationality_qid),  # index 3
+    ]
+    all_tasks.extend(movement_tasks)
+    all_tasks.extend(influenced_by_tasks)
+
+    resolution_results: List[Any] = list(await asyncio.gather(*all_tasks))
+
+    birth_place_label: Optional[str]  = resolution_results[0] if birth_place_qid  else None
+    death_place_label: Optional[str]  = resolution_results[1] if death_place_qid  else None
+    language_label: Optional[str]     = resolution_results[2] if language_qid     else None
+    nationality_label: Optional[str]  = resolution_results[3] if nationality_qid  else None
+
+    idx = 4
+    movement_labels_raw = resolution_results[idx : idx + len(movement_tasks)]
+    idx += len(movement_tasks)
+    influenced_by_labels_raw = resolution_results[idx:]
+
+    movement_labels: List[str] = [lbl for lbl in movement_labels_raw if lbl]
+    influenced_by_labels: List[str] = [lbl for lbl in influenced_by_labels_raw if lbl]
 
     # ──────────────────────────────────────────────────────────────────────
     # Step D: Image URL Formatting
@@ -884,30 +1148,40 @@ async def enrich_author(
     )
 
     # ──────────────────────────────────────────────────────────────────────
-    # Assemble output record + missing_fields list
+    # Step F: Assemble output record + missing_fields list
     # ──────────────────────────────────────────────────────────────────────
     missing_fields: List[str] = []
     field_checks: List[Tuple[str, Any]] = [
-        ("image_url", image_url),
+        ("image_url",    image_url),
         ("signature_url", signature_url),
-        ("birth_date", birth_date),
-        ("death_date", death_date),
-        ("birth_place", birth_place_label),
-        ("death_place", death_place_label),
+        ("birth_date",   birth_date),
+        ("death_date",   death_date),
+        ("birth_place",  birth_place_label),
+        ("death_place",  death_place_label),
+        ("native_name",  native_name),
+        ("movement",     movement_labels),
+        ("language",     language_label),
+        ("nationality",  nationality_label),
+        ("influenced_by", influenced_by_labels),
     ]
     for field_name, field_value in field_checks:
         if not field_value:
             missing_fields.append(field_name)
 
     record: AuthorRecord = {
-        "name": author_name,
-        "wikidata_id": qid,
-        "image_url": image_url,
+        "name":          author_name,
+        "native_name":   native_name,
+        "wikidata_id":   qid,
+        "image_url":     image_url,
         "signature_url": signature_url,
-        "birth_date": birth_date,
-        "death_date": death_date,
-        "birth_place": birth_place_label if birth_place_label else None,
-        "death_place": death_place_label if death_place_label else None,
+        "birth_date":    birth_date,
+        "death_date":    death_date,
+        "birth_place":   birth_place_label,
+        "death_place":   death_place_label,
+        "movement":      movement_labels,
+        "language":      language_label,
+        "nationality":   nationality_label,
+        "influenced_by": influenced_by_labels,
         "missing_fields": missing_fields,
     }
 
@@ -934,6 +1208,9 @@ async def enrich_author(
         qid,
         missing_fields if missing_fields else "none",
     )
+
+
+
 
 
 # ===========================================================================
@@ -1044,7 +1321,8 @@ async def main() -> None:
     # those are I/O operations that can interleave across coroutines.
     semaphore: asyncio.Semaphore = asyncio.Semaphore(MAX_CONCURRENT_REQUESTS)
     output_lock: asyncio.Lock = asyncio.Lock()
-    place_cache: Dict[str, str] = {}  # {place_qid: french_label}
+    place_cache: Dict[str, str] = {}   # {place_qid: resolved_city_label} (city-forced)
+    entity_cache: Dict[str, str] = {}  # {entity_qid: french_label} (movements, langs, nationality)
 
     stats: Dict[str, Any] = {
         "total_enriched": 0,         # authors successfully written
@@ -1079,6 +1357,7 @@ async def main() -> None:
                         semaphore=semaphore,
                         author_name=name,
                         place_cache=place_cache,
+                        entity_cache=entity_cache,
                         output_lock=output_lock,
                         output_file=out_file,
                         stats=stats,

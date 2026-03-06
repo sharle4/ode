@@ -58,3 +58,5 @@ Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/bui
 - [ ] changer titre onglet
 - [ ] ajouter inspiration / inspiré
 - [ ] ajouter carte et frise
+- [ ] ajouter proposition modification 
+- [ ] ajouter infos enrich authors
