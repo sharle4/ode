@@ -52,9 +52,9 @@ except ImportError as _e:
 
 # Paths (relative to this script's directory so the script is portable)
 _SCRIPT_DIR = Path(__file__).parent.resolve()
-INPUT_FILE: Path = _SCRIPT_DIR / "poems.jsonl.gz"
+INPUT_FILE: Path = _SCRIPT_DIR / "poems.cleaned.jsonl.gz"
 OUTPUT_FILE: Path = _SCRIPT_DIR / "enriched_authors.jsonl"
-REPORT_FILE: Path = _SCRIPT_DIR / "enrichment_report.json"
+REPORT_FILE: Path = _SCRIPT_DIR / "enrichmed_report.json"
 
 # Wikidata API endpoint
 WIKIDATA_API: str = "https://www.wikidata.org/w/api.php"

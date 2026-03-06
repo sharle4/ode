@@ -44,3 +44,6 @@ next-env.d.ts
 /scripts/*.jsonl.gz
 /scripts/*.jsonl
 /scripts/*.json
+
+# scripts cache
+/scripts/__pycache__

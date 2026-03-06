@@ -45,7 +45,7 @@ class RuleEngine:
             "Gabriel Monavon(parole)Félicien David": "Gabriel Monavon",
             "Georges Montéhus": "Montéhus",
             "Germain Léonard": "Nicolas-Germain Léonard",
-            "Henry d'Andichon": "Henri d'Andichon",
+            "Henry d’Andichon": "Henri d'Andichon",
             "Horace, Perse": "Horace ; Perse",
             "I.D.V.": "Jean de Vauzelles",
             "I.K. Bonset": "Theo van Doesburg",
@@ -146,15 +146,16 @@ class RuleEngine:
         
     def apply_rules(self, author_name: str) -> Tuple[str, Optional[str]]:
         """
-        Applies rules to the author name to sanitize and format it.
-        Returns a tuple of (new_name, rule_applied_type).
-        If no rules needed to be applied, rule_applied_type is None.
+        Applies rules sequentially:
+        1. Exact Match (Specific Rules)
+        2. Schema Transformations (General Rules)
+        3. Dynamic Initials Resolution (Fallback)
         """
         if not author_name or not isinstance(author_name, str):
             return author_name, None
             
-        # Initial deterministic clean
-        cleaned_name = author_name.strip()
+        # Initial deterministic clean and apostrophe normalization
+        cleaned_name = author_name.strip().replace("’", "'").replace("‘", "'").replace("´", "'")
         
         # 1. Exact match lookup in Specific Rules (Pre-processing)
         if cleaned_name in self.specific_rules:
@@ -255,7 +256,7 @@ def main():
     script_dir = os.path.dirname(os.path.abspath(__file__))
     input_file = os.path.join(script_dir, "poems.jsonl.gz")
     output_file = os.path.join(script_dir, "poems.cleaned.jsonl.gz")
-    log_file = os.path.join(script_dir, "cleaned_authors.json")
+    log_file = os.path.join(script_dir, "cleaned_report.json")
 
     print(f"Pass 1: Discovering all unique author names to support rule resolution...")
     known_authors = set()
