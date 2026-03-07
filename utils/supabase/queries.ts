@@ -1,137 +1,172 @@
-import { createClient } from '@/utils/supabase/server'
-import { cache } from 'react'
+import { createClient as createSupabaseClient } from '@supabase/supabase-js'
+import { unstable_cache } from 'next/cache'
 
-// Using React's cache to deduplicate requests within a single render pass
-export const getPoemBySlug = cache(async (slug: string) => {
-    const supabase = await createClient()
-    const { data: poem, error } = await supabase
-        .from('poems')
-        .select(`
-      *,
-      authors ( id, name, slug ),
-      collections ( id, title )
-    `)
-        .eq('slug', slug)
-        .single()
+// Create a single public client for cached queries to avoid cookie parsing dynamically 
+// (which would opt routes into dynamic rendering and break unstable_cache).
+const getPublicClient = () => {
+    return createSupabaseClient(
+        process.env.NEXT_PUBLIC_SUPABASE_URL!,
+        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+    )
+}
 
-    if (error) {
-        console.error('Error fetching poem by slug:', error)
-        return null
-    }
+export const getPoemBySlug = async (slug: string) => {
+    return unstable_cache(
+        async () => {
+            const supabase = getPublicClient()
+            const { data: poem, error } = await supabase
+                .from('poems')
+                .select(`
+                  *,
+                  authors ( id, name, slug ),
+                  collections ( id, title )
+                `)
+                .eq('slug', slug)
+                .single()
 
-    return poem
-})
+            if (error) {
+                console.error('Error fetching poem by slug:', error)
+                return null
+            }
 
-export const getAuthorById = cache(async (id: string) => {
-    const supabase = await createClient()
-    const { data: author, error } = await supabase
-        .from('authors')
-        .select(`
-            *,
-            poems ( id, title, slug ),
-            collections ( id, title, publication_year )
-        `)
-        .eq('id', id)
-        .single()
+            return poem
+        },
+        [`poem-${slug}`],
+        { tags: [`poem-${slug}`], revalidate: 86400 } // 24 hours caching
+    )()
+}
 
-    if (error) {
-        console.error('Error fetching author by ID:', error)
-        return null
-    }
+export const getAuthorById = async (id: string) => {
+    return unstable_cache(
+        async () => {
+            const supabase = getPublicClient()
+            const { data: author, error } = await supabase
+                .from('authors')
+                .select(`
+                    *,
+                    poems ( id, title, slug ),
+                    collections ( id, title, publication_year )
+                `)
+                .eq('id', id)
+                .single()
 
-    return author
-})
+            if (error) {
+                console.error('Error fetching author by ID:', error)
+                return null
+            }
 
-export const getCollectionById = cache(async (id: string) => {
-    const supabase = await createClient()
-    const { data: collection, error } = await supabase
-        .from('collections')
-        .select('*, authors ( id, name, slug )')
-        .eq('id', id)
-        .single()
+            return author
+        },
+        [`author-${id}`],
+        { tags: [`author-${id}`], revalidate: 86400 }
+    )()
+}
 
-    if (error) {
-        console.error('Error fetching collection by ID:', error)
-        return null
-    }
+export const getAuthorBySlug = async (slug: string) => {
+    return unstable_cache(
+        async () => {
+            const supabase = getPublicClient()
+            const { data: author, error } = await supabase
+                .from('authors')
+                .select(`
+                    *,
+                    poems ( id, title, slug ),
+                    collections ( id, title, publication_year )
+                `)
+                .eq('slug', slug)
+                .single()
 
-    // Fetch collection's poems ordered by poem_order or fallback
-    const { data: poems } = await supabase
-        .from('poems')
-        .select('id, title, slug, poem_order')
-        .eq('collection_id', id)
-        .order('poem_order', { ascending: true, nullsFirst: false })
+            if (error) {
+                console.error('Error fetching author by slug:', error)
+                return null
+            }
 
-    return { ...collection, poems }
-})
+            return author
+        },
+        [`author-slug-${slug}`],
+        { tags: [`author-${slug}`], revalidate: 86400 }
+    )()
+}
 
-export const getDailyPoem = cache(async () => {
-    const supabase = await createClient()
-    const today = new Date().toISOString().split('T')[0] // YYYY-MM-DD
+export const getCollectionById = async (id: string) => {
+    return unstable_cache(
+        async () => {
+            const supabase = getPublicClient()
+            const { data: collection, error } = await supabase
+                .from('collections')
+                .select('*, authors ( id, name, slug )')
+                .eq('id', id)
+                .single()
 
-    // Check if we already have a daily poem for today
-    let { data: dailyPoem, error: fetchError } = await supabase
-        .from('daily_poems')
-        .select('poem_id')
-        .eq('date', today)
-        .maybeSingle()
+            if (error) {
+                console.error('Error fetching collection by ID:', error)
+                return null
+            }
 
-    if (fetchError) {
-        console.error('Error fetching daily poem:', fetchError)
-        return null
-    }
+            const { data: poems } = await supabase
+                .from('poems')
+                .select('id, title, slug, poem_order')
+                .eq('collection_id', id)
+                .order('poem_order', { ascending: true, nullsFirst: false })
 
-    let poemId = dailyPoem?.poem_id
+            return { ...collection, poems }
+        },
+        [`collection-${id}`],
+        { tags: [`collection-${id}`], revalidate: 86400 }
+    )()
+}
 
-    // If not, randomly pick one and save it (this logic could also live in an edge function/cron job)
-    if (!poemId) {
-        // Note: In a massive DB, ordering by random() is slow, but acceptable for demo. 
-        // A better approach is fetching a random offset or using a specialized RPC.
-        const { data: randomPoems, error: randomError } = await supabase
-            .from('poems')
-            .select('id')
-            .limit(1)
+export const getDailyPoem = async () => {
+    return unstable_cache(
+        async () => {
+            const supabase = getPublicClient()
+            const today = new Date().toISOString().split('T')[0]
 
-        // Because auth isn't necessarily available here, a service role key might be needed
-        // to INsert if RLS blocks it. Assuming public can't insert, we might just return a random one
-        // without saving to daily_poems if we hit RLS issues, or we handle this in a cron job.
-        if (!randomError && randomPoems && randomPoems.length > 0) {
-            poemId = randomPoems[0].id
-            // Best effort to save it (might fail if RLS prevents anonymous inserts to daily_poems)
-            await supabase.from('daily_poems').insert({ date: today, poem_id: poemId }).select().maybeSingle()
-        }
-    }
+            let { data: dailyPoem, error: fetchError } = await supabase
+                .from('daily_poems')
+                .select('poem_id')
+                .eq('date', today)
+                .maybeSingle()
 
-    if (!poemId) return null
+            if (fetchError || !dailyPoem?.poem_id) {
+                console.error('Error/Missing daily poem:', fetchError)
+                return null
+            }
 
-    // Fetch the actual poem details
-    const { data: poem } = await supabase
-        .from('poems')
-        .select('*, authors ( id, name, slug )')
-        .eq('id', poemId)
-        .single()
+            const { data: poem } = await supabase
+                .from('poems')
+                .select('*, authors ( id, name, slug )')
+                .eq('id', dailyPoem.poem_id)
+                .single()
 
-    return poem
-})
+            return poem
+        },
+        ['daily-poem'],
+        { tags: ['daily-poem'], revalidate: 3600 } // Check every hour
+    )()
+}
 
-export const getTrendingPoems = cache(async (limit: number = 10) => {
-    const supabase = await createClient()
+export const getTrendingPoems = async (limit: number = 10) => {
+    return unstable_cache(
+        async () => {
+            const supabase = getPublicClient()
+            const { data: poems, error } = await supabase
+                .from('poems')
+                .select(`
+                    *,
+                    authors ( id, name, slug )
+                `)
+                .limit(limit)
+                .order('reads_count', { ascending: false }) // Sort by new reads_count column
 
-    // Pour une démo élégante, on prend des poèmes au hasard ou récents
-    // Idéalement, on trierait par un score de popularité calculé
-    const { data: poems, error } = await supabase
-        .from('poems')
-        .select(`
-            *,
-            authors ( id, name, slug )
-        `)
-        .limit(limit)
-        .order('created_at', { ascending: false })
+            if (error) {
+                console.error('Error fetching trending poems:', error)
+                return []
+            }
 
-    if (error) {
-        console.error('Error fetching trending poems:', error)
-        return []
-    }
-
-    return poems
-})
+            return poems
+        },
+        [`trending-poems-${limit}`],
+        { tags: ['trending-poems'], revalidate: 3600 }
+    )()
+}

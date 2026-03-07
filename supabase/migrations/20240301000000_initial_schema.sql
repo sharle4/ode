@@ -161,6 +161,7 @@ create table public.reads (
     id uuid primary key default gen_random_uuid(),
     user_id uuid references public.users(id) on delete cascade not null,
     poem_id uuid references public.poems(id) on delete cascade not null,
+    processed boolean default false not null,
     created_at timestamptz default now() not null,
     unique(user_id, poem_id)
 );
@@ -319,6 +320,21 @@ alter table public.daily_poems enable row level security;
 alter table public.badges enable row level security;
 alter table public.reads enable row level security;
 
+-- Enable RLS on all social tables
+alter table public.user_top_poems enable row level security;
+alter table public.user_top_authors enable row level security;
+alter table public.followers enable row level security;
+alter table public.reviews enable row level security;
+alter table public.review_likes enable row level security;
+alter table public.review_comments enable row level security;
+alter table public.review_comment_likes enable row level security;
+alter table public.highlights enable row level security;
+alter table public.lists enable row level security;
+alter table public.list_items enable row level security;
+alter table public.list_likes enable row level security;
+alter table public.user_badges enable row level security;
+alter table public.notifications enable row level security;
+
 -- Public read access for static data
 create policy "Authors are viewable by everyone." on public.authors for select using (true);
 create policy "Collections are viewable by everyone." on public.collections for select using (true);
@@ -337,6 +353,68 @@ create policy "Users can update their own profile." on public.users for update u
 -- Reads policies (INSERT/DELETE for self)
 create policy "Users can insert their own reads." on public.reads for insert with check (auth.uid() = user_id);
 create policy "Users can delete their own reads." on public.reads for delete using (auth.uid() = user_id);
+
+-- SOCIAL TABLES RLS POLICIES
+
+-- User Top Poems & Authors
+create policy "Top poems are viewable by everyone" on public.user_top_poems for select using (true);
+create policy "Users can manage their top poems" on public.user_top_poems for all using (auth.uid() = user_id);
+
+create policy "Top authors are viewable by everyone" on public.user_top_authors for select using (true);
+create policy "Users can manage their top authors" on public.user_top_authors for all using (auth.uid() = user_id);
+
+-- Followers
+create policy "Followers are viewable by everyone" on public.followers for select using (true);
+create policy "Users can manage their follows" on public.followers for all using (auth.uid() = follower_id);
+
+-- Reviews
+create policy "Reviews are viewable by everyone" on public.reviews for select using (true);
+create policy "Users can manage their reviews" on public.reviews for all using (auth.uid() = user_id);
+
+create policy "Review likes viewable by everyone" on public.review_likes for select using (true);
+create policy "Users can manage their review likes" on public.review_likes for all using (auth.uid() = user_id);
+
+create policy "Review comments viewable by everyone" on public.review_comments for select using (true);
+create policy "Users can manage their review comments" on public.review_comments for all using (auth.uid() = user_id);
+
+create policy "Review comment likes viewable by everyone" on public.review_comment_likes for select using (true);
+create policy "Users can manage their review comment likes" on public.review_comment_likes for all using (auth.uid() = user_id);
+
+-- Highlights (Conditional SELECT)
+create policy "Highlights conditional visibility" on public.highlights for select using (
+  is_private = false or auth.uid() = user_id
+);
+create policy "Users can manage their highlights" on public.highlights for all using (auth.uid() = user_id);
+
+-- Lists (Conditional SELECT)
+create policy "Lists conditional visibility" on public.lists for select using (
+  is_public = true or auth.uid() = user_id
+);
+create policy "Users can manage their lists" on public.lists for all using (auth.uid() = user_id);
+
+create policy "List items conditional visibility" on public.list_items for select using (
+  exists (
+    select 1 from public.lists l 
+    where l.id = list_items.list_id and (l.is_public = true or l.user_id = auth.uid())
+  )
+);
+create policy "Users can manage their list items" on public.list_items for all using (
+  exists (
+    select 1 from public.lists l 
+    where l.id = list_items.list_id and l.user_id = auth.uid()
+  )
+);
+
+create policy "List likes viewable by everyone" on public.list_likes for select using (true);
+create policy "Users can manage their list likes" on public.list_likes for all using (auth.uid() = user_id);
+
+-- User Badges (Public view, system manages inserts)
+create policy "User badges viewable by everyone" on public.user_badges for select using (true);
+
+-- Notifications (Private)
+create policy "Users can view their notifications" on public.notifications for select using (auth.uid() = user_id);
+create policy "Users can update their notifications" on public.notifications for update using (auth.uid() = user_id);
+create policy "Users can delete their notifications" on public.notifications for delete using (auth.uid() = user_id);
 
 -- Trigger to create a user profile when auth.users is created
 create or replace function public.handle_new_user() 
@@ -374,21 +452,54 @@ create trigger set_updated_at_categories before update on public.categories for 
 create trigger set_updated_at_highlights before update on public.highlights for each row execute procedure handle_updated_at();
 create trigger set_updated_at_lists before update on public.lists for each row execute procedure handle_updated_at();
 
--- Trigger for incrementing/decrementing reads_count on poems
-create or replace function public.handle_reads_count()
-returns trigger as $$
+-- 7. BACKGROUND JOBS & CRON (pg_cron)
+create extension if not exists pg_cron;
+create extension if not exists tsm_system_rows;
+
+-- Job 1: Aggregate reads periodically without row locks
+create or replace function public.aggregate_reads_count()
+returns void as $$
 begin
-  if (TG_OP = 'INSERT') then
-    update public.poems set reads_count = reads_count + 1 where id = new.poem_id;
-    return new;
-  elsif (TG_OP = 'DELETE') then
-    update public.poems set reads_count = reads_count - 1 where id = old.poem_id;
-    return old;
-  end if;
-  return null;
+  with unprocessed_reads as (
+    select poem_id, count(*) as new_reads
+    from public.reads
+    where processed = false
+    group by poem_id
+  ),
+  updated_poems as (
+    update public.poems p
+    set reads_count = p.reads_count + ur.new_reads
+    from unprocessed_reads ur
+    where p.id = ur.poem_id
+    returning p.id
+  )
+  update public.reads r
+  set processed = true
+  from unprocessed_reads ur
+  where r.poem_id = ur.poem_id and r.processed = false;
 end;
 $$ language plpgsql security definer;
 
-create trigger on_read_created_or_deleted
-  after insert or delete on public.reads
-  for each row execute procedure public.handle_reads_count();
+-- Schedule reads aggregation (every 5 minutes)
+select cron.schedule('aggregate-reads', '*/5 * * * *', 'select public.aggregate_reads_count()');
+
+-- Job 2: Generate Daily Poem Fast Selection
+create or replace function public.select_daily_poem()
+returns void as $$
+declare
+  random_poem_id uuid;
+  today date := current_date;
+begin
+  select id into random_poem_id
+  from public.poems tablesample system_rows(1);
+
+  if random_poem_id is not null then
+    insert into public.daily_poems (date, poem_id)
+    values (today, random_poem_id)
+    on conflict (date) do nothing;
+  end if;
+end;
+$$ language plpgsql security definer;
+
+-- Schedule daily poem generation (every day at midnight)
+select cron.schedule('generate-daily-poem', '0 0 * * *', 'select public.select_daily_poem()');

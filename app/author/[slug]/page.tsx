@@ -48,8 +48,22 @@ export default async function AuthorPage({ params }: { params: Promise<{ slug: s
         // nOtFound(); // Temporairement désactivé pour laisser voir la maquette universellement
     }
 
+    const jsonLd = {
+        '@context': 'https://schema.org',
+        '@type': 'Person',
+        name: mockedAuthor.name,
+        birthDate: mockedAuthor.birthYear?.toString(),
+        deathDate: mockedAuthor.deathYear?.toString(),
+        description: mockedAuthor.bioShort,
+        image: mockedAuthor.coverImage
+    };
+
     return (
         <div className="min-h-[100dvh] bg-cream flex flex-col">
+            <script
+                type="application/ld+json"
+                dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+            />
             <Navbar />
 
             <main className="flex-grow">

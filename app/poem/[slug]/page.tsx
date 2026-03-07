@@ -40,8 +40,25 @@ export default async function PoemPage({ params }: PoemPageProps) {
     const authorName = poem.authors?.name || "Auteur inconnu";
     const collectionTitle = poem.collections?.title;
 
+    const jsonLd = {
+        '@context': 'https://schema.org',
+        '@type': 'CreativeWork',
+        name: poem.title,
+        author: {
+            '@type': 'Person',
+            name: authorName,
+        },
+        text: poem.normalized_text || "Texte du poème",
+        datePublished: poem.publicationYear?.toString(),
+        inLanguage: poem.originalLanguage || 'fr',
+    };
+
     return (
         <div className="min-h-screen bg-cream">
+            <script
+                type="application/ld+json"
+                dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+            />
             <Navbar />
 
             <main className="pb-32">
