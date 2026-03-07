@@ -56,6 +56,7 @@ create table public.poems (
     hub_page_id int not null,
     average_review numeric(3,2) default 0.00 not null,
     reviews_count int default 0 not null,
+    reads_count int default 0 not null,
     created_at timestamptz default now() not null,
     updated_at timestamptz default now() not null
 );
@@ -154,6 +155,18 @@ create table public.reviews (
     unique(user_id, poem_id),
     unique(user_id, collection_id)
 );
+
+-- Reads (Historique de lecture)
+create table public.reads (
+    id uuid primary key default gen_random_uuid(),
+    user_id uuid references public.users(id) on delete cascade not null,
+    poem_id uuid references public.poems(id) on delete cascade not null,
+    created_at timestamptz default now() not null,
+    unique(user_id, poem_id)
+);
+
+create index idx_reads_user_id on public.reads(user_id);
+create index idx_reads_poem_id on public.reads(poem_id);
 
 -- Likes sur les Reviews
 create table public.review_likes (
@@ -304,6 +317,7 @@ alter table public.users enable row level security;
 alter table public.categories enable row level security;
 alter table public.daily_poems enable row level security;
 alter table public.badges enable row level security;
+alter table public.reads enable row level security;
 
 -- Public read access for static data
 create policy "Authors are viewable by everyone." on public.authors for select using (true);
@@ -314,10 +328,15 @@ create policy "Poem authors are viewable by everyone." on public.poem_authors fo
 create policy "Categories are viewable by everyone." on public.categories for select using (true);
 create policy "Daily poems are viewable by everyone." on public.daily_poems for select using (true);
 create policy "Badges are viewable by everyone." on public.badges for select using (true);
+create policy "Reads are viewable by everyone." on public.reads for select using (true);
 
 -- User profiles are public
 create policy "User profiles are viewable by everyone." on public.users for select using (true);
 create policy "Users can update their own profile." on public.users for update using (auth.uid() = id);
+
+-- Reads policies (INSERT/DELETE for self)
+create policy "Users can insert their own reads." on public.reads for insert with check (auth.uid() = user_id);
+create policy "Users can delete their own reads." on public.reads for delete using (auth.uid() = user_id);
 
 -- Trigger to create a user profile when auth.users is created
 create or replace function public.handle_new_user() 
@@ -354,3 +373,22 @@ create trigger set_updated_at_review_comments before update on public.review_com
 create trigger set_updated_at_categories before update on public.categories for each row execute procedure handle_updated_at();
 create trigger set_updated_at_highlights before update on public.highlights for each row execute procedure handle_updated_at();
 create trigger set_updated_at_lists before update on public.lists for each row execute procedure handle_updated_at();
+
+-- Trigger for incrementing/decrementing reads_count on poems
+create or replace function public.handle_reads_count()
+returns trigger as $$
+begin
+  if (TG_OP = 'INSERT') then
+    update public.poems set reads_count = reads_count + 1 where id = new.poem_id;
+    return new;
+  elsif (TG_OP = 'DELETE') then
+    update public.poems set reads_count = reads_count - 1 where id = old.poem_id;
+    return old;
+  end if;
+  return null;
+end;
+$$ language plpgsql security definer;
+
+create trigger on_read_created_or_deleted
+  after insert or delete on public.reads
+  for each row execute procedure public.handle_reads_count();
