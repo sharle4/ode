@@ -100,9 +100,9 @@ const BilingualSpotlight = React.memo(function BilingualSpotlight({ poem }: Bili
                 {/* Author */}
                 <div>
                   <p className="text-[11px] text-cream/40 uppercase tracking-wider mb-1">Auteur</p>
-                  <Link href={`/author/${poem.authors?.slug || "inconnu"}`}>
+                  <Link href={`/author/${poem.authors?.[0]?.slug || "inconnu"}`}>
                     <p className="text-sm text-cream/90 font-serif font-medium hover:text-accent transition-colors cursor-pointer">
-                      {poem.authors?.name || poem.author || "Anonyme"}
+                      {poem.authors?.map((a: any) => a.name).join(', ') || "Anonyme"}
                     </p>
                   </Link>
                 </div>

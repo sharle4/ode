@@ -109,11 +109,11 @@ async function preloadData() {
     // 2. Collections
     offset = 0; hasMore = true;
     while (hasMore) {
-        let { data, error } = await supabase.from('collections').select('id, title, author_id, wikisource_page_id').range(offset, offset + limit - 1);
+        let { data, error } = await supabase.from('collections').select('id, title, wikisource_page_id').range(offset, offset + limit - 1);
         if (error) { console.error("Error preloading collections", error); break; }
         data?.forEach(c => {
             const key = c.wikisource_page_id ? `page_${c.wikisource_page_id}` : `title_${c.title}`;
-            collectionsMap.set(key, { id: c.id, author_id: c.author_id });
+            collectionsMap.set(key, { id: c.id });
         });
         hasMore = data?.length === limit;
         offset += limit;
@@ -161,8 +161,13 @@ async function getOrCreateAuthor(authorName) {
 
     try {
         const enriched = enrichedAuthorsMap.get(authorName) || {};
+
+        let authorSlug = slugify(authorName, { lower: true, strict: true });
+        if (!authorSlug) authorSlug = `auteur-${Date.now()}`;
+
         const { data, error } = await supabase.from('authors').insert({
             name: authorName,
+            slug: authorSlug,
             image_url: enriched.image_url || null,
             signature_url: enriched.signature_url || null,
             date_of_birth: enriched.birth_date || null,
@@ -187,47 +192,27 @@ async function getOrCreateAuthor(authorName) {
     }
 }
 
-async function getOrCreateCollection(collectionTitle, authorId, publicationYear, collectionStructure) {
+async function getOrCreateCollection(collectionTitle, publicationYear, collectionStructure) {
     if (!collectionTitle) return null;
 
     let pageId = collectionStructure?.page_id || null;
     const key = pageId ? `page_${pageId}` : `title_${collectionTitle}`;
 
     if (collectionsMap.has(key)) {
-        const coll = collectionsMap.get(key);
-        // Si la collection existe mais que l'auteur est différent, c'est potentiellement une Revue (multi-auteurs)
-        if (coll.author_id !== null && authorId !== null && coll.author_id !== authorId) {
-            const oldAuthor = authorIdToNameMap.get(coll.author_id) || coll.author_id;
-            const newAuthor = authorIdToNameMap.get(authorId) || authorId;
-
-            if (oldAuthor === UNKNOWN_AUTHOR && newAuthor !== UNKNOWN_AUTHOR) {
-                console.log(`[Collection] '${collectionTitle}' updating author from '${UNKNOWN_AUTHOR}' to '${newAuthor}'.`);
-                await supabase.from('collections').update({ author_id: authorId }).eq('id', coll.id);
-                coll.author_id = authorId;
-            } else if (oldAuthor !== UNKNOWN_AUTHOR && newAuthor === UNKNOWN_AUTHOR) {
-                console.log(`[Collection] '${collectionTitle}' ignoring '${UNKNOWN_AUTHOR}' to keep '${oldAuthor}'.`);
-                // Do nothing, keep proper author
-            } else {
-                console.log(`[Collection] '${collectionTitle}' detected as multi-author. Conflict between '${oldAuthor}' and '${newAuthor}'. Nullifying author_id.`);
-                await supabase.from('collections').update({ author_id: null }).eq('id', coll.id);
-                coll.author_id = null; // Update en mémoire pour éviter d'update à chaque poème
-            }
-        }
-        return coll.id;
+        return collectionsMap.get(key).id;
     }
 
     try {
         const { data, error } = await supabase.from('collections')
             .insert({
                 title: collectionTitle,
-                author_id: authorId,
                 publication_year: publicationYear ? parseInt(publicationYear, 10) : null,
                 wikisource_page_id: pageId,
                 poems_count: 0
             }).select('id').single();
 
         if (error) throw error;
-        collectionsMap.set(key, { id: data.id, author_id: authorId });
+        collectionsMap.set(key, { id: data.id });
         return data.id;
     } catch (e) {
         stats.errors.collections++;
@@ -263,10 +248,16 @@ async function processLine(line) {
         const collectionTitle = poemData.collection_title || poemData.metadata?.source_collection;
         const collectionId = await getOrCreateCollection(
             collectionTitle,
-            authorId,
             poemData.metadata?.publication_date,
             poemData.collection_structure
         );
+
+        if (collectionId) {
+            await supabase.from('collection_authors').upsert({
+                collection_id: collectionId,
+                author_id: authorId
+            }, { onConflict: 'collection_id,author_id', ignoreDuplicates: true });
+        }
 
         // Multi-version hubs & title
         const actualAuthorName = authorName || UNKNOWN_AUTHOR;
@@ -275,7 +266,6 @@ async function processLine(line) {
         const poemInsert = {
             title: poemData.title,
             slug: slug,
-            author_id: authorId,
             collection_id: collectionId,
             section_title: poemData.section_title || null,
             poem_order: poemData.poem_order || null,
@@ -288,11 +278,16 @@ async function processLine(line) {
             hub_page_id: poemData.hub_page_id || poemData.page_id
         };
 
-        const { error } = await supabase.from('poems').insert(poemInsert);
+        const { data: insertedPoem, error } = await supabase.from('poems').insert(poemInsert).select('id').single();
         if (error) {
             stats.errors.poems++;
             failedPoems.push({ id: poemData.page_id, title: poemData.title, error: error.message });
         } else {
+            await supabase.from('poem_authors').upsert({
+                poem_id: insertedPoem.id,
+                author_id: authorId
+            }, { onConflict: 'poem_id,author_id', ignoreDuplicates: true });
+
             stats.insertedPoems++;
             existingPoemIds.add(poemData.page_id);
             // Throttle slightly to keep connections happy

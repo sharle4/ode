@@ -8,7 +8,7 @@ export const getPoemBySlug = cache(async (slug: string) => {
         .from('poems')
         .select(`
       *,
-      authors ( id, name ),
+      authors ( id, name, slug ),
       collections ( id, title )
     `)
         .eq('slug', slug)
@@ -26,7 +26,11 @@ export const getAuthorById = cache(async (id: string) => {
     const supabase = await createClient()
     const { data: author, error } = await supabase
         .from('authors')
-        .select('*')
+        .select(`
+            *,
+            poems ( id, title, slug ),
+            collections ( id, title, publication_year )
+        `)
         .eq('id', id)
         .single()
 
@@ -35,18 +39,14 @@ export const getAuthorById = cache(async (id: string) => {
         return null
     }
 
-    // Fetch author's poems and collections
-    const { data: poems } = await supabase.from('poems').select('id, title, slug').eq('author_id', id)
-    const { data: collections } = await supabase.from('collections').select('id, title, publication_year').eq('author_id', id)
-
-    return { ...author, poems, collections }
+    return author
 })
 
 export const getCollectionById = cache(async (id: string) => {
     const supabase = await createClient()
     const { data: collection, error } = await supabase
         .from('collections')
-        .select('*, authors ( id, name )')
+        .select('*, authors ( id, name, slug )')
         .eq('id', id)
         .single()
 
@@ -107,7 +107,7 @@ export const getDailyPoem = cache(async () => {
     // Fetch the actual poem details
     const { data: poem } = await supabase
         .from('poems')
-        .select('*, authors ( id, name )')
+        .select('*, authors ( id, name, slug )')
         .eq('id', poemId)
         .single()
 
@@ -123,7 +123,7 @@ export const getTrendingPoems = cache(async (limit: number = 10) => {
         .from('poems')
         .select(`
             *,
-            authors ( id, name )
+            authors ( id, name, slug )
         `)
         .limit(limit)
         .order('created_at', { ascending: false })

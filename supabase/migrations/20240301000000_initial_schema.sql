@@ -7,6 +7,7 @@
 create table public.authors (
     id uuid primary key default gen_random_uuid(),
     name text unique not null,
+    slug text unique not null,
     biography text,
     image_url text,
     signature_url text,
@@ -29,7 +30,6 @@ create table public.authors (
 create table public.collections (
     id uuid primary key default gen_random_uuid(),
     title text not null,
-    author_id uuid references public.authors(id) on delete cascade,
     publication_year int,
     summary text,
     cover_url text,
@@ -44,7 +44,6 @@ create table public.poems (
     id uuid primary key default gen_random_uuid(),
     title text not null,
     slug text unique not null,
-    author_id uuid references public.authors(id) on delete cascade not null,
     collection_id uuid references public.collections(id) on delete cascade,
     section_title text,
     poem_order int,
@@ -62,10 +61,28 @@ create table public.poems (
 );
 
 -- Index pour la recherche et les perfs sur le tri
-create index idx_poems_author_id on public.poems(author_id);
 create index idx_poems_collection_id on public.poems(collection_id);
 create index idx_poems_slug on public.poems(slug);
 create index idx_poems_hub_page_id on public.poems(hub_page_id);
+
+-- Tables de jointure pour Auteurs
+create table public.poem_authors (
+    poem_id uuid references public.poems(id) on delete cascade not null,
+    author_id uuid references public.authors(id) on delete cascade not null,
+    created_at timestamptz default now() not null,
+    primary key (poem_id, author_id)
+);
+
+create table public.collection_authors (
+    collection_id uuid references public.collections(id) on delete cascade not null,
+    author_id uuid references public.authors(id) on delete cascade not null,
+    created_at timestamptz default now() not null,
+    primary key (collection_id, author_id)
+);
+
+-- Index pour les tables de jointure
+create index idx_poem_authors_author_id on public.poem_authors(author_id);
+create index idx_collection_authors_author_id on public.collection_authors(author_id);
 
 
 -- 3. USERS & SOCIAL TABLES
@@ -280,7 +297,9 @@ create table public.notifications (
 
 alter table public.authors enable row level security;
 alter table public.collections enable row level security;
+alter table public.collection_authors enable row level security;
 alter table public.poems enable row level security;
+alter table public.poem_authors enable row level security;
 alter table public.users enable row level security;
 alter table public.categories enable row level security;
 alter table public.daily_poems enable row level security;
@@ -289,7 +308,9 @@ alter table public.badges enable row level security;
 -- Public read access for static data
 create policy "Authors are viewable by everyone." on public.authors for select using (true);
 create policy "Collections are viewable by everyone." on public.collections for select using (true);
+create policy "Collection authors are viewable by everyone." on public.collection_authors for select using (true);
 create policy "Poems are viewable by everyone." on public.poems for select using (true);
+create policy "Poem authors are viewable by everyone." on public.poem_authors for select using (true);
 create policy "Categories are viewable by everyone." on public.categories for select using (true);
 create policy "Daily poems are viewable by everyone." on public.daily_poems for select using (true);
 create policy "Badges are viewable by everyone." on public.badges for select using (true);

@@ -48,7 +48,7 @@ const PoemCard = React.memo(function PoemCard({ poem, index, layout = "flex" }: 
             <h3 className="font-serif text-white text-lg leading-tight font-medium">
               {poem.title}
             </h3>
-            <p className="text-white/60 text-sm">{poem.authors?.name || poem.author || "Auteur inconnu"}</p>
+            <p className="text-white/60 text-sm">{poem.authors?.map((a: any) => a.name).join(', ') || "Auteur inconnu"}</p>
           </div>
         </div>
 

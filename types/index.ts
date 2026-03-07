@@ -2,7 +2,7 @@ export interface Poem {
   id: string;
   title: string;
   originalTitle?: string;
-  author: string;
+  authors: { id: string; name: string; slug: string }[];
   originalLanguage: string;
   coverGradient: string;
   averageReview: number;
@@ -21,7 +21,7 @@ export interface CommunityActivity {
   initials: string;
   action: "logged" | "rated" | "added to list" | "reviewed";
   poemTitle: string;
-  poemAuthor: string;
+  poemAuthors: { id: string; name: string; slug: string }[];
   review?: number;
   reviewText?: string;
   timestamp: string;

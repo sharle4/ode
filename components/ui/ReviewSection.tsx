@@ -17,7 +17,7 @@ const mockDistribution = [
 const mockReviews = [
     {
         id: 1,
-        author: "Marguerite D.",
+        authors: [{ id: "marguerite-d-id", name: "Marguerite D.", slug: "marguerite-d" }],
         date: "14 fév. 2026",
         review: 5,
         text: "Ce poème m'a profondément touchée. La musicalité des vers et la richesse des images créent une atmosphère envoûtante. Un chef-d'œuvre intemporel.",
@@ -25,7 +25,7 @@ const mockReviews = [
     },
     {
         id: 2,
-        author: "Émile V.",
+        authors: [{ id: "émile-v-id", name: "Émile V.", slug: "émile-v" }],
         date: "8 fév. 2026",
         review: 4,
         text: "Baudelaire capture avec génie l'essence même de la mélancolie. On sent la tension constante entre le sordide et le sublime. Quelques passages restent hermétiques à la première lecture.",
@@ -33,7 +33,7 @@ const mockReviews = [
     },
     {
         id: 3,
-        author: "Clara S.",
+        authors: [{ id: "clara-s-id", name: "Clara S.", slug: "clara-s" }],
         date: "2 fév. 2026",
         review: 5,
         text: "Chaque relecture révèle une couche de sens nouvelle. La modernité de ce texte, écrit il y a plus d'un siècle, est saisissante.",

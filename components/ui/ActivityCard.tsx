@@ -62,7 +62,7 @@ const ActivityCard = React.memo(function ActivityCard({
               {activity.poemTitle}
             </span>
             <span className="text-warm-gray text-xs">
-              de {activity.poemAuthor}
+              de {activity.poemAuthors?.map((a: any) => a.name).join(', ')}
             </span>
           </div>
 
