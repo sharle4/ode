@@ -262,8 +262,7 @@ create index idx_reviews_collection_id on public.reviews(collection_id);
 
 create index idx_review_comments_review_id on public.review_comments(review_id);
 
-create index idx_highlights_user_id on public.highlights(user_id);
-create index idx_highlights_poem_id on public.highlights(poem_id);
+create index idx_highlights_user_poem on public.highlights(user_id, poem_id);
 
 create index idx_list_items_list_id on public.list_items(list_id);
 create index idx_lists_user_id on public.lists(user_id);
@@ -492,7 +491,12 @@ declare
   today date := current_date;
 begin
   select id into random_poem_id
-  from public.poems tablesample system_rows(1);
+  from public.poems tablesample system_rows(100)
+  where id not in (
+    select poem_id from public.daily_poems 
+    where date >= current_date - interval '30 days'
+  )
+  limit 1;
 
   if random_poem_id is not null then
     insert into public.daily_poems (date, poem_id)

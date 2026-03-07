@@ -13,14 +13,29 @@ import {
     Smiley
 } from "@phosphor-icons/react";
 
+import { usePathname } from "next/navigation";
+import { ratePoem } from "@/app/actions/poetry";
+import { useAction } from "next-safe-action/hooks";
+
 interface PoemActionsProps {
     poemId: string;
 }
 
 export default function PoemActions({ poemId }: PoemActionsProps) {
-    const [isLiked, setIsLiked] = useState(false);
+    const pathname = usePathname();
+    const slug = pathname?.split('/').pop() || "";
+
     const [isRead, setIsRead] = useState(false);
     const [showShareTooltip, setShowShareTooltip] = useState(false);
+
+    // Optimistic Like State
+    const [isLiked, setIsLiked] = useState(false);
+    const [optimisticLike, addOptimisticLike] = React.useOptimistic(
+        isLiked,
+        (state: boolean, newState: boolean) => newState
+    );
+
+    const { executeAsync: executeRate } = useAction(ratePoem);
 
     const handleShare = () => {
         navigator.clipboard.writeText(window.location.href);
@@ -37,9 +52,24 @@ export default function PoemActions({ poemId }: PoemActionsProps) {
         },
         {
             id: "like",
-            icon: <Heart size={22} weight={isLiked ? "fill" : "regular"} className={isLiked ? "text-accent" : "text-charcoal"} />,
+            icon: <Heart size={22} weight={optimisticLike ? "fill" : "regular"} className={optimisticLike ? "text-accent" : "text-charcoal"} />,
             label: "Liker",
-            onClick: () => setIsLiked(!isLiked),
+            onClick: async () => {
+                const newValue = !optimisticLike;
+                React.startTransition(() => {
+                    addOptimisticLike(newValue);
+                });
+
+                const result = await executeRate({ poemId, slug, score: newValue ? 5 : 0 });
+
+                if (result?.serverError || result?.validationErrors) {
+                    alert("Une erreur est survenue lors de l'enregistrement de votre like. Veuillez réessayer.");
+                    // React automatically rolls back optimisticLike because the real `isLiked` state hasn't changed.
+                } else {
+                    // Success, commit real state
+                    setIsLiked(newValue);
+                }
+            },
         },
         {
             id: "list",

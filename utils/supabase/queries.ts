@@ -25,7 +25,10 @@ export const getPoemBySlug = async (slug: string) => {
                 .single()
 
             if (error) {
-                console.error('Error fetching poem by slug:', error)
+                if (error.code !== 'PGRST116') {
+                    console.error('Database Error fetching poem by slug:', error)
+                    throw new Error('Database Error fetching poem')
+                }
                 return null
             }
 
@@ -51,7 +54,10 @@ export const getAuthorById = async (id: string) => {
                 .single()
 
             if (error) {
-                console.error('Error fetching author by ID:', error)
+                if (error.code !== 'PGRST116') {
+                    console.error('Database Error fetching author by ID:', error)
+                    throw new Error('Database Error fetching author')
+                }
                 return null
             }
 
@@ -77,7 +83,10 @@ export const getAuthorBySlug = async (slug: string) => {
                 .single()
 
             if (error) {
-                console.error('Error fetching author by slug:', error)
+                if (error.code !== 'PGRST116') {
+                    console.error('Database Error fetching author by slug:', error)
+                    throw new Error('Database Error fetching author')
+                }
                 return null
             }
 
@@ -127,11 +136,14 @@ export const getCollectionById = async (id: string) => {
                 .single()
 
             if (error) {
-                console.error('Error fetching collection by ID:', error)
+                if (error.code !== 'PGRST116') {
+                    console.error('Database Error fetching collection by ID:', error)
+                    throw new Error('Database Error fetching collection')
+                }
                 return null
             }
 
-            const { data: poems } = await supabase
+            const { data: poems, error: poemsError } = await supabase
                 .from('poems')
                 .select('id, title, slug, poem_order')
                 .eq('collection_id', id)
@@ -157,15 +169,26 @@ export const getDailyPoem = async () => {
                 .maybeSingle()
 
             if (fetchError || !dailyPoem?.poem_id) {
-                console.error('Error/Missing daily poem:', fetchError)
+                if (fetchError && fetchError.code !== 'PGRST116') {
+                    console.error('Database Error fetching daily poem id:', fetchError)
+                    throw new Error('Database Error fetching daily poem')
+                }
                 return null
             }
 
-            const { data: poem } = await supabase
+            const { data: poem, error } = await supabase
                 .from('poems')
                 .select('*, authors ( id, name, slug )')
                 .eq('id', dailyPoem.poem_id)
                 .single()
+
+            if (error) {
+                if (error.code !== 'PGRST116') {
+                    console.error('Database Error fetching daily poem details:', error)
+                    throw new Error('Database Error fetching daily poem details')
+                }
+                return null
+            }
 
             return poem
         },
@@ -188,8 +211,8 @@ export const getTrendingPoems = async (limit: number = 10) => {
                 .order('reads_count', { ascending: false }) // Sort by new reads_count column
 
             if (error) {
-                console.error('Error fetching trending poems:', error)
-                return []
+                console.error('Database Error fetching trending poems:', error)
+                throw new Error('Database Error fetching trending poems')
             }
 
             return poems

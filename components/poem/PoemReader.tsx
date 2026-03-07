@@ -64,15 +64,12 @@ export default function PoemReader({ content }: PoemReaderProps) {
                         const isFirstLine = stanzaIndex === 0 && lineIndex === 0 && line.length > 0;
 
                         if (isFirstLine) {
-                            const firstChar = line.charAt(0);
-                            const restOfLine = line.slice(1);
                             return (
                                 <p
                                     key={`line-${stanzaIndex}-${lineIndex}`}
-                                    className="text-lg md:text-2xl leading-loose md:leading-[2.5] text-charcoal"
+                                    className="text-lg md:text-2xl leading-loose md:leading-[2.5] text-charcoal drop-cap"
                                 >
-                                    <span className="drop-cap">{firstChar}</span>
-                                    {restOfLine}
+                                    {line}
                                 </p>
                             );
                         }
