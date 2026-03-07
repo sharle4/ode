@@ -88,6 +88,34 @@ export const getAuthorBySlug = async (slug: string) => {
     )()
 }
 
+export const getCollectionBySlug = async (slug: string) => {
+    return unstable_cache(
+        async () => {
+            const supabase = getPublicClient()
+            const { data: collection, error } = await supabase
+                .from('collections')
+                .select('*, authors ( id, name, slug )')
+                .eq('slug', slug)
+                .single()
+
+            if (error) {
+                console.error('Error fetching collection by slug:', error)
+                return null
+            }
+
+            const { data: poems } = await supabase
+                .from('poems')
+                .select('id, title, slug, poem_order')
+                .eq('collection_id', collection.id)
+                .order('poem_order', { ascending: true, nullsFirst: false })
+
+            return { ...collection, poems }
+        },
+        [`collection-slug-${slug}`],
+        { tags: [`collection-${slug}`], revalidate: 86400 }
+    )()
+}
+
 export const getCollectionById = async (id: string) => {
     return unstable_cache(
         async () => {

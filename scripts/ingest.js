@@ -152,6 +152,28 @@ function generateUniqueSlug(authorName, poemTitle) {
     return finalSlug;
 }
 
+function generateUniqueCollectionSlug(title, year) {
+    let baseString = title;
+    if (year) {
+        baseString += `-${year}`;
+    }
+
+    let baseSlug = slugify(baseString, { lower: true, strict: true });
+    if (!baseSlug) {
+        baseSlug = `recueil-${year || Date.now()}`;
+    }
+
+    let finalSlug = baseSlug;
+    let counter = 1;
+    // Guaranteed to be unique in the system
+    while (usedSlugs.has(finalSlug)) {
+        counter++;
+        finalSlug = `${baseSlug}-${counter}`;
+    }
+    usedSlugs.add(finalSlug);
+    return finalSlug;
+}
+
 async function getOrCreateAuthor(authorName) {
     if (!authorName) {
         stats.missingAuthorRecovered++;
@@ -203,9 +225,12 @@ async function getOrCreateCollection(collectionTitle, publicationYear, collectio
     }
 
     try {
+        const slug = generateUniqueCollectionSlug(collectionTitle, publicationYear);
+
         const { data, error } = await supabase.from('collections')
             .insert({
                 title: collectionTitle,
+                slug: slug,
                 publication_year: publicationYear ? parseInt(publicationYear, 10) : null,
                 wikisource_page_id: pageId,
                 poems_count: 0

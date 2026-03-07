@@ -28,3 +28,12 @@ export interface CommunityActivity {
   likes: number;
   comments: number;
 }
+export interface Collection {
+  id: string;
+  title: string;
+  slug: string;
+  publication_year?: number;
+  summary?: string;
+  cover_url?: string;
+  poems_count: number;
+}

@@ -30,6 +30,7 @@ create table public.authors (
 create table public.collections (
     id uuid primary key default gen_random_uuid(),
     title text not null,
+    slug text unique not null,
     publication_year int,
     summary text,
     cover_url text,
