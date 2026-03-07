@@ -1,16 +1,17 @@
 import { createClient as createSupabaseClient } from '@supabase/supabase-js'
 import { unstable_cache } from 'next/cache'
+import { cache } from 'react'
 
 // Create a single public client for cached queries to avoid cookie parsing dynamically 
 // (which would opt routes into dynamic rendering and break unstable_cache).
-const publicClient = createSupabaseClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-)
-
-const getPublicClient = () => {
-    return publicClient
-}
+// Instantiate safely inside the function to prevent Cross-Request State Pollution
+// Wrap in React cache() to memoize the instance per-request, avoiding duplicate instantiations in the same render cycle
+export const getPublicClient = cache(() => {
+    return createSupabaseClient(
+        process.env.NEXT_PUBLIC_SUPABASE_URL!,
+        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+    )
+})
 
 export const getPoemBySlug = async (slug: string) => {
     return unstable_cache(

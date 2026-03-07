@@ -15,15 +15,8 @@ if (error || !user) {
     throw new Error("Vous devez être connecté pour effectuer cette action.");
 }
 
-// Basic Rate Limiting
-const now = Date.now();
-const lastRequestTime = rateLimitMap.get(user.id) || 0;
-
-// 1 action per second rate limit
-if (now - lastRequestTime < 1000) {
-    throw new Error("Veuillez patienter avant de refaire cette action.");
-}
-rateLimitMap.set(user.id, now);
+// TODO: Implémenter un vrai Rate Limiting distribué (Upstash Redis ou table Supabase RPC).
+// Ne pas utiliser de Map Javascript en mémoire dans un environnement Serverless.
 
 return next({ ctx: { supabase, user } });
 });
