@@ -14,8 +14,9 @@ import {
 } from "@phosphor-icons/react";
 
 import { usePathname } from "next/navigation";
-import { ratePoem } from "@/app/actions/poetry";
+import { ratePoem, toggleLike } from "@/app/actions/poetry";
 import { useAction } from "next-safe-action/hooks";
+import { useDebouncedCallback } from "use-debounce";
 
 interface PoemActionsProps {
     poemId: string;
@@ -36,6 +37,16 @@ export default function PoemActions({ poemId }: PoemActionsProps) {
     );
 
     const { executeAsync: executeRate } = useAction(ratePoem);
+    const { executeAsync: executeLike } = useAction(toggleLike);
+
+    const debouncedToggleLike = useDebouncedCallback(async (liked: boolean) => {
+        const result = await executeLike({ poemId, slug });
+        if (result?.serverError || result?.validationErrors || result?.data?.failure) {
+            console.error("Erreur serveur lors du like:", result);
+            alert("Une erreur est survenue lors de l'enregistrement de votre like. Veuillez réessayer.");
+            // Si erreur, on force potentiellement un re-fetch ou on notifie
+        }
+    }, 500);
 
     const handleShare = () => {
         navigator.clipboard.writeText(window.location.href);
@@ -54,21 +65,16 @@ export default function PoemActions({ poemId }: PoemActionsProps) {
             id: "like",
             icon: <Heart size={22} weight={optimisticLike ? "fill" : "regular"} className={optimisticLike ? "text-accent" : "text-charcoal"} />,
             label: "Liker",
-            onClick: async () => {
+            onClick: () => {
                 const newValue = !optimisticLike;
                 React.startTransition(() => {
                     addOptimisticLike(newValue);
                 });
+                // Sincéronise le state local réel pour la prochaine transition
+                setIsLiked(newValue);
 
-                const result = await executeRate({ poemId, slug, score: newValue ? 5 : 0 });
-
-                if (result?.serverError || result?.validationErrors) {
-                    alert("Une erreur est survenue lors de l'enregistrement de votre like. Veuillez réessayer.");
-                    // React automatically rolls back optimisticLike because the real `isLiked` state hasn't changed.
-                } else {
-                    // Success, commit real state
-                    setIsLiked(newValue);
-                }
+                // Déclenche l'action Serveur dé-bouncée pour protéger la db
+                debouncedToggleLike(newValue);
             },
         },
         {

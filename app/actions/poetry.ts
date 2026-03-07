@@ -1,8 +1,9 @@
 'use server'
 
-import { revalidatePath } from 'next/cache'
+import { revalidatePath, revalidateTag } from 'next/cache'
 import { z } from 'zod'
 import { authActionClient } from '@/lib/safe-action'
+import { CACHE_TAGS } from '@/lib/cache-keys'
 
 export const ratePoem = authActionClient
     .schema(z.object({
@@ -30,8 +31,39 @@ export const ratePoem = authActionClient
             return { failure: 'Impossible de sauvegarder votre avis.' }
         }
 
-        revalidatePath(`/poem/${slug}`)
+        revalidateTag(CACHE_TAGS.poem(slug))
         return { success: true }
+    })
+
+export const toggleLike = authActionClient
+    .schema(z.object({
+        poemId: z.string().uuid(),
+        slug: z.string().min(1)
+    }))
+    .action(async ({ parsedInput: { poemId, slug }, ctx: { supabase, user } }) => {
+        const { data: existing } = await supabase
+            .from('poem_likes')
+            .select('user_id')
+            .eq('user_id', user.id)
+            .eq('poem_id', poemId)
+            .maybeSingle()
+
+        if (existing) {
+            const { error } = await supabase.from('poem_likes')
+                .delete()
+                .eq('user_id', user.id)
+                .eq('poem_id', poemId)
+
+            if (error) return { failure: 'Impossible de retirer votre like.' }
+        } else {
+            const { error } = await supabase.from('poem_likes')
+                .insert({ user_id: user.id, poem_id: poemId })
+
+            if (error) return { failure: 'Impossible de liker ce poème.' }
+        }
+
+        revalidateTag(CACHE_TAGS.poem(slug))
+        return { success: true, isLiked: !existing }
     })
 
 export const highlightPoem = authActionClient
@@ -60,7 +92,7 @@ export const highlightPoem = authActionClient
             return { failure: 'Impossible de sauvegarder votre surbrillance.' }
         }
 
-        revalidatePath(`/poem/${slug}`)
+        revalidateTag(CACHE_TAGS.poem(slug))
         return { success: true }
     })
 
@@ -88,7 +120,10 @@ export const createList = authActionClient
         }
 
         revalidatePath('/lists', 'page')
-        revalidatePath('/profile/[username]', 'page')
+        // Invalidate the creator's profile using the safe dynamic tag, assuming their username relies on user_metadata
+        if (user.user_metadata?.username) {
+            revalidateTag(CACHE_TAGS.profile(user.user_metadata.username))
+        }
         return { success: true, listId: data.id }
     })
 
@@ -149,6 +184,14 @@ export const toggleFollow = authActionClient
             if (error) return { failure: 'Impossible de s\'abonner.' }
         }
 
-        revalidatePath('/profile/[username]', 'page')
+        // Granular cache invalidation avoiding massive cross-user purge
+        const { data: followedUser } = await supabase.from('users').select('username').eq('id', followingId).maybeSingle();
+        if (followedUser?.username) {
+            revalidateTag(CACHE_TAGS.profile(followedUser.username));
+        }
+        if (user.user_metadata?.username) {
+            revalidateTag(CACHE_TAGS.profile(user.user_metadata.username));
+        }
+
         return { success: true, isFollowing: !existing }
     })

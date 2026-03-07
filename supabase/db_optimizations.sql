@@ -82,3 +82,17 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
 */
+
+-- 6. Découplage Likes & Reviews
+-- Pour éviter de détourner la logique "Score" et contourner la contrainte CHECK (score >= 0.5)
+-- lors de la suppression d'un "Like" (score = 0), il est vital de gérer ceci à part.
+/*
+CREATE TABLE IF NOT EXISTS public.poem_likes (
+    user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
+    poem_id UUID NOT NULL REFERENCES public.poems(id) ON DELETE CASCADE,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    PRIMARY KEY (user_id, poem_id)
+);
+
+CREATE INDEX idx_poem_likes_poem_id ON public.poem_likes(poem_id);
+*/

@@ -11,12 +11,17 @@ export const actionClient = createSafeActionClient({
     },
 });
 
-if (error || !user) {
-    throw new Error("Vous devez être connecté pour effectuer cette action.");
-}
+// Authenticated client requiring user login
+export const authActionClient = actionClient.use(async ({ next }) => {
+    const supabase = await createClient();
+    const { data: { user }, error } = await supabase.auth.getUser();
 
-// TODO: Implémenter un vrai Rate Limiting distribué (Upstash Redis ou table Supabase RPC).
-// Ne pas utiliser de Map Javascript en mémoire dans un environnement Serverless.
+    if (error || !user) {
+        throw new Error("Vous devez être connecté pour effectuer cette action.");
+    }
 
-return next({ ctx: { supabase, user } });
+    // TODO: Implémenter un vrai Rate Limiting distribué (Upstash Redis ou table Supabase RPC).
+    // Ne pas utiliser de Map Javascript en mémoire dans un environnement Serverless.
+
+    return next({ ctx: { supabase, user } });
 });

@@ -47,7 +47,7 @@ export default function PoemReader({ content }: PoemReaderProps) {
 
     return (
         <motion.article
-            className="poem-container [&>div:first-child>p:first-of-type]:first-letter:text-5xl [&>div:first-child>p:first-of-type]:first-letter:float-left [&>div:first-child>p:first-of-type]:first-letter:mt-2 [&>div:first-child>p:first-of-type]:first-letter:mr-2 [&>div:first-child>p:first-of-type]:first-letter:font-bold max-w-3xl mx-auto px-4 sm:px-6 py-12 md:py-20 font-serif"
+            className="max-w-3xl mx-auto px-4 sm:px-6 py-12 md:py-20 font-serif"
             initial="hidden"
             animate="visible"
             variants={containerVariants}
@@ -58,14 +58,17 @@ export default function PoemReader({ content }: PoemReaderProps) {
                     variants={stanzaVariants}
                     className="mb-10 md:mb-14"
                 >
-                    {stanza.map((line, lineIndex) => (
-                        <p
-                            key={`line-${stanzaIndex}-${lineIndex}`}
-                            className="text-lg md:text-2xl leading-loose md:leading-[2.5] text-charcoal min-h-[1.5em]"
-                        >
-                            {line}
-                        </p>
-                    ))}
+                    {stanza.map((line, lineIndex) => {
+                        const isFirstLine = stanzaIndex === 0 && lineIndex === 0 && line.length > 0;
+                        return (
+                            <p
+                                key={`line-${stanzaIndex}-${lineIndex}`}
+                                className={`text-lg md:text-2xl leading-loose md:leading-[2.5] text-charcoal min-h-[1.5em] ${isFirstLine ? 'drop-cap' : ''}`}
+                            >
+                                {line}
+                            </p>
+                        );
+                    })}
                 </motion.div>
             ))}
         </motion.article>

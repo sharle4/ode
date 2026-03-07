@@ -8,6 +8,7 @@ import ReviewSection from "@/components/ui/ReviewSection";
 import { Metadata } from "next";
 import Link from "next/link";
 import FadeIn from "@/components/ui/FadeIn";
+import { CreativeWork, WithContext } from "schema-dts";
 
 interface PoemPageProps {
     params: Promise<{ slug: string }>;
@@ -40,7 +41,7 @@ export default async function PoemPage({ params }: PoemPageProps) {
     const authorName = poem.authors?.name || "Auteur inconnu";
     const collectionTitle = poem.collections?.title;
 
-    const jsonLd = {
+    const jsonLd: WithContext<CreativeWork> = {
         '@context': 'https://schema.org',
         '@type': 'CreativeWork',
         name: poem.title,
