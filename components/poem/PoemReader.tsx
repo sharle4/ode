@@ -7,7 +7,7 @@ interface PoemReaderProps {
     content: {
         stanzas?: string[][];
         raw_markers?: string[];
-    } | string[][]; // Support both legacy array and new object format
+    };
 }
 
 const containerVariants = {
@@ -35,8 +35,7 @@ const stanzaVariants = {
 };
 
 export default function PoemReader({ content }: PoemReaderProps) {
-    // Determine the stanzas array based on the format
-    const stanzas = Array.isArray(content) ? content : content?.stanzas;
+    const stanzas = content?.stanzas;
 
     if (!stanzas || !Array.isArray(stanzas) || stanzas.length === 0) {
         return (
@@ -48,7 +47,7 @@ export default function PoemReader({ content }: PoemReaderProps) {
 
     return (
         <motion.article
-            className="max-w-3xl mx-auto px-4 sm:px-6 py-12 md:py-20 font-serif"
+            className="poem-container [&>div:first-child>p:first-of-type]:first-letter:text-5xl [&>div:first-child>p:first-of-type]:first-letter:float-left [&>div:first-child>p:first-of-type]:first-letter:mt-2 [&>div:first-child>p:first-of-type]:first-letter:mr-2 [&>div:first-child>p:first-of-type]:first-letter:font-bold max-w-3xl mx-auto px-4 sm:px-6 py-12 md:py-20 font-serif"
             initial="hidden"
             animate="visible"
             variants={containerVariants}
@@ -59,30 +58,14 @@ export default function PoemReader({ content }: PoemReaderProps) {
                     variants={stanzaVariants}
                     className="mb-10 md:mb-14"
                 >
-                    {stanza.map((line, lineIndex) => {
-                        // Appliquer la lettrine uniquement sur la première lettre de la première strophe, et si la ligne n'est pas vide
-                        const isFirstLine = stanzaIndex === 0 && lineIndex === 0 && line.length > 0;
-
-                        if (isFirstLine) {
-                            return (
-                                <p
-                                    key={`line-${stanzaIndex}-${lineIndex}`}
-                                    className="text-lg md:text-2xl leading-loose md:leading-[2.5] text-charcoal drop-cap"
-                                >
-                                    {line}
-                                </p>
-                            );
-                        }
-
-                        return (
-                            <p
-                                key={`line-${stanzaIndex}-${lineIndex}`}
-                                className="text-lg md:text-2xl leading-loose md:leading-[2.5] text-charcoal min-h-[1.5em]"
-                            >
-                                {line}
-                            </p>
-                        );
-                    })}
+                    {stanza.map((line, lineIndex) => (
+                        <p
+                            key={`line-${stanzaIndex}-${lineIndex}`}
+                            className="text-lg md:text-2xl leading-loose md:leading-[2.5] text-charcoal min-h-[1.5em]"
+                        >
+                            {line}
+                        </p>
+                    ))}
                 </motion.div>
             ))}
         </motion.article>

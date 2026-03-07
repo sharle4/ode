@@ -11,14 +11,19 @@ export const actionClient = createSafeActionClient({
     },
 });
 
-// Authenticated client requiring user login
-export const authActionClient = actionClient.use(async ({ next }) => {
-    const supabase = await createClient();
-    const { data: { user }, error } = await supabase.auth.getUser();
+if (error || !user) {
+    throw new Error("Vous devez être connecté pour effectuer cette action.");
+}
 
-    if (error || !user) {
-        throw new Error("Vous devez être connecté pour effectuer cette action.");
-    }
+// Basic Rate Limiting
+const now = Date.now();
+const lastRequestTime = rateLimitMap.get(user.id) || 0;
 
-    return next({ ctx: { supabase, user } });
+// 1 action per second rate limit
+if (now - lastRequestTime < 1000) {
+    throw new Error("Veuillez patienter avant de refaire cette action.");
+}
+rateLimitMap.set(user.id, now);
+
+return next({ ctx: { supabase, user } });
 });

@@ -60,4 +60,4 @@ Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/bui
 - [ ] ajouter carte et frise
 - [ ] ajouter proposition modification 
 - [ ] ajouter infos enrich authors
-- [] ajouter lien clicable pour date et lieu => lien vers frise et carte
+- [ ] ajouter lien clicable pour date et lieu => lien vers frise et carte

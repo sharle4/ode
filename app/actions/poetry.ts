@@ -27,7 +27,7 @@ export const ratePoem = authActionClient
 
         if (error) {
             console.error('Failed to rate poem:', error.message)
-            throw new Error('Impossible de sauvegarder votre avis.')
+            return { failure: 'Impossible de sauvegarder votre avis.' }
         }
 
         revalidatePath(`/poem/${slug}`)
@@ -57,7 +57,7 @@ export const highlightPoem = authActionClient
 
         if (error) {
             console.error('Failed to save highlight:', error.message)
-            throw new Error('Impossible de sauvegarder votre surbrillance.')
+            return { failure: 'Impossible de sauvegarder votre surbrillance.' }
         }
 
         revalidatePath(`/poem/${slug}`)
@@ -84,7 +84,7 @@ export const createList = authActionClient
 
         if (error) {
             console.error('Failed to create list:', error.message)
-            throw new Error('Impossible de créer la liste.')
+            return { failure: 'Impossible de créer la liste.' }
         }
 
         revalidatePath('/lists', 'page')
@@ -111,7 +111,7 @@ export const addToList = authActionClient
 
         if (error) {
             console.error('Failed to add to list:', error.message)
-            throw new Error('Impossible d\'ajouter le poème à la liste.')
+            return { failure: "Impossible d'ajouter le poème à la liste." }
         }
 
         revalidatePath(`/lists/${listId}`, 'page')
@@ -125,10 +125,10 @@ export const toggleFollow = authActionClient
     .action(async ({ parsedInput: { followingId }, ctx: { supabase, user } }) => {
         const { data: existing } = await supabase
             .from('followers')
-            .select('*')
+            .select('follower_id')
             .eq('follower_id', user.id)
             .eq('following_id', followingId)
-            .single()
+            .maybeSingle()
 
         if (existing) {
             const { error } = await supabase
@@ -137,7 +137,7 @@ export const toggleFollow = authActionClient
                 .eq('follower_id', user.id)
                 .eq('following_id', followingId)
 
-            if (error) throw new Error('Impossible de se désabonner.')
+            if (error) return { failure: 'Impossible de se désabonner.' }
         } else {
             const { error } = await supabase
                 .from('followers')
@@ -146,7 +146,7 @@ export const toggleFollow = authActionClient
                     following_id: followingId
                 })
 
-            if (error) throw new Error('Impossible de s\'abonner.')
+            if (error) return { failure: 'Impossible de s\'abonner.' }
         }
 
         revalidatePath('/profile/[username]', 'page')

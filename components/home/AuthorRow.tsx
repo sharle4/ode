@@ -3,6 +3,7 @@
 import React, { useRef } from "react";
 import { CaretRight, CaretLeft } from "@phosphor-icons/react";
 import Link from "next/link";
+import Image from "next/image";
 import FadeIn from "@/components/ui/FadeIn";
 
 interface Author {
@@ -78,11 +79,13 @@ const AuthorRow = React.memo(function AuthorRow({
                                 key={author.slug}
                                 className="flex-none w-[120px] sm:w-[140px] md:w-[160px] snap-center md:snap-start flex flex-col items-center group cursor-pointer"
                             >
-                                <div className="w-24 h-24 sm:w-32 sm:h-32 md:w-36 md:h-36 rounded-full overflow-hidden mb-4 shadow-xl border-2 border-charcoal group-hover:border-accent group-hover:shadow-accent/20 transition-all duration-300 md:group-hover:-translate-y-2">
-                                    <img
+                                <div className="relative w-24 h-24 sm:w-32 sm:h-32 md:w-36 md:h-36 rounded-full overflow-hidden mb-4 shadow-xl border-2 border-charcoal group-hover:border-accent group-hover:shadow-accent/20 transition-all duration-300 md:group-hover:-translate-y-2">
+                                    <Image
                                         src={author.img}
                                         alt={author.name}
-                                        className="w-full h-full object-cover grayscale opacity-80 group-hover:grayscale-0 group-hover:opacity-100 transition-all duration-500"
+                                        fill
+                                        sizes="(max-width: 640px) 96px, (max-width: 768px) 128px, 144px"
+                                        className="object-cover grayscale opacity-80 group-hover:grayscale-0 group-hover:opacity-100 transition-all duration-500"
                                     />
                                 </div>
                                 <span className="font-medium text-center text-sm md:text-base text-cream group-hover:text-accent transition-colors block text-balance">

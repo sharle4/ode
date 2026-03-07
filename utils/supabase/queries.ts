@@ -3,11 +3,13 @@ import { unstable_cache } from 'next/cache'
 
 // Create a single public client for cached queries to avoid cookie parsing dynamically 
 // (which would opt routes into dynamic rendering and break unstable_cache).
+const publicClient = createSupabaseClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+)
+
 const getPublicClient = () => {
-    return createSupabaseClient(
-        process.env.NEXT_PUBLIC_SUPABASE_URL!,
-        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-    )
+    return publicClient
 }
 
 export const getPoemBySlug = async (slug: string) => {
@@ -22,14 +24,15 @@ export const getPoemBySlug = async (slug: string) => {
                   collections ( id, title )
                 `)
                 .eq('slug', slug)
-                .single()
+                .maybeSingle()
 
             if (error) {
-                if (error.code !== 'PGRST116') {
-                    console.error('Database Error fetching poem by slug:', error)
-                    throw new Error('Database Error fetching poem')
-                }
-                return null
+                console.error('Database Error fetching poem by slug:', error)
+                throw new Error('Database Error fetching poem')
+            }
+
+            if (poem && Array.isArray(poem.content)) {
+                poem.content = { stanzas: poem.content }
             }
 
             return poem
@@ -51,14 +54,11 @@ export const getAuthorById = async (id: string) => {
                     collections ( id, title, publication_year )
                 `)
                 .eq('id', id)
-                .single()
+                .maybeSingle()
 
             if (error) {
-                if (error.code !== 'PGRST116') {
-                    console.error('Database Error fetching author by ID:', error)
-                    throw new Error('Database Error fetching author')
-                }
-                return null
+                console.error('Database Error fetching author by ID:', error)
+                throw new Error('Database Error fetching author')
             }
 
             return author
@@ -80,14 +80,11 @@ export const getAuthorBySlug = async (slug: string) => {
                     collections ( id, title, publication_year )
                 `)
                 .eq('slug', slug)
-                .single()
+                .maybeSingle()
 
             if (error) {
-                if (error.code !== 'PGRST116') {
-                    console.error('Database Error fetching author by slug:', error)
-                    throw new Error('Database Error fetching author')
-                }
-                return null
+                console.error('Database Error fetching author by slug:', error)
+                throw new Error('Database Error fetching author')
             }
 
             return author
@@ -133,14 +130,11 @@ export const getCollectionById = async (id: string) => {
                 .from('collections')
                 .select('*, authors ( id, name, slug )')
                 .eq('id', id)
-                .single()
+                .maybeSingle()
 
             if (error) {
-                if (error.code !== 'PGRST116') {
-                    console.error('Database Error fetching collection by ID:', error)
-                    throw new Error('Database Error fetching collection')
-                }
-                return null
+                console.error('Database Error fetching collection by ID:', error)
+                throw new Error('Database Error fetching collection')
             }
 
             const { data: poems, error: poemsError } = await supabase
@@ -180,14 +174,15 @@ export const getDailyPoem = async () => {
                 .from('poems')
                 .select('*, authors ( id, name, slug )')
                 .eq('id', dailyPoem.poem_id)
-                .single()
+                .maybeSingle()
 
             if (error) {
-                if (error.code !== 'PGRST116') {
-                    console.error('Database Error fetching daily poem details:', error)
-                    throw new Error('Database Error fetching daily poem details')
-                }
-                return null
+                console.error('Database Error fetching daily poem details:', error)
+                throw new Error('Database Error fetching daily poem details')
+            }
+
+            if (poem && Array.isArray(poem.content)) {
+                poem.content = { stanzas: poem.content }
             }
 
             return poem

@@ -11,10 +11,14 @@ import FadeIn from "@/components/ui/FadeIn";
 import { getDailyPoem, getTrendingPoems } from "@/utils/supabase/queries";
 
 export default async function Home() {
-  const dailyPoem = await getDailyPoem();
-  // Fetch two distinct sets of poems for the rows
-  const trendingPoems = await getTrendingPoems(10);
-  const curatedPoems = await getTrendingPoems(8);
+  // Fetch data in parallel to avoid waterfalls
+  const [dailyPoem, trendingPoems] = await Promise.all([
+    getDailyPoem(),
+    getTrendingPoems(10)
+  ]);
+  
+  // Derive curated poems from trending to avoid a redundant database hit
+  const curatedPoems = trendingPoems ? trendingPoems.slice(0, 8) : [];
 
   const keyAuthors = [
     { name: "Charles Baudelaire", slug: "charles-baudelaire", img: "https://upload.wikimedia.org/wikipedia/commons/1/16/Charles_Baudelaire%2C_by_Etienne_Carjat.jpg" },
@@ -65,7 +69,7 @@ export default async function Home() {
           <TrendingRow
             title="Notre sélection pour vous"
             subtitle="Basé sur l'évolution de vos lectures"
-            poems={curatedPoems as any}
+            poems={curatedPoems}
           />
         </div>
 
