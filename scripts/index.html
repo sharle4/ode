@@ -700,7 +700,7 @@
       gap: 6px;
     }
 
-    .influenced-tag {
+    .influenced-category {
       display: inline-flex;
       align-items: center;
       gap: 4px;
@@ -714,12 +714,12 @@
       transition: all var(--transition);
     }
 
-    .influenced-tag:hover {
+    .influenced-category:hover {
       background: rgba(255, 255, 255, 0.08);
       border-color: rgba(255, 255, 255, 0.15);
     }
 
-    .influenced-tag svg {
+    .influenced-category svg {
       color: var(--text-muted);
       flex-shrink: 0;
     }
@@ -1360,7 +1360,7 @@
     /**
      * Generates the full HTML markup for a single author card.
      * @param {Object} author
-     * @param {number} index  Used for staggered animation delay.
+     * @param {number} index  Used for scategorygered animation delay.
      * @returns {string}
      */
     function buildCardHTML(author, index) {
@@ -1379,7 +1379,7 @@
       const lifespan = formatLifespan(author.birth_date, author.death_date);
       const places = formatPlaces(author.birth_place_detailed, author.death_place_detailed);
 
-      // Stagger animation so cards appear sequentially (capped at 20 for perf)
+      // Scategoryger animation so cards appear sequentially (capped at 20 for perf)
       const delay = Math.min(index, 20) * 30;
 
       // ── Portrait ──
@@ -1450,7 +1450,7 @@
         ? `<div class="card-influenced-wrap">
              <span class="influenced-label">Influencé par</span>
              <div class="card-influenced-list">
-               ${influencedBy.map(v => `<span class="influenced-tag"><svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg> ${esc(v)}</span>`).join('')}
+               ${influencedBy.map(v => `<span class="influenced-category"><svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg> ${esc(v)}</span>`).join('')}
              </div>
            </div>`
         : '';

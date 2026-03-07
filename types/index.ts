@@ -5,7 +5,7 @@ export interface Poem {
   author: string;
   originalLanguage: string;
   coverGradient: string;
-  averageRating: number;
+  averageReview: number;
   totalLogs: number;
   snippet: {
     original: string;
@@ -22,7 +22,7 @@ export interface CommunityActivity {
   action: "logged" | "rated" | "added to list" | "reviewed";
   poemTitle: string;
   poemAuthor: string;
-  rating?: number;
+  review?: number;
   reviewText?: string;
   timestamp: string;
   likes: number;

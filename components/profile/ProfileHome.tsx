@@ -16,7 +16,7 @@ const BADGES = [
     { title: "Pionnier", desc: "Membre depuis la bêta", icon: <Medal size={18} weight="fill" className="text-zinc-400" /> }
 ];
 
-const RATINGS = [
+const REVIEWS = [
     { stars: 5, count: 42 },
     { stars: 4, count: 85 },
     { stars: 3, count: 56 },
@@ -25,7 +25,7 @@ const RATINGS = [
 ];
 
 export default function ProfileHome({ username, favoritePoems }: ProfileHomeProps) {
-    const maxCount = Math.max(...RATINGS.map(r => r.count));
+    const maxCount = Math.max(...REVIEWS.map(r => r.count));
 
     return (
         <div className="grid grid-cols-1 md:grid-cols-12 gap-16     ">
@@ -137,21 +137,21 @@ export default function ProfileHome({ username, favoritePoems }: ProfileHomeProp
                 <section>
                     <h2 className="font-serif text-lg text-charcoal mb-6 border-b border-soft-border pb-2">Répartition des Notes</h2>
                     <div className="flex flex-col gap-2">
-                        {RATINGS.map((rating) => {
-                            const percentage = (rating.count / maxCount) * 100;
+                        {REVIEWS.map((review) => {
+                            const percencategorye = (review.count / maxCount) * 100;
                             return (
-                                <div key={rating.stars} className="flex items-center gap-3">
-                                    <span className="w-4 text-xs text-warm-gray font-medium">{rating.stars}</span>
+                                <div key={review.stars} className="flex items-center gap-3">
+                                    <span className="w-4 text-xs text-warm-gray font-medium">{review.stars}</span>
                                     <Star size={10} weight="fill" className="text-warm-gray" />
                                     <div className="flex-grow h-3 bg-soft-border rounded-sm overflow-hidden relative">
                                         <motion.div
                                             className="absolute top-0 left-0 bottom-0 bg-accent rounded-sm"
                                             initial={{ width: 0 }}
-                                            animate={{ width: `${percentage}%` }}
+                                            animate={{ width: `${percencategorye}%` }}
                                             transition={{ duration: 1, ease: "easeOut", delay: 0.2 }}
                                         />
                                     </div>
-                                    <span className="w-6 text-xs text-warm-gray text-right">{rating.count}</span>
+                                    <span className="w-6 text-xs text-warm-gray text-right">{review.count}</span>
                                 </div>
                             );
                         })}

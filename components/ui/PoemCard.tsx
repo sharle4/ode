@@ -4,7 +4,7 @@ import React, { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { BookOpen, ListPlus } from "@phosphor-icons/react";
 import type { Poem } from "@/types";
-import StarRating from "./StarRating";
+import StarReview from "./StarReview";
 
 interface PoemCardProps {
   poem: any;
@@ -63,7 +63,7 @@ const PoemCard = React.memo(function PoemCard({ poem, index, layout = "flex" }: 
               exit={{ opacity: 0 }}
               transition={{ duration: 0.2 }}
             >
-              <StarRating interactive size={22} />
+              <StarReview interactive size={22} />
 
               <div className="flex items-center gap-3">
                 <motion.button
@@ -101,9 +101,9 @@ const PoemCard = React.memo(function PoemCard({ poem, index, layout = "flex" }: 
       <div className="mt-3 px-0.5">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-1.5">
-            <StarRating rating={poem.averageRating || 0} size={12} />
+            <StarReview review={poem.averageReview || 0} size={12} />
             <span className="text-zinc-400 text-xs font-mono">
-              {(poem.averageRating || 0).toFixed(1)}
+              {(poem.averageReview || 0).toFixed(1)}
             </span>
           </div>
           <span className="text-zinc-500 text-xs font-mono">

@@ -9,9 +9,18 @@ create table public.authors (
     name text unique not null,
     biography text,
     image_url text,
-    birth_year int,
-    death_year int,
-    wikipedia_url text,
+    signature_url text,
+    date_of_birth text,
+    date_of_death text,
+    birth_place text,
+    birth_place_detailed text,
+    death_place text,
+    death_place_detailed text,
+    native_name text,
+    movement text[],
+    language text,
+    nationality text,
+    influenced_by text[],
     created_at timestamptz default now() not null,
     updated_at timestamptz default now() not null
 );
@@ -24,7 +33,8 @@ create table public.collections (
     publication_year int,
     summary text,
     cover_url text,
-    wikipedia_page_id int,
+    wikisource_page_id int,
+    poems_count int default 0 not null,
     created_at timestamptz default now() not null,
     updated_at timestamptz default now() not null
 );
@@ -45,8 +55,8 @@ create table public.poems (
     wikisource_page_id int unique,
     hub_title text,
     hub_page_id int not null,
-    average_rating numeric(3,2) default 0.00 not null,
-    ratings_count int default 0 not null,
+    average_review numeric(3,2) default 0.00 not null,
+    reviews_count int default 0 not null,
     created_at timestamptz default now() not null,
     updated_at timestamptz default now() not null
 );
@@ -105,8 +115,8 @@ create table public.followers (
     primary key (follower_id, following_id)
 );
 
--- Ratings (Notes + Critiques fusionnées)
-create table public.ratings (
+-- Reviews (Notes + Critiques fusionnées)
+create table public.reviews (
     id uuid primary key default gen_random_uuid(),
     user_id uuid references public.users(id) on delete cascade not null,
     poem_id uuid references public.poems(id) on delete cascade,
@@ -128,18 +138,18 @@ create table public.ratings (
     unique(user_id, collection_id)
 );
 
--- Likes sur les Ratings (Reviews)
+-- Likes sur les Reviews
 create table public.review_likes (
     user_id uuid references public.users(id) on delete cascade not null,
-    rating_id uuid references public.ratings(id) on delete cascade not null,
+    review_id uuid references public.reviews(id) on delete cascade not null,
     created_at timestamptz default now() not null,
-    primary key (user_id, rating_id)
+    primary key (user_id, review_id)
 );
 
 -- Commentaires sur les Reviews
 create table public.review_comments (
     id uuid primary key default gen_random_uuid(),
-    rating_id uuid references public.ratings(id) on delete cascade not null,
+    review_id uuid references public.reviews(id) on delete cascade not null,
     user_id uuid references public.users(id) on delete cascade not null,
     content text not null,
     likes_count int default 0 not null,
@@ -199,25 +209,26 @@ create table public.list_likes (
     primary key (user_id, list_id)
 );
 
-create table public.tags (
+create table public.categories (
     id uuid primary key default gen_random_uuid(),
     name text unique not null,
-    category text, -- 'theme', 'form', 'movement'
-    created_at timestamptz default now() not null
+    description text,
+    created_at timestamptz default now() not null,
+    updated_at timestamptz default now() not null
 );
 
-create table public.poem_tags (
+create table public.poem_categories (
     poem_id uuid references public.poems(id) on delete cascade not null,
-    tag_id uuid references public.tags(id) on delete cascade not null,
-    primary key (poem_id, tag_id)
+    category_id uuid references public.categories(id) on delete cascade not null,
+    primary key (poem_id, category_id)
 );
 
 -- Index suggérés pour optimiser les jointures FK et interdire les full table scans on delete cascade
-create index idx_ratings_user_id on public.ratings(user_id);
-create index idx_ratings_poem_id on public.ratings(poem_id);
-create index idx_ratings_collection_id on public.ratings(collection_id);
+create index idx_reviews_user_id on public.reviews(user_id);
+create index idx_reviews_poem_id on public.reviews(poem_id);
+create index idx_reviews_collection_id on public.reviews(collection_id);
 
-create index idx_review_comments_rating_id on public.review_comments(rating_id);
+create index idx_review_comments_review_id on public.review_comments(review_id);
 
 create index idx_highlights_user_id on public.highlights(user_id);
 create index idx_highlights_poem_id on public.highlights(poem_id);
@@ -259,7 +270,7 @@ create table public.notifications (
     user_id uuid references public.users(id) on delete cascade not null, -- receiver
     actor_id uuid references public.users(id) on delete set null, -- sender
     type text not null, -- 'new_follower', 'review_like', 'new_comment', 'badge_earned'
-    reference_id uuid, -- rating_id, comment_id, etc.
+    reference_id uuid, -- review_id, comment_id, etc.
     is_read boolean default false not null,
     created_at timestamptz default now() not null
 );
@@ -271,7 +282,7 @@ alter table public.authors enable row level security;
 alter table public.collections enable row level security;
 alter table public.poems enable row level security;
 alter table public.users enable row level security;
-alter table public.tags enable row level security;
+alter table public.categories enable row level security;
 alter table public.daily_poems enable row level security;
 alter table public.badges enable row level security;
 
@@ -279,7 +290,7 @@ alter table public.badges enable row level security;
 create policy "Authors are viewable by everyone." on public.authors for select using (true);
 create policy "Collections are viewable by everyone." on public.collections for select using (true);
 create policy "Poems are viewable by everyone." on public.poems for select using (true);
-create policy "Tags are viewable by everyone." on public.tags for select using (true);
+create policy "Categories are viewable by everyone." on public.categories for select using (true);
 create policy "Daily poems are viewable by everyone." on public.daily_poems for select using (true);
 create policy "Badges are viewable by everyone." on public.badges for select using (true);
 
@@ -317,7 +328,8 @@ create trigger set_updated_at_collections before update on public.collections fo
 create trigger set_updated_at_poems before update on public.poems for each row execute procedure handle_updated_at();
 create trigger set_updated_at_user_top_poems before update on public.user_top_poems for each row execute procedure handle_updated_at();
 create trigger set_updated_at_user_top_authors before update on public.user_top_authors for each row execute procedure handle_updated_at();
-create trigger set_updated_at_ratings before update on public.ratings for each row execute procedure handle_updated_at();
+create trigger set_updated_at_reviews before update on public.reviews for each row execute procedure handle_updated_at();
 create trigger set_updated_at_review_comments before update on public.review_comments for each row execute procedure handle_updated_at();
+create trigger set_updated_at_categories before update on public.categories for each row execute procedure handle_updated_at();
 create trigger set_updated_at_highlights before update on public.highlights for each row execute procedure handle_updated_at();
 create trigger set_updated_at_lists before update on public.lists for each row execute procedure handle_updated_at();

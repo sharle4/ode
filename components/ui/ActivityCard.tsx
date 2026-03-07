@@ -4,7 +4,7 @@ import React from "react";
 import { motion } from "framer-motion";
 import { Heart, ChatCircle, Star } from "@phosphor-icons/react";
 import type { CommunityActivity } from "@/types";
-import StarRating from "./StarRating";
+import StarReview from "./StarReview";
 
 interface ActivityCardProps {
   activity: CommunityActivity;
@@ -66,12 +66,12 @@ const ActivityCard = React.memo(function ActivityCard({
             </span>
           </div>
 
-          {activity.rating !== undefined && (
+          {activity.review !== undefined && (
             <div className="mt-2 flex items-center gap-2">
-              <StarRating rating={activity.rating} size={14} />
-              {activity.rating % 1 !== 0 && (
+              <StarReview review={activity.review} size={14} />
+              {activity.review % 1 !== 0 && (
                 <span className="text-warm-gray text-xs font-mono">
-                  {activity.rating.toFixed(1)}
+                  {activity.review.toFixed(1)}
                 </span>
               )}
             </div>

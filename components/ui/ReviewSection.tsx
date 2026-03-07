@@ -4,7 +4,7 @@ import React, { useState } from "react";
 import { Star, User, ThumbsUp, ChatCircle } from "@phosphor-icons/react";
 import FadeIn from "@/components/ui/FadeIn";
 
-// Mock rating distribution
+// Mock review distribution
 const mockDistribution = [
     { stars: 5, pct: 58 },
     { stars: 4, pct: 22 },
@@ -19,7 +19,7 @@ const mockReviews = [
         id: 1,
         author: "Marguerite D.",
         date: "14 fév. 2026",
-        rating: 5,
+        review: 5,
         text: "Ce poème m'a profondément touchée. La musicalité des vers et la richesse des images créent une atmosphère envoûtante. Un chef-d'œuvre intemporel.",
         likes: 24,
     },
@@ -27,7 +27,7 @@ const mockReviews = [
         id: 2,
         author: "Émile V.",
         date: "8 fév. 2026",
-        rating: 4,
+        review: 4,
         text: "Baudelaire capture avec génie l'essence même de la mélancolie. On sent la tension constante entre le sordide et le sublime. Quelques passages restent hermétiques à la première lecture.",
         likes: 17,
     },
@@ -35,24 +35,24 @@ const mockReviews = [
         id: 3,
         author: "Clara S.",
         date: "2 fév. 2026",
-        rating: 5,
+        review: 5,
         text: "Chaque relecture révèle une couche de sens nouvelle. La modernité de ce texte, écrit il y a plus d'un siècle, est saisissante.",
         likes: 11,
     },
 ];
 
-interface RatingSectionProps {
-    averageRating?: number;
-    totalRatings?: number;
+interface ReviewSectionProps {
+    averageReview?: number;
+    totalReviews?: number;
     /** Optional: use 'minimal' for poem pages that should be less intrusive */
     variant?: "full" | "minimal";
 }
 
-export default function RatingSection({
-    averageRating = 4.8,
-    totalRatings = 1247,
+export default function ReviewSection({
+    averageReview = 4.8,
+    totalReviews = 1247,
     variant = "full",
-}: RatingSectionProps) {
+}: ReviewSectionProps) {
     const [showAllReviews, setShowAllReviews] = useState(false);
     const visibleReviews = showAllReviews ? mockReviews : mockReviews.slice(0, 2);
 
@@ -64,16 +64,16 @@ export default function RatingSection({
                     <div className="h-px w-full bg-gradient-to-r from-transparent via-soft-border to-transparent mb-12 md:mb-16" />
 
                     <div className="grid grid-cols-1 md:grid-cols-12 gap-12 md:gap-16">
-                        {/* Left: Rating summary */}
+                        {/* Left: Review summary */}
                         <div className="md:col-span-4">
                             <h3 className="font-serif text-xl md:text-2xl text-charcoal mb-6">
                                 Avis des lecteurs
                             </h3>
 
-                            {/* Big rating number */}
+                            {/* Big review number */}
                             <div className="flex items-baseline gap-3 mb-4">
                                 <span className="font-serif text-5xl font-bold text-charcoal tracking-tight">
-                                    {averageRating}
+                                    {averageReview}
                                 </span>
                                 <span className="text-sm text-warm-gray">/ 5</span>
                             </div>
@@ -84,9 +84,9 @@ export default function RatingSection({
                                     <Star
                                         key={i}
                                         size={18}
-                                        weight={i < Math.round(averageRating) ? "fill" : "regular"}
+                                        weight={i < Math.round(averageReview) ? "fill" : "regular"}
                                         className={
-                                            i < Math.round(averageRating)
+                                            i < Math.round(averageReview)
                                                 ? "text-accent"
                                                 : "text-soft-border"
                                         }
@@ -94,7 +94,7 @@ export default function RatingSection({
                                 ))}
                             </div>
                             <p className="text-xs text-warm-gray mb-8">
-                                {totalRatings.toLocaleString("fr-FR")} avis
+                                {totalReviews.toLocaleString("fr-FR")} avis
                             </p>
 
                             {/* Distribution bars */}
@@ -168,9 +168,9 @@ export default function RatingSection({
                                                     <Star
                                                         key={i}
                                                         size={12}
-                                                        weight={i < review.rating ? "fill" : "regular"}
+                                                        weight={i < review.review ? "fill" : "regular"}
                                                         className={
-                                                            i < review.rating
+                                                            i < review.review
                                                                 ? "text-accent"
                                                                 : "text-soft-border"
                                                         }

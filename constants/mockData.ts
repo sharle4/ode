@@ -8,7 +8,7 @@ export const poems: Poem[] = [
     author: "Pablo Neruda",
     originalLanguage: "Espagnol",
     coverGradient: "from-stone-800 via-stone-700 to-amber-900/40",
-    averageRating: 4.7,
+    averageReview: 4.7,
     totalLogs: 12847,
     snippet: {
       original:
@@ -24,7 +24,7 @@ export const poems: Poem[] = [
     author: "Charles Baudelaire",
     originalLanguage: "Français",
     coverGradient: "from-zinc-900 via-slate-800 to-rose-900/30",
-    averageRating: 4.5,
+    averageReview: 4.5,
     totalLogs: 9432,
     snippet: {
       original:
@@ -40,7 +40,7 @@ export const poems: Poem[] = [
     author: "Matsuo Basho",
     originalLanguage: "Japonais",
     coverGradient: "from-emerald-950 via-slate-800 to-stone-900",
-    averageRating: 4.8,
+    averageReview: 4.8,
     totalLogs: 15203,
     snippet: {
       original: "Furu ike ya\nkawazu tobikomu\nmizu no oto",
@@ -53,7 +53,7 @@ export const poems: Poem[] = [
     author: "Emily Dickinson",
     originalLanguage: "Anglais",
     coverGradient: "from-slate-900 via-zinc-800 to-neutral-700",
-    averageRating: 4.6,
+    averageReview: 4.6,
     totalLogs: 11876,
     snippet: {
       original:
@@ -69,7 +69,7 @@ export const poems: Poem[] = [
     author: "Jalal al-Din Rumi",
     originalLanguage: "Persan",
     coverGradient: "from-amber-950 via-orange-900/60 to-stone-900",
-    averageRating: 4.9,
+    averageReview: 4.9,
     totalLogs: 18492,
     snippet: {
       original:
@@ -84,7 +84,7 @@ export const poems: Poem[] = [
     author: "Sylvia Plath",
     originalLanguage: "Anglais",
     coverGradient: "from-red-950/80 via-zinc-900 to-slate-800",
-    averageRating: 4.4,
+    averageReview: 4.4,
     totalLogs: 8765,
     snippet: {
       original:
@@ -100,7 +100,7 @@ export const poems: Poem[] = [
     author: "Arthur Rimbaud",
     originalLanguage: "Français",
     coverGradient: "from-blue-950/70 via-slate-800 to-zinc-900",
-    averageRating: 4.3,
+    averageReview: 4.3,
     totalLogs: 7298,
     snippet: {
       original:
@@ -115,7 +115,7 @@ export const poems: Poem[] = [
     author: "W.B. Yeats",
     originalLanguage: "Anglais",
     coverGradient: "from-stone-900 via-neutral-800 to-zinc-800",
-    averageRating: 4.7,
+    averageReview: 4.7,
     totalLogs: 13456,
     snippet: {
       original:
@@ -131,7 +131,7 @@ export const poems: Poem[] = [
     author: "Li Bai",
     originalLanguage: "Chinois",
     coverGradient: "from-indigo-950/60 via-slate-900 to-stone-800",
-    averageRating: 4.6,
+    averageReview: 4.6,
     totalLogs: 10234,
     snippet: {
       original:
@@ -146,7 +146,7 @@ export const poems: Poem[] = [
     author: "Sappho",
     originalLanguage: "Grec Ancien",
     coverGradient: "from-rose-950/50 via-stone-800 to-zinc-900",
-    averageRating: 4.5,
+    averageReview: 4.5,
     totalLogs: 6543,
     snippet: {
       original:
@@ -162,13 +162,13 @@ export const poems: Poem[] = [
     author: "Federico Garcia Lorca",
     originalLanguage: "Espagnol",
     coverGradient: "from-emerald-950/50 via-zinc-900 to-slate-800",
-    averageRating: 4.8,
+    averageReview: 4.8,
     totalLogs: 9871,
     snippet: {
       original:
         "Verde que te quiero verde.\nVerde viento. Verdes ramas.\nEl barco sobre la mar\ny el caballo en la montana.",
       translation:
-        "Vert, comme je te veux vert.\nVent vert. Branches vertes.\nLe bateau sur la mer\net le cheval dans la montagne.",
+        "Vert, comme je te veux vert.\nVent vert. Branches vertes.\nLe bateau sur la mer\net le cheval dans la moncategoryne.",
     },
   },
   {
@@ -177,7 +177,7 @@ export const poems: Poem[] = [
     author: "Walt Whitman",
     originalLanguage: "Anglais",
     coverGradient: "from-teal-950/40 via-stone-900 to-neutral-800",
-    averageRating: 4.4,
+    averageReview: 4.4,
     totalLogs: 14532,
     snippet: {
       original:
@@ -192,7 +192,7 @@ export const poems: Poem[] = [
     author: "John Keats",
     originalLanguage: "Anglais",
     coverGradient: "from-violet-950/40 via-slate-900 to-zinc-800",
-    averageRating: 4.6,
+    averageReview: 4.6,
     totalLogs: 11298,
     snippet: {
       original:
@@ -208,7 +208,7 @@ export const poems: Poem[] = [
     author: "Anna Akhmatova",
     originalLanguage: "Russe",
     coverGradient: "from-sky-950/40 via-zinc-900 to-stone-800",
-    averageRating: 4.7,
+    averageReview: 4.7,
     totalLogs: 7654,
     snippet: {
       original:
@@ -224,7 +224,7 @@ export const poems: Poem[] = [
     author: "Fernando Pessoa",
     originalLanguage: "Portugais",
     coverGradient: "from-yellow-950/30 via-stone-900 to-slate-800",
-    averageRating: 4.3,
+    averageReview: 4.3,
     totalLogs: 5432,
     snippet: {
       original:
@@ -245,7 +245,7 @@ export const communityActivities: CommunityActivity[] = [
     action: "reviewed",
     poemTitle: "The Second Coming",
     poemAuthor: "W.B. Yeats",
-    rating: 4.5,
+    review: 4.5,
     reviewText:
       "Une descente hypnotique vers la fragmentation. Yeats capture l'effondrement de la civilisation avec des images si précises qu'elles se gravent dans votre mémoire. La métaphore du faucon porte à elle seule le poids d'une philosophie entière.",
     timestamp: "il y a 2h",
@@ -274,7 +274,7 @@ export const communityActivities: CommunityActivity[] = [
     action: "reviewed",
     poemTitle: "Lady Lazarus",
     poemAuthor: "Sylvia Plath",
-    rating: 5,
+    review: 5,
     reviewText:
       "Plath écrit avec une férocité qui vous fait ressentir la chaleur du four. Chaque strophe est une explosion contrôlée. Ce n'est pas de la poésie -- c'est une reddition de comptes.",
     timestamp: "il y a 4h",
@@ -303,7 +303,7 @@ export const communityActivities: CommunityActivity[] = [
     action: "reviewed",
     poemTitle: "Sleepwalking Ballad",
     poemAuthor: "Federico Garcia Lorca",
-    rating: 4,
+    review: 4,
     reviewText:
       "Le vert imprègne tout. Lorca peint avec un seul mot et construit un tout nouveau paysage onirique autour de lui. La répétition est hypnotique, chaque vers vous plongeant plus profondément dans une transe qui ne vous lâche jamais.",
     timestamp: "il y a 6h",
@@ -319,7 +319,7 @@ export const communityActivities: CommunityActivity[] = [
     action: "rated",
     poemTitle: "Invitation to the Voyage",
     poemAuthor: "Charles Baudelaire",
-    rating: 4.5,
+    review: 4.5,
     timestamp: "il y a 7h",
     likes: 34,
     comments: 8,
@@ -333,7 +333,7 @@ export const communityActivities: CommunityActivity[] = [
     action: "reviewed",
     poemTitle: "The Guest House",
     poemAuthor: "Jalal al-Din Rumi",
-    rating: 5,
+    review: 5,
     reviewText:
       "Rûmî distille des siècles de sagesse soufie dans une seule métaphore. La maison d'hôtes n'est pas juste un poème -- c'est une pratique. J'y reviens chaque semaine et chaque lecture dévoile une nouvelle couche de signification.",
     timestamp: "il y a 9h",
@@ -349,7 +349,7 @@ export const communityActivities: CommunityActivity[] = [
     action: "reviewed",
     poemTitle: "Tobacco Shop",
     poemAuthor: "Fernando Pessoa",
-    rating: 4.5,
+    review: 4.5,
     reviewText:
       "Pessoa regarde dans le vide et le vide lui tend une cigarette. Les premiers vers comptent parmi les plus honnêtes et les plus dévastateurs de toute la littérature. Un monument à la clarté existentielle.",
     timestamp: "il y a 11h",

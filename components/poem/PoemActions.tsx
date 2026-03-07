@@ -110,7 +110,7 @@ export default function PoemActions({ poemId }: PoemActionsProps) {
 
                     {/* Infobulle standard au hover (masquée si showShareTooltip est vrai) */}
                     <div className={`absolute -top-11 left-1/2 -translate-x-1/2 px-2.5 py-1.5 bg-paper border border-soft-border text-charcoal text-[10px] uppercase tracking-widest rounded shadow-md transition-opacity whitespace-nowrap pointer-events-none flex flex-col items-center ${showShareTooltip ? 'opacity-0' : 'opacity-0 group-hover:opacity-100'}`}>
-                        Partager
+                        Parcategoryer
                         <div className="absolute -bottom-[5px] w-2 h-2 bg-paper border-b border-r border-soft-border rotate-45" />
                     </div>
 

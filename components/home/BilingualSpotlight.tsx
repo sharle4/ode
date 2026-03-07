@@ -9,8 +9,8 @@ interface BilingualSpotlightProps {
   poem: any;
 }
 
-// Mock rating distribution for the bar chart
-const mockRatings = [
+// Mock review distribution for the bar chart
+const mockReviews = [
   { stars: 5, pct: 60 },
   { stars: 4, pct: 20 },
   { stars: 3, pct: 10 },
@@ -134,7 +134,7 @@ const BilingualSpotlight = React.memo(function BilingualSpotlight({ poem }: Bili
 
                 <hr className="border-cream/10" />
 
-                {/* Rating summary */}
+                {/* Review summary */}
                 <div>
                   <p className="text-[11px] text-cream/40 uppercase tracking-wider mb-3">Note moyenne</p>
                   <div className="flex items-center gap-2 mb-3">
@@ -150,9 +150,9 @@ const BilingualSpotlight = React.memo(function BilingualSpotlight({ poem }: Bili
                       ))}
                     </div>
                   </div>
-                  {/* Rating bar chart */}
+                  {/* Review bar chart */}
                   <div className="space-y-1.5">
-                    {mockRatings.map(({ stars, pct }) => (
+                    {mockReviews.map(({ stars, pct }) => (
                       <div key={stars} className="flex items-center gap-2">
                         <span className="text-[11px] text-cream/40 w-3 text-right">{stars}</span>
                         <div className="flex-1 h-1.5 bg-cream/10 rounded-full overflow-hidden">

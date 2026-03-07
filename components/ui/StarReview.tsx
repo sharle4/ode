@@ -4,39 +4,39 @@ import React, { useState, useCallback } from "react";
 import { motion } from "framer-motion";
 import { Star } from "@phosphor-icons/react";
 
-interface StarRatingProps {
-  rating?: number;
+interface StarReviewProps {
+  review?: number;
   interactive?: boolean;
   size?: number;
-  onRate?: (rating: number) => void;
+  onRate?: (review: number) => void;
 }
 
-const StarRating = React.memo(function StarRating({
-  rating = 0,
+const StarReview = React.memo(function StarReview({
+  review = 0,
   interactive = false,
   size = 18,
   onRate,
-}: StarRatingProps) {
-  const [hoverRating, setHoverRating] = useState(0);
-  const [selectedRating, setSelectedRating] = useState(rating);
+}: StarReviewProps) {
+  const [hoverReview, setHoverReview] = useState(0);
+  const [selectedReview, setSelectedReview] = useState(review);
 
-  const displayRating = hoverRating || selectedRating || rating;
+  const displayReview = hoverReview || selectedReview || review;
 
   const handleClick = useCallback(
     (starIndex: number) => {
       if (!interactive) return;
-      setSelectedRating(starIndex);
+      setSelectedReview(starIndex);
       onRate?.(starIndex);
     },
     [interactive, onRate]
   );
 
   return (
-    <div className="flex items-center gap-0.5" role="group" aria-label="Rating">
+    <div className="flex items-center gap-0.5" role="group" aria-label="Review">
       {[1, 2, 3, 4, 5].map((starIndex) => {
-        const filled = displayRating >= starIndex;
+        const filled = displayReview >= starIndex;
         const halfFilled =
-          !filled && displayRating >= starIndex - 0.5;
+          !filled && displayReview >= starIndex - 0.5;
 
         return (
           <motion.button
@@ -49,9 +49,9 @@ const StarRating = React.memo(function StarRating({
                 : "cursor-default"
             } focus:outline-none`}
             onMouseEnter={() =>
-              interactive && setHoverRating(starIndex)
+              interactive && setHoverReview(starIndex)
             }
-            onMouseLeave={() => interactive && setHoverRating(0)}
+            onMouseLeave={() => interactive && setHoverReview(0)}
             onClick={() => handleClick(starIndex)}
             whileTap={
               interactive
@@ -100,4 +100,4 @@ const StarRating = React.memo(function StarRating({
   );
 });
 
-export default StarRating;
+export default StarReview;

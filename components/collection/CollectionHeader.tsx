@@ -84,7 +84,7 @@ export default function CollectionHeader({ collection }: CollectionHeaderProps) 
                         <button className="w-12 h-12 flex items-center justify-center rounded-full border border-soft-border text-charcoal hover:bg-black/5 dark:hover:bg-white/5 transition-colors" aria-label="Ajouter aux favoris">
                             <Heart size={20} />
                         </button>
-                        <button className="w-12 h-12 flex items-center justify-center rounded-full border border-soft-border text-charcoal hover:bg-black/5 dark:hover:bg-white/5 transition-colors" aria-label="Partager">
+                        <button className="w-12 h-12 flex items-center justify-center rounded-full border border-soft-border text-charcoal hover:bg-black/5 dark:hover:bg-white/5 transition-colors" aria-label="Parcategoryer">
                             <ShareNetwork size={20} />
                         </button>
                     </div>

@@ -52,11 +52,13 @@ const supabase = createClient(supabaseUrl, supabaseKey, {
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const POEMS_FILE_PATH = path.join(__dirname, '..', 'scripts', 'poems.jsonl.gz');
+const ENRICHED_AUTHORS_PATH = path.join(__dirname, '..', 'scripts', 'enriched_authors.jsonl');
 
 // --- In-Memory Caches ---
 // We preload data to avoid 50,000+ sequential GET requests that exhaust local ports. 
 const authorsMap = new Map(); // name -> author_id
 const authorIdToNameMap = new Map(); // author_id -> name
+const enrichedAuthorsMap = new Map(); // name -> enriched data
 const collectionsMap = new Map(); // collection key -> collection_id
 const existingPoemIds = new Set(); // wikisource_page_id
 const usedSlugs = new Set(); // slug
@@ -107,10 +109,10 @@ async function preloadData() {
     // 2. Collections
     offset = 0; hasMore = true;
     while (hasMore) {
-        let { data, error } = await supabase.from('collections').select('id, title, author_id, wikipedia_page_id').range(offset, offset + limit - 1);
+        let { data, error } = await supabase.from('collections').select('id, title, author_id, wikisource_page_id').range(offset, offset + limit - 1);
         if (error) { console.error("Error preloading collections", error); break; }
         data?.forEach(c => {
-            const key = c.wikipedia_page_id ? `page_${c.wikipedia_page_id}` : `title_${c.title}`;
+            const key = c.wikisource_page_id ? `page_${c.wikisource_page_id}` : `title_${c.title}`;
             collectionsMap.set(key, { id: c.id, author_id: c.author_id });
         });
         hasMore = data?.length === limit;
@@ -158,7 +160,23 @@ async function getOrCreateAuthor(authorName) {
     if (authorsMap.has(authorName)) return authorsMap.get(authorName);
 
     try {
-        const { data, error } = await supabase.from('authors').insert({ name: authorName }).select('id').single();
+        const enriched = enrichedAuthorsMap.get(authorName) || {};
+        const { data, error } = await supabase.from('authors').insert({
+            name: authorName,
+            image_url: enriched.image_url || null,
+            signature_url: enriched.signature_url || null,
+            date_of_birth: enriched.birth_date || null,
+            date_of_death: enriched.death_date || null,
+            birth_place: enriched.birth_place_short || null,
+            birth_place_detailed: enriched.birth_place_detailed || null,
+            death_place: enriched.death_place_short || null,
+            death_place_detailed: enriched.death_place_detailed || null,
+            native_name: enriched.native_name || null,
+            movement: enriched.movement && enriched.movement.length > 0 ? enriched.movement : null,
+            language: enriched.language || null,
+            nationality: enriched.nationality || null,
+            influenced_by: enriched.influenced_by && enriched.influenced_by.length > 0 ? enriched.influenced_by : null
+        }).select('id').single();
         if (error) throw error;
         authorsMap.set(authorName, data.id);
         authorIdToNameMap.set(data.id, authorName);
@@ -204,7 +222,8 @@ async function getOrCreateCollection(collectionTitle, authorId, publicationYear,
                 title: collectionTitle,
                 author_id: authorId,
                 publication_year: publicationYear ? parseInt(publicationYear, 10) : null,
-                wikipedia_page_id: pageId
+                wikisource_page_id: pageId,
+                poems_count: 0
             }).select('id').single();
 
         if (error) throw error;
@@ -297,6 +316,29 @@ async function run() {
     }
 
     try {
+        if (fs.existsSync(ENRICHED_AUTHORS_PATH)) {
+            console.log(`📥 Loading enriched authors from ${ENRICHED_AUTHORS_PATH}...`);
+            const fileStream = fs.createReadStream(ENRICHED_AUTHORS_PATH);
+            const rl = readline.createInterface({
+                input: fileStream,
+                crlfDelay: Infinity
+            });
+            for await (const line of rl) {
+                if (!line.trim()) continue;
+                try {
+                    const data = JSON.parse(line);
+                    if (data.name) {
+                        enrichedAuthorsMap.set(data.name, data);
+                    }
+                } catch (e) {
+                    // skip malformed lines
+                }
+            }
+            console.log(`✅ Loaded ${enrichedAuthorsMap.size} enriched authors in memory.`);
+        } else {
+            console.log("⚠️ No enriched authors file found, proceeding without enrichment.");
+        }
+
         await preloadData();
 
         const fileStream = fs.createReadStream(POEMS_FILE_PATH);

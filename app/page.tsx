@@ -46,7 +46,7 @@ export default async function Home() {
         <div id="explore" className="pb-12 md:pb-24">
           <TrendingRow
             title="Tendances mondiales"
-            subtitle="Les poèmes les plus lus et partagés cette semaine"
+            subtitle="Les poèmes les plus lus et parcategoryés cette semaine"
             poems={trendingPoems}
           />
 

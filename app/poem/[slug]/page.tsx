@@ -4,7 +4,7 @@ import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
 import PoemReader from "@/components/poem/PoemReader";
 import PoemActions from "@/components/poem/PoemActions";
-import RatingSection from "@/components/ui/RatingSection";
+import ReviewSection from "@/components/ui/ReviewSection";
 import { Metadata } from "next";
 import Link from "next/link";
 import FadeIn from "@/components/ui/FadeIn";
@@ -49,7 +49,7 @@ export default async function PoemPage({ params }: PoemPageProps) {
                 <FadeIn delay={0.1}>
                     <header className="pt-32 pb-16 md:pt-40 md:pb-24 px-4 sm:px-6">
                         <div className="max-w-4xl mx-auto text-center">
-                            {/* Meta Tags */}
+                            {/* Meta Categories */}
                             <div className="flex flex-wrap items-center justify-center gap-3 mb-6 md:mb-8 text-xs uppercase tracking-[0.15em] font-medium text-warm-gray">
                                 {poem.originalLanguage && (
                                     <span className="px-3 py-1 bg-paper border border-soft-border rounded-full">
@@ -100,7 +100,7 @@ export default async function PoemPage({ params }: PoemPageProps) {
                 </FadeIn>
 
                 {/* Avis & Notes — placed after reading, not intrusive */}
-                <RatingSection averageRating={4.8} totalRatings={1247} variant="minimal" />
+                <ReviewSection averageReview={4.8} totalReviews={1247} variant="minimal" />
 
             </main>
 

@@ -18,9 +18,9 @@ async function protectAction() {
 export async function ratePoem(poemId: string, slug: string, score: number, reviewText?: string) {
     const { supabase, user } = await protectAction()
 
-    // Upsert rating (id will be generated if missing, but we rely on the unique constraint user_id+poem_id)
+    // Upsert review (id will be generated if missing, but we rely on the unique constraint user_id+poem_id)
     const { error } = await supabase
-        .from('ratings')
+        .from('reviews')
         .upsert(
             {
                 user_id: user.id,
@@ -34,7 +34,7 @@ export async function ratePoem(poemId: string, slug: string, score: number, revi
 
     if (error) {
         console.error('Failed to rate poem:', error.message)
-        return { error: 'Could not save rating.' }
+        return { error: 'Could not save review.' }
     }
 
     // Revalidate the current poem page

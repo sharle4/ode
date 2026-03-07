@@ -3,7 +3,7 @@ import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
 import CollectionHeader from "@/components/collection/CollectionHeader";
 import PoemListItem from "@/components/collection/PoemListItem";
-import RatingSection from "@/components/ui/RatingSection";
+import ReviewSection from "@/components/ui/ReviewSection";
 import FadeIn from "@/components/ui/FadeIn";
 import { Metadata } from "next";
 
@@ -111,7 +111,7 @@ export default async function CollectionPage({ params }: { params: Promise<{ slu
                 </div>
 
                 {/* Avis & Notes */}
-                <RatingSection averageRating={4.6} totalRatings={892} variant="full" />
+                <ReviewSection averageReview={4.6} totalReviews={892} variant="full" />
 
             </main>
 
