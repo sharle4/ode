@@ -1002,11 +1002,11 @@
         <option value="">Toutes les Nationalités</option>
       </select>
 
-      <select class="filter-select" id="sel-birth_place" data-field="birth_place">
+      <select class="filter-select" id="sel-birth_place" data-field="birth_place_short">
         <option value="">Tous Lieux (Naissance)</option>
       </select>
 
-      <select class="filter-select" id="sel-death_place" data-field="death_place">
+      <select class="filter-select" id="sel-death_place" data-field="death_place_short">
         <option value="">Tous Lieux (Décès)</option>
       </select>
 
@@ -1377,7 +1377,7 @@
 
 
       const lifespan = formatLifespan(author.birth_date, author.death_date);
-      const places = formatPlaces(author.birth_place, author.death_place);
+      const places = formatPlaces(author.birth_place_detailed, author.death_place_detailed);
 
       // Stagger animation so cards appear sequentially (capped at 20 for perf)
       const delay = Math.min(index, 20) * 30;

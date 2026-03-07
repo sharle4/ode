@@ -650,6 +650,8 @@ async def resolve_entity_label(
 P_INSTANCE_OF: str = "P31"
 # Wikidata property: "located in administrative territorial entity"
 P_LOCATED_IN: str = "P131"
+# Wikidata property: "country"
+P_COUNTRY: str = "P17"
 
 # ── City-level Wikidata Q-identifiers ──────────────────────────────────────
 # When a place's P31 contains any of these, it is already at city/municipality
@@ -720,7 +722,7 @@ async def _fetch_place_entity(
     semaphore: asyncio.Semaphore,
     place_qid: str,
     context: str,
-) -> Tuple[Optional[str], Optional[str], bool]:
+) -> Tuple[Optional[str], Optional[str], bool, Optional[str]]:
     """
     Fetch the French label, the P131 parent Q-ID, and the P31 city-detection
     flag for a place entity in a single API call (`props=claims|labels`).
@@ -732,11 +734,11 @@ async def _fetch_place_entity(
         context:    Human-readable log label (usually the author name).
 
     Returns:
-        A 3-tuple:
+        A 4-tuple:
             french_label  (str | None)  — the entity's own label in fr/en.
             p131_qid      (str | None)  — Q-ID of the P131 parent entity.
-            is_city       (bool)        — True if P31 contains a CITY_QIDS entry,
-                                          meaning we can stop climbing here.
+            is_city       (bool)        — True if P31 contains a CITY_QIDS entry.
+            country_qid   (str | None)  — Q-ID of the P17 country entity.
     """
     params: Dict[str, str] = {
         "action": "wbgetentities",
@@ -749,13 +751,13 @@ async def _fetch_place_entity(
         session, semaphore, params, context=f"{context}/{place_qid}"
     )
     if not data:
-        return None, None, False
+        return None, None, False, None
 
     entities: Dict[str, Any] = data.get("entities", {})
     entity: Dict[str, Any] = entities.get(place_qid, {})
 
     if "missing" in entity:
-        return None, None, False
+        return None, None, False, None
 
     # ── Extract French / English label ──
     labels: Dict[str, Any] = entity.get("labels", {})
@@ -790,72 +792,89 @@ async def _fetch_place_entity(
     # ── Extract P131 parent Q-ID (first preferred/normal-rank value only) ──
     parent_qid: Optional[str] = _get_entity_id_claim(claims, P_LOCATED_IN)
 
-    return label_value, parent_qid, is_city
+    # ── Extract P17 country Q-ID ──
+    country_qid: Optional[str] = _get_entity_id_claim(claims, P_COUNTRY)
+
+    return label_value, parent_qid, is_city, country_qid
 
 
 async def resolve_place_label(
     session: aiohttp.ClientSession,
     semaphore: asyncio.Semaphore,
     place_qid: str,
-    place_cache: Dict[str, str],
+    place_cache: Dict[str, Tuple[Optional[str], Optional[str]]],
+    entity_cache: Dict[str, str],
     context: str = "",
-) -> Optional[str]:
+) -> Tuple[Optional[str], Optional[str]]:
     """
-    City-forced place resolver — resolves a place Q-identifier to a city-level
-    French label by combining P31 type-checking with P131 hierarchy climbing.
+    City-forced place resolver — resolves a place Q-identifier into a short
+    label (City, Country) and a detailed label (Full hierarchy, Country).
 
     Algorithm
     ---------
     1.  Cache hit on the original Q-ID → return immediately.
-    2.  Fetch the entity's label, P131 parent, and P31 city flag.
+    2.  Fetch the entity's label, P131 parent, P31 city flag, and P17 country.
     3.  If `is_city` is True, the current entity IS already a city/municipality
-        → use its label and stop.  No unnecessary P131 hops.
+        → use its label and stop. No unnecessary P131 hops.
     4.  If `is_city` is False and a P131 parent exists AND depth < MAX_P131_DEPTH,
         climb to the parent and repeat from step 2.
-        Example chain:
-          "Hôpital Cochin"   [Q178790] → P31=hospital       → NOT a city → climb
-          "14ᵉ arrondissement" [Q270230] → P31=Q702492 (arrondissement of Paris)
-                                                              → IS a city → STOP ✅
-    5.  If depth is exhausted before hitting a city, return the best label seen.
-    6.  Back-fill the cache with the resolved label for ALL Q-IDs visited
-        (including intermediate hops), so future callers hit the cache immediately.
+    5.  Collect all non-empty labels in the chain.
+    6.  Resolve the P17 country Q-ID at the end using `resolve_entity_label`.
+    7.  Format short (city, country) and detailed (chain, country) strings.
+    8.  Back-fill the cache with the resolved tuple for ALL Q-IDs visited.
 
     Args:
-        session:     Shared aiohttp.ClientSession.
-        semaphore:   Concurrency throttle.
-        place_qid:   Wikidata Q-identifier for the place (e.g. "Q178790").
-        place_cache: Shared in-memory dict {qid → resolved_french_label}.
-        context:     Human-readable log label (usually the author name).
+        session:      Shared aiohttp.ClientSession.
+        semaphore:    Concurrency throttle.
+        place_qid:    Wikidata Q-identifier for the place (e.g. "Q178790").
+        place_cache:  Shared in-memory dict {qid → (short_str, detailed_str)}.
+        entity_cache: Shared in-memory dict for Country name resolution.
+        context:      Human-readable log label (usually the author name).
 
     Returns:
-        Resolved French city/region label (e.g. "Paris"), or None on failure.
+        A tuple of (short_label, detailed_label), e.g.
+        ("Paris, France", "Hôpital Cochin, 14e arrondissement de Paris, Paris, France")
+        Returns (None, None) on failure.
     """
     # ── Fast path: cache hit on original Q-ID ──
     if place_qid in place_cache:
         cached = place_cache[place_qid]
-        return cached if cached else None
+        return cached if cached else (None, None)
 
     # Track every Q-ID visited in this chain so we can back-fill the cache.
     visited_qids: List[str] = []
     current_qid: str = place_qid
-    best_label: Optional[str] = None
+    
+    labels_chain: List[str] = []
+    found_country_qid: Optional[str] = None
+    best_short_label: Optional[str] = None
+    best_detailed_label: Optional[str] = None
 
     for depth in range(MAX_P131_DEPTH + 1):  # 0 … MAX_P131_DEPTH inclusive
 
-        # ── Cache hit mid-chain: borrow the already-resolved label ──
+        # ── Cache hit mid-chain: borrow the already-resolved tuple ──
         if current_qid in place_cache:
-            cached = place_cache[current_qid]
-            if cached:
-                best_label = cached
+            cached_short, cached_detailed = place_cache[current_qid]
+            if cached_short and cached_detailed:
+                # If we hit cache mid-chain, the detailed chain needs to be 
+                # prepended with whatever we collected so far.
+                if labels_chain:
+                    best_detailed_label = ", ".join(labels_chain) + ", " + cached_detailed
+                else:
+                    best_detailed_label = cached_detailed
+                best_short_label = cached_short
             break
 
-        # ── API fetch: label + P131 parent + P31 city flag ──
-        label, parent_qid, is_city = await _fetch_place_entity(
+        # ── API fetch: label + P131 parent + P31 city flag + P17 country ──
+        label, parent_qid, is_city, c_qid = await _fetch_place_entity(
             session, semaphore, current_qid, context
         )
 
         if label:
-            best_label = label  # always keep the most recent non-empty label
+            labels_chain.append(label)
+
+        if c_qid and not found_country_qid:
+            found_country_qid = c_qid
 
         visited_qids.append(current_qid)
 
@@ -863,7 +882,7 @@ async def resolve_place_label(
         if is_city:
             logger.debug(
                 "📍  [%s] Resolved city: %s → %r (depth=%d, P31 match)",
-                context, current_qid, best_label, depth,
+                context, current_qid, label, depth,
             )
             break
 
@@ -874,35 +893,50 @@ async def resolve_place_label(
                 context, current_qid, parent_qid, depth + 1,
             )
             current_qid = parent_qid
-
-            # Shortcut: if the parent is already cached, use it immediately
-            if parent_qid in place_cache:
-                cached_parent = place_cache[parent_qid]
-                if cached_parent:
-                    best_label = cached_parent
-                break
         else:
-            # No P131 available OR depth budget spent — use best_label as-is.
-            logger.debug(
-                "📍  [%s] %s → %r (depth=%d, no further P131)",
-                context, place_qid, best_label, depth,
-            )
+            # No P131 available OR depth budget spent
             break
 
+    # ── Only resolve labels if not fetched from a mid-chain cache hit ──
+    if not best_short_label and labels_chain:
+        country_label: Optional[str] = None
+        if found_country_qid:
+            country_label = await resolve_entity_label(
+                session, semaphore, found_country_qid, entity_cache, context=context
+            )
+            
+        # The city is effectively the last element in the P131 chain.
+        city_label = labels_chain[-1]
+        
+        if country_label and city_label != country_label:
+            best_short_label = f"{city_label}, {country_label}"
+            labels_chain.append(country_label)
+        else:
+            best_short_label = city_label
+            
+        # Remove direct duplicate adjacent elements (e.g. Paris, Paris, France)
+        clean_chain = []
+        for l in labels_chain:
+            if not clean_chain or clean_chain[-1] != l:
+                clean_chain.append(l)
+                
+        best_detailed_label = ", ".join(clean_chain)
+
     # ── Back-fill cache for every Q-ID visited in this chain ──
-    cache_value: str = best_label if best_label else ""
+    cache_value = (best_short_label, best_detailed_label)
     for qid in visited_qids:
         if qid not in place_cache:
             place_cache[qid] = cache_value
 
-    if not best_label:
+    if not best_short_label:
         logger.warning(
             "⚠️   [%s] Could not resolve a city label for place %s.",
-            context, place_qid,
+            context,
+            place_qid,
         )
-        return None
+        return None, None
 
-    return best_label
+    return best_short_label, best_detailed_label
 
 
 
@@ -1089,9 +1123,12 @@ async def enrich_author(
     def _place_task(qid_val: Optional[str]):
         if qid_val:
             return asyncio.create_task(
-                resolve_place_label(session, semaphore, qid_val, place_cache, context=author_name)
+                resolve_place_label(session, semaphore, qid_val, place_cache, entity_cache, context=author_name)
             )
-        return asyncio.create_task(_noop())
+        # Wrap the response in a future so it returns (None, None)
+        f = asyncio.Future()
+        f.set_result((None, None))
+        return f
 
     def _entity_task(qid_val: Optional[str]):
         if qid_val:
@@ -1114,8 +1151,14 @@ async def enrich_author(
 
     resolution_results: List[Any] = list(await asyncio.gather(*all_tasks))
 
-    birth_place_label: Optional[str]  = resolution_results[0] if birth_place_qid  else None
-    death_place_label: Optional[str]  = resolution_results[1] if death_place_qid  else None
+    birth_place_res = resolution_results[0]
+    death_place_res = resolution_results[1]
+    
+    birth_place_short: Optional[str] = birth_place_res[0] if birth_place_res else None
+    birth_place_detailed: Optional[str] = birth_place_res[1] if birth_place_res else None
+    death_place_short: Optional[str] = death_place_res[0] if death_place_res else None
+    death_place_detailed: Optional[str] = death_place_res[1] if death_place_res else None
+    
     language_label: Optional[str]     = resolution_results[2] if language_qid     else None
     nationality_label: Optional[str]  = resolution_results[3] if nationality_qid  else None
 
@@ -1156,13 +1199,15 @@ async def enrich_author(
         ("signature_url", signature_url),
         ("birth_date",   birth_date),
         ("death_date",   death_date),
-        ("birth_place",  birth_place_label),
-        ("death_place",  death_place_label),
-        ("native_name",  native_name),
-        ("movement",     movement_labels),
-        ("language",     language_label),
-        ("nationality",  nationality_label),
-        ("influenced_by", influenced_by_labels),
+        ("birth_place_short",     birth_place_short),
+        ("birth_place_detailed",  birth_place_detailed),
+        ("death_place_short",     death_place_short),
+        ("death_place_detailed",  death_place_detailed),
+        ("native_name",           native_name),
+        ("movement",              movement_labels),
+        ("language",              language_label),
+        ("nationality",           nationality_label),
+        ("influenced_by",         influenced_by_labels),
     ]
     for field_name, field_value in field_checks:
         if not field_value:
@@ -1174,15 +1219,17 @@ async def enrich_author(
         "wikidata_id":   qid,
         "image_url":     image_url,
         "signature_url": signature_url,
-        "birth_date":    birth_date,
-        "death_date":    death_date,
-        "birth_place":   birth_place_label,
-        "death_place":   death_place_label,
-        "movement":      movement_labels,
-        "language":      language_label,
-        "nationality":   nationality_label,
-        "influenced_by": influenced_by_labels,
-        "missing_fields": missing_fields,
+        "birth_date":           birth_date,
+        "death_date":           death_date,
+        "birth_place_short":    birth_place_short,
+        "birth_place_detailed": birth_place_detailed,
+        "death_place_short":    death_place_short,
+        "death_place_detailed": death_place_detailed,
+        "movement":             movement_labels,
+        "language":             language_label,
+        "nationality":          nationality_label,
+        "influenced_by":        influenced_by_labels,
+        "missing_fields":       missing_fields,
     }
 
     # ──────────────────────────────────────────────────────────────────────
