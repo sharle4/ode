@@ -20,9 +20,10 @@ import { useDebouncedCallback } from "use-debounce";
 
 interface PoemActionsProps {
     poemId: string;
+    initialIsLiked?: boolean;
 }
 
-export default function PoemActions({ poemId }: PoemActionsProps) {
+export default function PoemActions({ poemId, initialIsLiked = false }: PoemActionsProps) {
     const pathname = usePathname();
     const slug = pathname?.split('/').pop() || "";
 
@@ -30,7 +31,7 @@ export default function PoemActions({ poemId }: PoemActionsProps) {
     const [showShareTooltip, setShowShareTooltip] = useState(false);
 
     // Optimistic Like State
-    const [isLiked, setIsLiked] = useState(false);
+    const [isLiked, setIsLiked] = useState(initialIsLiked);
     const [optimisticLike, addOptimisticLike] = React.useOptimistic(
         isLiked,
         (state: boolean, newState: boolean) => newState
@@ -40,7 +41,7 @@ export default function PoemActions({ poemId }: PoemActionsProps) {
     const { executeAsync: executeLike } = useAction(toggleLike);
 
     const debouncedToggleLike = useDebouncedCallback(async (liked: boolean) => {
-        const result = await executeLike({ poemId, slug });
+        const result = await executeLike({ poemId, slug, isLiked: liked });
         if (result?.serverError || result?.validationErrors || result?.data?.failure) {
             console.error("Erreur serveur lors du like:", result);
             alert("Une erreur est survenue lors de l'enregistrement de votre like. Veuillez réessayer.");

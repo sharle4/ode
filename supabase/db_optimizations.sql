@@ -9,6 +9,8 @@ CREATE INDEX IF NOT EXISTS idx_poem_categories_category_id ON public.poem_catego
 
 -- 2. Tâche de nettoyage pour la table `reads`
 -- Evite que la table de tracking ne croisse à l'infini et ralentisse les inserts.
+CREATE INDEX IF NOT EXISTS idx_reads_unprocessed ON public.reads(poem_id) WHERE processed = false;
+
 -- A exécuter dans un cron job (soit via pg_cron, soit via un appel Webhook Edge Function).
 /*
 DELETE FROM public.reads 
@@ -60,18 +62,20 @@ CREATE OR REPLACE FUNCTION check_rate_limit(
 ) RETURNS BOOLEAN AS $$
 DECLARE
     v_count INT;
+    v_current_time TIMESTAMP WITH TIME ZONE := NOW();
 BEGIN
-    -- Nettoie les vieilles fenêtres
-    DELETE FROM public.rate_limits 
-    WHERE user_id = p_user_id 
-      AND action_type = p_action_type 
-      AND window_start < NOW() - (p_window_seconds || ' seconds')::INTERVAL;
-
-    -- Upsert le compteur
     INSERT INTO public.rate_limits (user_id, action_type, request_count, window_start)
-    VALUES (p_user_id, p_action_type, 1, NOW())
+    VALUES (p_user_id, p_action_type, 1, v_current_time)
     ON CONFLICT (user_id, action_type) 
-    DO UPDATE SET request_count = public.rate_limits.request_count + 1
+    DO UPDATE SET 
+        request_count = CASE 
+            WHEN public.rate_limits.window_start < v_current_time - (p_window_seconds || ' seconds')::INTERVAL THEN 1
+            ELSE public.rate_limits.request_count + 1
+        END,
+        window_start = CASE 
+            WHEN public.rate_limits.window_start < v_current_time - (p_window_seconds || ' seconds')::INTERVAL THEN v_current_time
+            ELSE public.rate_limits.window_start
+        END
     RETURNING request_count INTO v_count;
 
     IF v_count > p_limit THEN

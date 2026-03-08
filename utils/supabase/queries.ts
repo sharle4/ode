@@ -34,7 +34,7 @@ export const getPoemBySlug = async (slug: string) => {
             }
 
             if (poem && Array.isArray(poem.content)) {
-                poem.content = { stanzas: poem.content }
+                return { ...poem, content: { stanzas: poem.content } };
             }
 
             return poem
@@ -133,7 +133,7 @@ export const getDailyPoem = async () => {
             }
 
             if (poem && Array.isArray(poem.content)) {
-                poem.content = { stanzas: poem.content }
+                return { ...poem, content: { stanzas: poem.content } };
             }
 
             return poem

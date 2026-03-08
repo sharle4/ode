@@ -38,32 +38,26 @@ export const ratePoem = authActionClient
 export const toggleLike = authActionClient
     .schema(z.object({
         poemId: z.string().uuid(),
-        slug: z.string().min(1)
+        slug: z.string().min(1),
+        isLiked: z.boolean()
     }))
-    .action(async ({ parsedInput: { poemId, slug }, ctx: { supabase, user } }) => {
-        const { data: existing } = await supabase
-            .from('poem_likes')
-            .select('user_id')
-            .eq('user_id', user.id)
-            .eq('poem_id', poemId)
-            .maybeSingle()
+    .action(async ({ parsedInput: { poemId, slug, isLiked }, ctx: { supabase, user } }) => {
+        if (isLiked) {
+            const { error } = await supabase.from('poem_likes')
+                .upsert({ user_id: user.id, poem_id: poemId }, { onConflict: 'user_id,poem_id' })
 
-        if (existing) {
+            if (error) return { failure: 'Impossible de liker ce poème.' }
+        } else {
             const { error } = await supabase.from('poem_likes')
                 .delete()
                 .eq('user_id', user.id)
                 .eq('poem_id', poemId)
 
             if (error) return { failure: 'Impossible de retirer votre like.' }
-        } else {
-            const { error } = await supabase.from('poem_likes')
-                .insert({ user_id: user.id, poem_id: poemId })
-
-            if (error) return { failure: 'Impossible de liker ce poème.' }
         }
 
         revalidateTag(CACHE_TAGS.poem(slug))
-        return { success: true, isLiked: !existing }
+        return { success: true, isLiked }
     })
 
 export const highlightPoem = authActionClient
@@ -119,7 +113,7 @@ export const createList = authActionClient
             return { failure: 'Impossible de créer la liste.' }
         }
 
-        revalidatePath('/lists', 'page')
+        revalidateTag('public-lists')
         // Invalidate the creator's profile using the safe dynamic tag, assuming their username relies on user_metadata
         if (user.user_metadata?.username) {
             revalidateTag(CACHE_TAGS.profile(user.user_metadata.username))
@@ -149,7 +143,7 @@ export const addToList = authActionClient
             return { failure: "Impossible d'ajouter le poème à la liste." }
         }
 
-        revalidatePath(`/lists/${listId}`, 'page')
+        revalidateTag(CACHE_TAGS.list(listId))
         return { success: true }
     })
 

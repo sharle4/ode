@@ -491,11 +491,12 @@ declare
   today date := current_date;
 begin
   select id into random_poem_id
-  from public.poems tablesample system_rows(100)
+  from public.poems
   where id not in (
     select poem_id from public.daily_poems 
     where date >= current_date - interval '30 days'
   )
+  order by random()
   limit 1;
 
   if random_poem_id is not null then
