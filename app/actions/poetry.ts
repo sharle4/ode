@@ -39,10 +39,10 @@ export const toggleLike = authActionClient
     .schema(z.object({
         poemId: z.string().uuid(),
         slug: z.string().min(1),
-        isLiked: z.boolean()
+        targetState: z.boolean()
     }))
-    .action(async ({ parsedInput: { poemId, slug, isLiked }, ctx: { supabase, user } }) => {
-        if (isLiked) {
+    .action(async ({ parsedInput: { poemId, slug, targetState }, ctx: { supabase, user } }) => {
+        if (targetState) {
             const { error } = await supabase.from('poem_likes')
                 .upsert({ user_id: user.id, poem_id: poemId }, { onConflict: 'user_id,poem_id' })
 
@@ -56,8 +56,7 @@ export const toggleLike = authActionClient
             if (error) return { failure: 'Impossible de retirer votre like.' }
         }
 
-        revalidateTag(CACHE_TAGS.poem(slug))
-        return { success: true, isLiked }
+        return { success: true }
     })
 
 export const highlightPoem = authActionClient

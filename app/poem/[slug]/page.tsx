@@ -51,8 +51,8 @@ export default async function PoemPage({ params }: PoemPageProps) {
             name: authorName,
         },
         text: poem.normalized_text || "Texte du poème",
-        datePublished: poem.publicationYear?.toString(),
-        inLanguage: poem.originalLanguage || 'fr',
+        datePublished: poem.publication_year?.toString(),
+        inLanguage: poem.language || 'fr',
     };
 
     const supabase = await createClient();
@@ -83,14 +83,14 @@ export default async function PoemPage({ params }: PoemPageProps) {
                         <div className="max-w-4xl mx-auto text-center">
                             {/* Meta Categories */}
                             <div className="flex flex-wrap items-center justify-center gap-3 mb-6 md:mb-8 text-xs uppercase tracking-[0.15em] font-medium text-warm-gray">
-                                {poem.originalLanguage && (
+                                {poem.language && (
                                     <span className="px-3 py-1 bg-paper border border-soft-border rounded-full">
-                                        {poem.originalLanguage}
+                                        {poem.language}
                                     </span>
                                 )}
-                                {poem.publicationYear && (
+                                {poem.publication_year && (
                                     <span className="px-3 py-1 bg-paper border border-soft-border rounded-full">
-                                        {poem.publicationYear}
+                                        {poem.publication_year}
                                     </span>
                                 )}
                             </div>
@@ -106,7 +106,7 @@ export default async function PoemPage({ params }: PoemPageProps) {
                                     href={`/author/${poem.authors?.id || '#'}`}
                                     className="text-lg md:text-xl text-warm-gray hover:text-charcoal transition-colors italic"
                                 >
-                                    Par {authorName} {poem.publicationYear ? `(${poem.publicationYear})` : ""}
+                                    Par {authorName} {poem.publication_year ? `(${poem.publication_year})` : ""}
                                 </Link>
 
                                 {collectionTitle && (

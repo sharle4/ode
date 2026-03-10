@@ -41,11 +41,13 @@ export default function PoemActions({ poemId, initialIsLiked = false }: PoemActi
     const { executeAsync: executeLike } = useAction(toggleLike);
 
     const debouncedToggleLike = useDebouncedCallback(async (liked: boolean) => {
-        const result = await executeLike({ poemId, slug, isLiked: liked });
-        if (result?.serverError || result?.validationErrors || result?.data?.failure) {
+        const result = await executeLike({ poemId, slug, targetState: liked });
+        if (result?.data?.success) {
+            setIsLiked(liked);
+        } else if (result?.serverError || result?.validationErrors || result?.data?.failure) {
             console.error("Erreur serveur lors du like:", result);
             alert("Une erreur est survenue lors de l'enregistrement de votre like. Veuillez réessayer.");
-            // Si erreur, on force potentiellement un re-fetch ou on notifie
+            // L'état optimistic revient automatiquement à isLiked en cas d'erreur
         }
     }, 500);
 
@@ -67,14 +69,10 @@ export default function PoemActions({ poemId, initialIsLiked = false }: PoemActi
             icon: <Heart size={22} weight={optimisticLike ? "fill" : "regular"} className={optimisticLike ? "text-accent" : "text-charcoal"} />,
             label: "Liker",
             onClick: () => {
-                const newValue = !optimisticLike;
+                const newValue = !isLiked;
                 React.startTransition(() => {
                     addOptimisticLike(newValue);
                 });
-                // Sincéronise le state local réel pour la prochaine transition
-                setIsLiked(newValue);
-
-                // Déclenche l'action Serveur dé-bouncée pour protéger la db
                 debouncedToggleLike(newValue);
             },
         },
