@@ -1,10 +1,10 @@
+import { Suspense } from "react";
 import { notFound } from "next/navigation";
 import { getPoemBySlug } from "@/utils/supabase/queries";
-import { createClient } from "@/utils/supabase/server";
 import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
 import PoemReader from "@/components/poem/PoemReader";
-import PoemActions from "@/components/poem/PoemActions";
+import PoemActionsWrapper from "@/components/poem/PoemActionsWrapper";
 import ReviewSection from "@/components/ui/ReviewSection";
 import { Metadata } from "next";
 import Link from "next/link";
@@ -54,19 +54,6 @@ export default async function PoemPage({ params }: PoemPageProps) {
         datePublished: poem.publication_year?.toString(),
         inLanguage: poem.language || 'fr',
     };
-
-    const supabase = await createClient();
-    const { data: userData } = await supabase.auth.getUser();
-    let hasLiked = false;
-    if (userData?.user) {
-        const { data: likeData } = await supabase
-            .from('poem_likes')
-            .select('user_id')
-            .eq('user_id', userData.user.id)
-            .eq('poem_id', poem.id)
-            .maybeSingle();
-        if (likeData) hasLiked = true;
-    }
 
     return (
         <div className="min-h-screen bg-cream">
@@ -136,7 +123,9 @@ export default async function PoemPage({ params }: PoemPageProps) {
 
             </main>
 
-            <PoemActions poemId={poem.id} initialIsLiked={hasLiked} />
+            <Suspense fallback={null}>
+                <PoemActionsWrapper poemId={poem.id} />
+            </Suspense>
 
             <Footer />
         </div>
