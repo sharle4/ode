@@ -154,7 +154,8 @@ export const getTrendingPoems = async (limit: number = 10) => {
                     authors ( id, name, slug )
                 `)
                 .limit(limit)
-                .order('reads_count', { ascending: false }) // Sort by new reads_count column
+                .order('reads_count', { ascending: false })
+                .order('id', { ascending: false }) // Tie-breaker
 
             if (error) {
                 console.error('Database Error fetching trending poems:', error);

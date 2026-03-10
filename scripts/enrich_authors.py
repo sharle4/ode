@@ -6,7 +6,7 @@ Production-grade asynchronous data pipeline for enriching poet/author metadata
 by querying the Wikidata Action API.
 
 Workflow:
-  1. Stream `poems.jsonl.gz` to collect unique author names.
+  1. Stream `poems.cleaned.jsonl.gz` to collect unique author names.
   2. For each unique author, query Wikidata to resolve the entity (Step A),
      extract claims (Step B), resolve place labels (Step C), format image
      URLs (Step D), and format dates (Step E).

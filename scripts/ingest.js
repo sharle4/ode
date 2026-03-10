@@ -326,6 +326,27 @@ async function processLine(line) {
     }
 }
 
+async function deleteDummyData() {
+    console.log("🗑️ Cleaning up dummy data before ingestion...");
+    const dummyAuthors = ['a1111111-1111-1111-1111-111111111111', 'a2222222-2222-2222-2222-222222222222'];
+    const dummyCollections = ['c1111111-1111-1111-1111-111111111111', 'c2222222-2222-2222-2222-222222222222'];
+    const dummyPoems = ['d1111111-1111-1111-1111-111111111111', 'd2222222-2222-2222-2222-222222222222'];
+    const dummyCategories = ['e1111111-1111-1111-1111-111111111111', 'e2222222-2222-2222-2222-222222222222'];
+
+    // Delete relation tables first
+    await supabase.from('poem_categories').delete().in('category_id', dummyCategories);
+    await supabase.from('poem_authors').delete().in('poem_id', dummyPoems);
+    await supabase.from('collection_authors').delete().in('collection_id', dummyCollections);
+
+    // Delete main tables
+    await supabase.from('poems').delete().in('id', dummyPoems);
+    await supabase.from('categories').delete().in('id', dummyCategories);
+    await supabase.from('collections').delete().in('id', dummyCollections);
+    await supabase.from('authors').delete().in('id', dummyAuthors);
+
+    console.log("✅ Dummy data clean up complete.");
+}
+
 async function run() {
     console.log("🚀 Starting Optimized Ingestion script...");
     console.log(`Reading from ${POEMS_FILE_PATH}`);
@@ -336,6 +357,8 @@ async function run() {
     }
 
     try {
+        await deleteDummyData();
+
         if (fs.existsSync(ENRICHED_AUTHORS_PATH)) {
             console.log(`📥 Loading enriched authors from ${ENRICHED_AUTHORS_PATH}...`);
             const fileStream = fs.createReadStream(ENRICHED_AUTHORS_PATH);
