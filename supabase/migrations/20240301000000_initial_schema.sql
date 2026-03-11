@@ -134,26 +134,39 @@ create table public.followers (
     primary key (follower_id, following_id)
 );
 
--- Reviews (Notes + Critiques fusionnées)
-create table public.reviews (
+-- Poem Likes
+create table public.poem_likes (
+    user_id uuid references public.users(id) on delete cascade not null,
+    poem_id uuid references public.poems(id) on delete cascade not null,
+    created_at timestamptz default now() not null,
+    primary key (user_id, poem_id)
+);
+
+-- Poem Reviews (Notes + Critiques pour les poèmes)
+create table public.poem_reviews (
     id uuid primary key default gen_random_uuid(),
     user_id uuid references public.users(id) on delete cascade not null,
-    poem_id uuid references public.poems(id) on delete cascade,
-    collection_id uuid references public.collections(id) on delete cascade,
+    poem_id uuid references public.poems(id) on delete cascade not null,
     score numeric(2,1) check (score >= 0.5 and score <= 5.0),
     emotion text,
     review_text text,
     likes_count int default 0 not null,
     created_at timestamptz default now() not null,
     updated_at timestamptz default now() not null,
-    
-    -- Le Exclusive Arc (soit poem, soit collection)
-    check (
-        (poem_id is not null and collection_id is null) or 
-        (poem_id is null and collection_id is not null)
-    ),
-    
-    unique(user_id, poem_id),
+    unique(user_id, poem_id)
+);
+
+-- Collection Reviews (Notes + Critiques pour les recueils)
+create table public.collection_reviews (
+    id uuid primary key default gen_random_uuid(),
+    user_id uuid references public.users(id) on delete cascade not null,
+    collection_id uuid references public.collections(id) on delete cascade not null,
+    score numeric(2,1) check (score >= 0.5 and score <= 5.0),
+    emotion text,
+    review_text text,
+    likes_count int default 0 not null,
+    created_at timestamptz default now() not null,
+    updated_at timestamptz default now() not null,
     unique(user_id, collection_id)
 );
 
@@ -170,18 +183,26 @@ create table public.reads (
 create index idx_reads_user_id on public.reads(user_id);
 create index idx_reads_poem_id on public.reads(poem_id);
 
--- Likes sur les Reviews
-create table public.review_likes (
+-- Likes sur les Poem Reviews
+create table public.poem_review_likes (
     user_id uuid references public.users(id) on delete cascade not null,
-    review_id uuid references public.reviews(id) on delete cascade not null,
+    review_id uuid references public.poem_reviews(id) on delete cascade not null,
     created_at timestamptz default now() not null,
     primary key (user_id, review_id)
 );
 
--- Commentaires sur les Reviews
-create table public.review_comments (
+-- Likes sur les Collection Reviews
+create table public.collection_review_likes (
+    user_id uuid references public.users(id) on delete cascade not null,
+    review_id uuid references public.collection_reviews(id) on delete cascade not null,
+    created_at timestamptz default now() not null,
+    primary key (user_id, review_id)
+);
+
+-- Commentaires sur les Poem Reviews
+create table public.poem_review_comments (
     id uuid primary key default gen_random_uuid(),
-    review_id uuid references public.reviews(id) on delete cascade not null,
+    review_id uuid references public.poem_reviews(id) on delete cascade not null,
     user_id uuid references public.users(id) on delete cascade not null,
     content text not null,
     likes_count int default 0 not null,
@@ -189,10 +210,29 @@ create table public.review_comments (
     updated_at timestamptz default now() not null
 );
 
--- Likes sur les Commentaires de Reviews
-create table public.review_comment_likes (
+-- Commentaires sur les Collection Reviews
+create table public.collection_review_comments (
+    id uuid primary key default gen_random_uuid(),
+    review_id uuid references public.collection_reviews(id) on delete cascade not null,
     user_id uuid references public.users(id) on delete cascade not null,
-    comment_id uuid references public.review_comments(id) on delete cascade not null,
+    content text not null,
+    likes_count int default 0 not null,
+    created_at timestamptz default now() not null,
+    updated_at timestamptz default now() not null
+);
+
+-- Likes sur les Commentaires de Poem Reviews
+create table public.poem_review_comment_likes (
+    user_id uuid references public.users(id) on delete cascade not null,
+    comment_id uuid references public.poem_review_comments(id) on delete cascade not null,
+    created_at timestamptz default now() not null,
+    primary key (user_id, comment_id)
+);
+
+-- Likes sur les Commentaires de Collection Reviews
+create table public.collection_review_comment_likes (
+    user_id uuid references public.users(id) on delete cascade not null,
+    comment_id uuid references public.collection_review_comments(id) on delete cascade not null,
     created_at timestamptz default now() not null,
     primary key (user_id, comment_id)
 );
@@ -256,11 +296,14 @@ create table public.poem_categories (
 );
 
 -- Index suggérés pour optimiser les jointures FK et interdire les full table scans on delete cascade
-create index idx_reviews_user_id on public.reviews(user_id);
-create index idx_reviews_poem_id on public.reviews(poem_id);
-create index idx_reviews_collection_id on public.reviews(collection_id);
+create index idx_poem_reviews_user_id on public.poem_reviews(user_id);
+create index idx_poem_reviews_poem_id on public.poem_reviews(poem_id);
 
-create index idx_review_comments_review_id on public.review_comments(review_id);
+create index idx_collection_reviews_user_id on public.collection_reviews(user_id);
+create index idx_collection_reviews_collection_id on public.collection_reviews(collection_id);
+
+create index idx_poem_review_comments_review_id on public.poem_review_comments(review_id);
+create index idx_collection_review_comments_review_id on public.collection_review_comments(review_id);
 
 create index idx_highlights_user_poem on public.highlights(user_id, poem_id);
 
@@ -269,6 +312,12 @@ create index idx_lists_user_id on public.lists(user_id);
 
 create index idx_user_top_poems_user_id on public.user_top_poems(user_id);
 create index idx_user_top_authors_user_id on public.user_top_authors(user_id);
+
+create index idx_poem_likes_poem_id on public.poem_likes(poem_id);
+
+create index idx_poem_categories_category_id on public.poem_categories(category_id);
+
+create index idx_reads_unprocessed on public.reads(poem_id) where processed = false;
 
 create table public.daily_poems (
     date date primary key,
@@ -300,8 +349,8 @@ create table public.notifications (
     id uuid primary key default gen_random_uuid(),
     user_id uuid references public.users(id) on delete cascade not null, -- receiver
     actor_id uuid references public.users(id) on delete set null, -- sender
-    type text not null, -- 'new_follower', 'review_like', 'new_comment', 'badge_earned'
-    reference_id uuid, -- review_id, comment_id, etc.
+    type text not null, -- 'new_follower', 'poem_review_like', 'collection_review_like', 'new_comment', 'badge_earned'
+    reference_id uuid, -- poem_review_id, collection_review_id, comment_id, etc.
     is_read boolean default false not null,
     created_at timestamptz default now() not null
 );
@@ -319,15 +368,20 @@ alter table public.categories enable row level security;
 alter table public.daily_poems enable row level security;
 alter table public.badges enable row level security;
 alter table public.reads enable row level security;
+alter table public.poem_likes enable row level security;
 
 -- Enable RLS on all social tables
 alter table public.user_top_poems enable row level security;
 alter table public.user_top_authors enable row level security;
 alter table public.followers enable row level security;
-alter table public.reviews enable row level security;
-alter table public.review_likes enable row level security;
-alter table public.review_comments enable row level security;
-alter table public.review_comment_likes enable row level security;
+alter table public.poem_reviews enable row level security;
+alter table public.collection_reviews enable row level security;
+alter table public.poem_review_likes enable row level security;
+alter table public.collection_review_likes enable row level security;
+alter table public.poem_review_comments enable row level security;
+alter table public.collection_review_comments enable row level security;
+alter table public.poem_review_comment_likes enable row level security;
+alter table public.collection_review_comment_likes enable row level security;
 alter table public.highlights enable row level security;
 alter table public.lists enable row level security;
 alter table public.list_items enable row level security;
@@ -345,6 +399,8 @@ create policy "Categories are viewable by everyone." on public.categories for se
 create policy "Daily poems are viewable by everyone." on public.daily_poems for select using (true);
 create policy "Badges are viewable by everyone." on public.badges for select using (true);
 create policy "Reads are viewable by everyone." on public.reads for select using (true);
+create policy "Poem likes are viewable by everyone" on public.poem_likes for select using (true);
+create policy "Users can manage their own poem likes" on public.poem_likes for all using (auth.uid() = user_id);
 
 -- User profiles are public
 create policy "User profiles are viewable by everyone." on public.users for select using (true);
@@ -367,18 +423,31 @@ create policy "Users can manage their top authors" on public.user_top_authors fo
 create policy "Followers are viewable by everyone" on public.followers for select using (true);
 create policy "Users can manage their follows" on public.followers for all using (auth.uid() = follower_id);
 
--- Reviews
-create policy "Reviews are viewable by everyone" on public.reviews for select using (true);
-create policy "Users can manage their reviews" on public.reviews for all using (auth.uid() = user_id);
+-- Poem Reviews
+create policy "Poem reviews viewable by everyone" on public.poem_reviews for select using (true);
+create policy "Users can manage their poem reviews" on public.poem_reviews for all using (auth.uid() = user_id);
 
-create policy "Review likes viewable by everyone" on public.review_likes for select using (true);
-create policy "Users can manage their review likes" on public.review_likes for all using (auth.uid() = user_id);
+create policy "Poem review likes viewable by everyone" on public.poem_review_likes for select using (true);
+create policy "Users can manage their poem review likes" on public.poem_review_likes for all using (auth.uid() = user_id);
 
-create policy "Review comments viewable by everyone" on public.review_comments for select using (true);
-create policy "Users can manage their review comments" on public.review_comments for all using (auth.uid() = user_id);
+create policy "Poem review comments viewable by everyone" on public.poem_review_comments for select using (true);
+create policy "Users can manage their poem review comments" on public.poem_review_comments for all using (auth.uid() = user_id);
 
-create policy "Review comment likes viewable by everyone" on public.review_comment_likes for select using (true);
-create policy "Users can manage their review comment likes" on public.review_comment_likes for all using (auth.uid() = user_id);
+create policy "Poem review comment likes viewable by everyone" on public.poem_review_comment_likes for select using (true);
+create policy "Users can manage their poem review comment likes" on public.poem_review_comment_likes for all using (auth.uid() = user_id);
+
+-- Collection Reviews
+create policy "Collection reviews viewable by everyone" on public.collection_reviews for select using (true);
+create policy "Users can manage their collection reviews" on public.collection_reviews for all using (auth.uid() = user_id);
+
+create policy "Collection review likes viewable by everyone" on public.collection_review_likes for select using (true);
+create policy "Users can manage their collection review likes" on public.collection_review_likes for all using (auth.uid() = user_id);
+
+create policy "Collection review comments viewable by everyone" on public.collection_review_comments for select using (true);
+create policy "Users can manage their collection review comments" on public.collection_review_comments for all using (auth.uid() = user_id);
+
+create policy "Collection review comment likes viewable by everyone" on public.collection_review_comment_likes for select using (true);
+create policy "Users can manage their collection review comment likes" on public.collection_review_comment_likes for all using (auth.uid() = user_id);
 
 -- Highlights (Conditional SELECT)
 create policy "Highlights conditional visibility" on public.highlights for select using (
@@ -446,8 +515,10 @@ create trigger set_updated_at_collections before update on public.collections fo
 create trigger set_updated_at_poems before update on public.poems for each row execute procedure handle_updated_at();
 create trigger set_updated_at_user_top_poems before update on public.user_top_poems for each row execute procedure handle_updated_at();
 create trigger set_updated_at_user_top_authors before update on public.user_top_authors for each row execute procedure handle_updated_at();
-create trigger set_updated_at_reviews before update on public.reviews for each row execute procedure handle_updated_at();
-create trigger set_updated_at_review_comments before update on public.review_comments for each row execute procedure handle_updated_at();
+create trigger set_updated_at_poem_reviews before update on public.poem_reviews for each row execute procedure handle_updated_at();
+create trigger set_updated_at_collection_reviews before update on public.collection_reviews for each row execute procedure handle_updated_at();
+create trigger set_updated_at_poem_review_comments before update on public.poem_review_comments for each row execute procedure handle_updated_at();
+create trigger set_updated_at_collection_review_comments before update on public.collection_review_comments for each row execute procedure handle_updated_at();
 create trigger set_updated_at_categories before update on public.categories for each row execute procedure handle_updated_at();
 create trigger set_updated_at_highlights before update on public.highlights for each row execute procedure handle_updated_at();
 create trigger set_updated_at_lists before update on public.lists for each row execute procedure handle_updated_at();
@@ -509,3 +580,7 @@ $$ language plpgsql security definer;
 
 -- Schedule daily poem generation (every day at midnight)
 select cron.schedule('generate-daily-poem', '0 0 * * *', 'select public.select_daily_poem()');
+
+
+-- Schedule cleanup of processed reads (every day at 3am)
+select cron.schedule('cleanup-processed-reads', '0 3 * * *', $$ DELETE FROM public.reads WHERE processed = true AND created_at < NOW() - INTERVAL '7 days'; $$);
