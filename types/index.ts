@@ -15,21 +15,43 @@ export interface Poem {
   reviews_count?: number;
 }
 
-export interface CommunityActivity {
+export interface BaseActivity {
   id: string;
   username: string;
   displayName: string;
   avatarGradient: string;
   initials: string;
-  action: "logged" | "rated" | "added to list" | "reviewed";
   poemTitle: string;
   poemAuthors: { id: string; name: string; slug: string }[];
-  review?: number;
-  reviewText?: string;
   timestamp: string;
   likes: number;
   comments: number;
 }
+
+export interface RatedActivity extends BaseActivity {
+  action: "rated";
+  review: number;
+}
+
+export interface ReviewedActivity extends BaseActivity {
+  action: "reviewed";
+  review: number;
+  reviewText: string;
+}
+
+export interface LoggedActivity extends BaseActivity {
+  action: "logged";
+}
+
+export interface AddedToListActivity extends BaseActivity {
+  action: "added to list";
+}
+
+export type CommunityActivity =
+  | RatedActivity
+  | ReviewedActivity
+  | LoggedActivity
+  | AddedToListActivity;
 export interface Collection {
   id: string;
   title: string;

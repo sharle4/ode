@@ -30,7 +30,7 @@ export const getPoemBySlug = async (slug: string) => {
 
             if (error) {
                 console.error('Database Error fetching poem by slug:', error);
-                return null;
+                throw error;
             }
 
             if (poem && Array.isArray(poem.content)) {
@@ -60,7 +60,7 @@ const fetchAuthorByField = async (field: 'id' | 'slug', value: string) => {
 
             if (error) {
                 console.error(`Database Error fetching author by ${field}:`, error);
-                return null;
+                throw error;
             }
 
             return author
@@ -83,8 +83,11 @@ const fetchCollectionByField = async (field: 'id' | 'slug', value: string) => {
                 .eq(field, value)
                 .maybeSingle()
 
-            if (error || !collection) {
+            if (error) {
                 console.error(`Error fetching collection by ${field}:`, error);
+                throw error;
+            }
+            if (!collection) {
                 return null;
             }
 
@@ -116,8 +119,11 @@ export const getDailyPoem = async () => {
                 .eq('date', today)
                 .maybeSingle()
 
-            if (fetchError || !dailyPoem?.poem_id) {
+            if (fetchError) {
                 console.error('Database Error fetching daily poem id:', fetchError);
+                throw fetchError;
+            }
+            if (!dailyPoem?.poem_id) {
                 return null;
             }
 
@@ -129,7 +135,7 @@ export const getDailyPoem = async () => {
 
             if (error) {
                 console.error('Database Error fetching daily poem details:', error);
-                return null;
+                throw error;
             }
 
             if (poem && Array.isArray(poem.content)) {
@@ -159,7 +165,7 @@ export const getTrendingPoems = async (limit: number = 10) => {
 
             if (error) {
                 console.error('Database Error fetching trending poems:', error);
-                return null;
+                throw error;
             }
 
             return poems

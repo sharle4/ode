@@ -66,7 +66,7 @@ const ActivityCard = React.memo(function ActivityCard({
             </span>
           </div>
 
-          {activity.review !== undefined && (
+          {(activity.action === "rated" || activity.action === "reviewed") && (
             <div className="mt-2 flex items-center gap-2">
               <StarReview review={activity.review} size={14} />
               {activity.review % 1 !== 0 && (
@@ -77,7 +77,7 @@ const ActivityCard = React.memo(function ActivityCard({
             </div>
           )}
 
-          {activity.reviewText && (
+          {activity.action === "reviewed" && activity.reviewText && (
             <p className="mt-3 text-charcoal/80 text-sm leading-relaxed max-w-[65ch]">
               {activity.reviewText}
             </p>
