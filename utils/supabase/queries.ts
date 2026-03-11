@@ -14,163 +14,173 @@ export const getPublicClient = cache(() => {
     )
 })
 
-export const getPoemBySlug = async (slug: string) => {
-    return unstable_cache(
-        async () => {
-            const supabase = getPublicClient()
-            const { data: poem, error } = await supabase
-                .from('poems')
-                .select(`
-                  id, title, slug, original_text, language, publication_year, average_review, reviews_count, content,
-                  authors ( id, name, slug ),
-                  collections ( id, title )
-                `)
-                .eq('slug', slug)
-                .maybeSingle()
-
-            if (error) {
-                console.error('Database Error fetching poem by slug:', error);
-                throw error;
-            }
-
-            if (poem && Array.isArray(poem.content)) {
-                return { ...poem, content: { stanzas: poem.content } };
-            }
-
-            return poem
-        },
-        [CACHE_TAGS.poem(slug)],
-        { tags: [CACHE_TAGS.poem(slug)], revalidate: 86400 } // 24 hours caching
-    )()
+interface CacheOptions {
+    keyParts: string[];
+    tags: string[];
+    revalidate?: number | false;
+    errorMessage: string;
 }
 
-const fetchAuthorByField = async (field: 'id' | 'slug', value: string) => {
+const executeCachedQuery = <T>(
+    options: CacheOptions,
+    queryFn: (supabase: ReturnType<typeof getPublicClient>) => Promise<T>
+): Promise<T> => {
     return unstable_cache(
         async () => {
-            const supabase = getPublicClient()
-            const { data: author, error } = await supabase
-                .from('authors')
-                .select(`
-                    *,
-                    poems ( id, title, slug ),
-                    collections ( id, title, publication_year )
-                `)
-                .eq(field, value)
-                .maybeSingle()
-
-            if (error) {
-                console.error(`Database Error fetching author by ${field}:`, error);
+            try {
+                const supabase = getPublicClient();
+                return await queryFn(supabase);
+            } catch (error) {
+                console.error(options.errorMessage, error);
                 throw error;
             }
-
-            return author
         },
-        [CACHE_TAGS.author(value)],
-        { tags: [CACHE_TAGS.author(value)], revalidate: 86400 }
-    )()
-}
+        options.keyParts,
+        { tags: options.tags, revalidate: options.revalidate }
+    )();
+};
+
+export const getPoemBySlug = (slug: string) => executeCachedQuery(
+    {
+        keyParts: [CACHE_TAGS.poem(slug)],
+        tags: [CACHE_TAGS.poem(slug)],
+        revalidate: 86400, // 24 hours caching
+        errorMessage: 'Database Error fetching poem by slug:'
+    },
+    async (supabase) => {
+        const { data: poem } = await supabase
+            .from('poems')
+            .select(`
+                id, title, slug, original_text, language, publication_year, average_review, reviews_count, content,
+                authors ( id, name, slug ),
+                collections ( id, title )
+            `)
+            .eq('slug', slug)
+            .maybeSingle()
+            .throwOnError();
+
+        if (poem && Array.isArray(poem.content)) {
+            return { ...poem, content: { stanzas: poem.content } };
+        }
+
+        return poem;
+    }
+);
+
+const fetchAuthorByField = (field: 'id' | 'slug', value: string) => executeCachedQuery(
+    {
+        keyParts: [CACHE_TAGS.author(value)],
+        tags: [CACHE_TAGS.author(value)],
+        revalidate: 86400,
+        errorMessage: `Database Error fetching author by ${field}:`
+    },
+    async (supabase) => {
+        const { data: author } = await supabase
+            .from('authors')
+            .select(`
+                *,
+                poems ( id, title, slug ),
+                collections ( id, title, publication_year )
+            `)
+            .eq(field, value)
+            .maybeSingle()
+            .throwOnError();
+
+        return author;
+    }
+);
 
 export const getAuthorById = (id: string) => fetchAuthorByField('id', id);
 export const getAuthorBySlug = (slug: string) => fetchAuthorByField('slug', slug);
 
-const fetchCollectionByField = async (field: 'id' | 'slug', value: string) => {
-    return unstable_cache(
-        async () => {
-            const supabase = getPublicClient()
-            const { data: collection, error } = await supabase
-                .from('collections')
-                .select('id, title, slug, publication_year, summary, cover_url, poems_count, average_review, reviews_count, authors ( id, name, slug )')
-                .eq(field, value)
-                .maybeSingle()
+const fetchCollectionByField = (field: 'id' | 'slug', value: string) => executeCachedQuery(
+    {
+        keyParts: [CACHE_TAGS.collection(value)],
+        tags: [CACHE_TAGS.collection(value)],
+        revalidate: 86400,
+        errorMessage: `Error fetching collection by ${field}:`
+    },
+    async (supabase) => {
+        const { data: collection } = await supabase
+            .from('collections')
+            .select('id, title, slug, publication_year, summary, cover_url, poems_count, average_review, reviews_count, authors ( id, name, slug )')
+            .eq(field, value)
+            .maybeSingle()
+            .throwOnError();
 
-            if (error) {
-                console.error(`Error fetching collection by ${field}:`, error);
-                throw error;
-            }
-            if (!collection) {
-                return null;
-            }
+        if (!collection) {
+            return null;
+        }
 
-            const { data: poems } = await supabase
-                .from('poems')
-                .select('id, title, slug, poem_order')
-                .eq('collection_id', collection.id)
-                .order('poem_order', { ascending: true, nullsFirst: false })
+        const { data: poems } = await supabase
+            .from('poems')
+            .select('id, title, slug, poem_order')
+            .eq('collection_id', collection.id)
+            .order('poem_order', { ascending: true, nullsFirst: false })
+            .throwOnError();
 
-            return { ...collection, poems }
-        },
-        [CACHE_TAGS.collection(value)],
-        { tags: [CACHE_TAGS.collection(value)], revalidate: 86400 }
-    )()
-}
+        return { ...collection, poems };
+    }
+);
 
 export const getCollectionById = (id: string) => fetchCollectionByField('id', id);
 export const getCollectionBySlug = (slug: string) => fetchCollectionByField('slug', slug);
 
-export const getDailyPoem = async () => {
-    return unstable_cache(
-        async () => {
-            const supabase = getPublicClient()
-            const today = new Date().toISOString().split('T')[0]
+export const getDailyPoem = () => executeCachedQuery(
+    {
+        keyParts: [CACHE_TAGS.daily],
+        tags: [CACHE_TAGS.daily],
+        revalidate: 3600, // Check every hour
+        errorMessage: 'Database Error fetching daily poem:'
+    },
+    async (supabase) => {
+        const today = new Date().toISOString().split('T')[0];
 
-            let { data: dailyPoem, error: fetchError } = await supabase
-                .from('daily_poems')
-                .select('poem_id')
-                .eq('date', today)
-                .maybeSingle()
+        const { data: dailyPoem } = await supabase
+            .from('daily_poems')
+            .select('poem_id')
+            .eq('date', today)
+            .maybeSingle()
+            .throwOnError();
 
-            if (fetchError) {
-                console.error('Database Error fetching daily poem id:', fetchError);
-                throw fetchError;
-            }
-            if (!dailyPoem?.poem_id) {
-                return null;
-            }
+        if (!dailyPoem?.poem_id) {
+            return null;
+        }
 
-            const { data: poem, error } = await supabase
-                .from('poems')
-                .select('*, authors ( id, name, slug )')
-                .eq('id', dailyPoem.poem_id)
-                .maybeSingle()
+        const { data: poem } = await supabase
+            .from('poems')
+            .select('*, authors ( id, name, slug )')
+            .eq('id', dailyPoem.poem_id)
+            .maybeSingle()
+            .throwOnError();
 
-            if (error) {
-                console.error('Database Error fetching daily poem details:', error);
-                throw error;
-            }
+        if (poem && Array.isArray(poem.content)) {
+            return { ...poem, content: { stanzas: poem.content } };
+        }
 
-            if (poem && Array.isArray(poem.content)) {
-                return { ...poem, content: { stanzas: poem.content } };
-            }
+        return poem;
+    }
+);
 
-            return poem
-        },
-        [CACHE_TAGS.daily],
-        { tags: [CACHE_TAGS.daily], revalidate: 3600 } // Check every hour
-    )()
-}
+export const getTrendingPoems = (limit: number = 10) => executeCachedQuery(
+    {
+        keyParts: [`trending-poems-${limit}`],
+        tags: [CACHE_TAGS.trending],
+        revalidate: 3600,
+        errorMessage: 'Database Error fetching trending poems:'
+    },
+    async (supabase) => {
+        const { data: poems } = await supabase
+            .from('poems')
+            .select(`
+                *,
+                authors ( id, name, slug )
+            `)
+            .limit(limit)
+            .order('reads_count', { ascending: false })
+            .order('id', { ascending: false }) // Tie-breaker
+            .throwOnError();
 
-export const getTrendingPoems = async (limit: number = 10) => {
-    return unstable_cache(
-        async () => {
-            const supabase = getPublicClient()
-            const { data: poems, error } = await supabase
-                .from('poems')
-                .select(`
-                    *,
-                    authors ( id, name, slug )
-                `)
-                .limit(limit)
-                .order('reads_count', { ascending: false })
-                .order('id', { ascending: false }) // Tie-breaker
-
-            if (error) {
-                console.error('Database Error fetching trending poems:', error);
-                throw error;
-            }
-
-            return poems
-        },
-        [`trending-poems-${limit}`],
-        { tags: [CACHE_TAGS.trending], revalidate: 3600 }
-    )()
-}
+        return poems;
+    }
+);

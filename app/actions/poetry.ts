@@ -147,8 +147,9 @@ export const createList = authActionClient
         const { data: currentUser } = await supabase.from('users').select('username').eq('id', user.id).maybeSingle();
         if (currentUser?.username) {
             revalidateTag(CACHE_TAGS.profile(currentUser.username))
-            return { success: true, listId: data.id }
-        })
+        }
+        return { success: true, listId: data.id }
+    })
 
 export const addToList = authActionClient
     .schema(z.object({
@@ -215,6 +216,6 @@ export const toggleFollow = authActionClient
         const { data: currentUser } = await supabase.from('users').select('username').eq('id', user.id).maybeSingle();
         if (currentUser?.username) {
             revalidateTag(CACHE_TAGS.profile(currentUser.username))
-
-            return { success: true, isFollowing: !existing }
-        })
+        }
+        return { success: true, isFollowing: !existing }
+    })
