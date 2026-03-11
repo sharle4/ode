@@ -144,11 +144,11 @@ export const createList = authActionClient
 
         revalidateTag('public-lists')
         // Invalidate the creator's profile using the safe dynamic tag, assuming their username relies on user_metadata
-        if (user.user_metadata?.username) {
-            revalidateTag(CACHE_TAGS.profile(user.user_metadata.username))
-        }
-        return { success: true, listId: data.id }
-    })
+        const { data: currentUser } = await supabase.from('users').select('username').eq('id', user.id).maybeSingle();
+        if (currentUser?.username) {
+            revalidateTag(CACHE_TAGS.profile(currentUser.username))
+            return { success: true, listId: data.id }
+        })
 
 export const addToList = authActionClient
     .schema(z.object({
@@ -212,9 +212,9 @@ export const toggleFollow = authActionClient
         if (followedUser?.username) {
             revalidateTag(CACHE_TAGS.profile(followedUser.username));
         }
-        if (user.user_metadata?.username) {
-            revalidateTag(CACHE_TAGS.profile(user.user_metadata.username));
-        }
+        const { data: currentUser } = await supabase.from('users').select('username').eq('id', user.id).maybeSingle();
+        if (currentUser?.username) {
+            revalidateTag(CACHE_TAGS.profile(currentUser.username))
 
-        return { success: true, isFollowing: !existing }
-    })
+            return { success: true, isFollowing: !existing }
+        })

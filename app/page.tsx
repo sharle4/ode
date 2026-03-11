@@ -22,7 +22,7 @@ export default async function Home() {
   const trendingPoems = trendingPoemsResult.status === 'fulfilled' ? trendingPoemsResult.value : [];
 
   // Derive curated poems from trending to avoid a redundant database hit
-  const curatedPoems = trendingPoems && trendingPoems.length > 0 ? trendingPoems.slice(0, 8) : [];
+  const curatedPoems = trendingPoems?.slice(0, 8) ?? [];
 
   const keyAuthors = [
     { name: "Charles Baudelaire", slug: "charles-baudelaire", img: "https://upload.wikimedia.org/wikipedia/commons/1/16/Charles_Baudelaire%2C_by_Etienne_Carjat.jpg" },
@@ -51,7 +51,7 @@ export default async function Home() {
       <main>
         <HeroSection dailyPoem={dailyPoem} />
 
-        <div id="explore" className="pb-12 md:pb-24">
+        <section id="explore" className="pb-12 md:pb-24">
           <TrendingRow
             title="Tendances mondiales"
             subtitle="Les poèmes les plus lus et parcategoryés cette semaine"
@@ -75,7 +75,7 @@ export default async function Home() {
             subtitle="Basé sur l'évolution de vos lectures"
             poems={curatedPoems}
           />
-        </div>
+        </section>
 
         {dailyPoem && <BilingualSpotlight poem={dailyPoem} />}
 

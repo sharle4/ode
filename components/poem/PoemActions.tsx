@@ -42,12 +42,12 @@ export default function PoemActions({ poemId, initialIsLiked = false }: PoemActi
 
     const debouncedToggleLike = useDebouncedCallback(async (liked: boolean) => {
         const result = await executeLike({ poemId, slug, targetState: liked });
-        if (result?.data?.success) {
-            setIsLiked(liked);
-        } else if (result?.serverError || result?.validationErrors || result?.data?.failure) {
+        if (result?.serverError || result?.validationErrors) {
             console.error("Erreur serveur lors du like:", result);
             alert("Une erreur est survenue lors de l'enregistrement de votre like. Veuillez réessayer.");
             // L'état optimistic revient automatiquement à isLiked en cas d'erreur
+        } else {
+            setIsLiked(liked);
         }
     }, 500);
 
