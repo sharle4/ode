@@ -63,15 +63,8 @@ export default function OnboardingWizard({
     previousStep.current = stepIndex;
   }, [stepIndex]);
 
-  // Handle Browser Native Back/Forward
-  useEffect(() => {
-    const handlePopState = () => {
-      // By default Next.js searchParams will auto-update on popstate,
-      // but if we were managing local state entirely we'd sync it here.
-    };
-    window.addEventListener("popstate", handlePopState);
-    return () => window.removeEventListener("popstate", handlePopState);
-  }, []);
+  // Handle Browser Native Back/Forward effortlessly with Next.js url state
+  // (No popstate listener needed, searchParams is reactive)
 
   // Shared State across steps
   const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
@@ -82,12 +75,7 @@ export default function OnboardingWizard({
 
   // Flow Navigation logic (Shallow routing without triggering server requests)
   const goToStep = (newStep: string) => {
-    window.history.pushState(null, "", `?step=${newStep}`);
-    // Manually force a Next.js re-render by updating the router silently
-    // since pushState bypasses Next's internal state mechanism 
-    const url = new URL(window.location.href);
-    url.searchParams.set("step", newStep);
-    router.replace(url.toString(), { scroll: false }); 
+    router.push(`?step=${newStep}`, { scroll: false }); 
   };
 
   const handleNext = () => {

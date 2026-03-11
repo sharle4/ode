@@ -39,26 +39,24 @@ export async function updateSession(request: NextRequest) {
     // -------------------------------------------------------------
     // ONBOARDING REDIRECTION LOGIC (Zero-latency JWT check)
     // -------------------------------------------------------------
+    const url = request.nextUrl.clone()
+    const isOnboardingPage = url.pathname.startsWith('/onboarding')
+    const isAuthPage = url.pathname.startsWith('/login') || url.pathname.startsWith('/signup')
+
     if (user) {
         // Read status directly from the JWT to avoid hitting the DB
         const onboardingStatus = user.user_metadata?.onboarding_status || 'pending'
-        const isOnboardingRoute = request.nextUrl.pathname.startsWith('/onboarding')
 
-        if (onboardingStatus === 'pending') {
-            // User hasn't finished onboarding, force them to /onboarding
-            if (!isOnboardingRoute) {
-                const url = request.nextUrl.clone()
-                url.pathname = '/onboarding'
-                return NextResponse.redirect(url)
-            }
-        } else {
-            // User is 'completed' or 'skipped'
-            // If they try to access /onboarding, kick them out to home
-            if (isOnboardingRoute) {
-                const url = request.nextUrl.clone()
-                url.pathname = '/'
-                return NextResponse.redirect(url)
-            }
+        // Si pending et n'est PAS sur la page onboarding (et pas sur auth) -> Forcer onboarding
+        if (onboardingStatus === 'pending' && !isOnboardingPage && !isAuthPage) {
+            url.pathname = '/onboarding'
+            return NextResponse.redirect(url)
+        }
+
+        // Si déjà complété et essaie d'aller sur onboarding -> Forcer accueil
+        if ((onboardingStatus === 'completed' || onboardingStatus === 'skipped') && isOnboardingPage) {
+            url.pathname = '/'
+            return NextResponse.redirect(url)
         }
     }
     // -------------------------------------------------------------

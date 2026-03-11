@@ -1,62 +1,66 @@
 "use client";
 
 import { useEffect } from "react";
+import { createClient } from "@/utils/supabase/client";
 
-interface SyncPreferencesProps {
-  typography: string;
-  theme: string;
-  fontSize: string;
-}
-
-export function SyncPreferences({
-  typography,
-  theme,
-  fontSize,
-}: SyncPreferencesProps) {
+export function SyncPreferences() {
   useEffect(() => {
-    try {
-      const localTypography = localStorage.getItem("ode_typography");
-      const localTheme = localStorage.getItem("ode_theme");
-      const localFontSize = localStorage.getItem("ode_font_size");
+    const syncWithDB = async () => {
+      try {
+        const supabase = createClient();
+        const { data: { user } } = await supabase.auth.getUser();
+        
+        if (!user) return;
 
-      let updated = false;
+        const { data: profile } = await supabase
+          .from("users")
+          .select("typography_preference, theme_preference, font_size")
+          .eq("id", user.id)
+          .single();
 
-      // Sync and Mutate Typography
-      if (localTypography !== typography && typography) {
-        localStorage.setItem("ode_typography", typography);
-        document.documentElement.setAttribute("data-typography", typography);
-        updated = true;
+        if (profile) {
+          const typography = profile.typography_preference || "serif";
+          const theme = profile.theme_preference || "system";
+          const fontSize = profile.font_size || "medium";
+
+          const localTypography = localStorage.getItem("ode_typography");
+          const localTheme = localStorage.getItem("ode_theme");
+          const localFontSize = localStorage.getItem("ode_font_size");
+
+          // Sync Typography
+          if (localTypography !== typography) {
+            localStorage.setItem("ode_typography", typography);
+            document.documentElement.setAttribute("data-typography", typography);
+          }
+
+          // Sync Theme
+          if (theme !== "system") {
+            const currentNextTheme = localStorage.getItem("theme");
+            if (currentNextTheme !== theme) {
+                localStorage.setItem("theme", theme);
+                if(theme === 'dark') {
+                    document.documentElement.classList.add('dark');
+                    document.documentElement.classList.remove('light');
+                } else {
+                    document.documentElement.classList.add('light');
+                    document.documentElement.classList.remove('dark');
+                }
+            }
+          }
+
+          // Sync Font Size
+          if (localFontSize !== fontSize) {
+            localStorage.setItem("ode_font_size", fontSize);
+            document.documentElement.setAttribute("data-font-size", fontSize);
+          }
+        }
+      } catch (e) {
+        console.warn("Could not sync preferences to localStorage:", e);
       }
+    };
 
-      // Sync and Mutate Theme (respecting next-themes if possible, or forcing data-theme)
-      // next-themes uses standard localStorage 'theme' key, so we sync with that too
-      if (theme && theme !== "system") {
-         const currentNextTheme = localStorage.getItem("theme");
-         if(currentNextTheme !== theme) {
-             localStorage.setItem("theme", theme);
-             // next-themes normally uses class 'dark' or 'light'
-             if(theme === 'dark') {
-                 document.documentElement.classList.add('dark');
-                 document.documentElement.classList.remove('light');
-             } else {
-                 document.documentElement.classList.add('light');
-                 document.documentElement.classList.remove('dark');
-             }
-         }
-      }
+    syncWithDB();
+  }, []);
 
-      // Sync and Mutate Font Size
-      if (localFontSize !== fontSize && fontSize) {
-        localStorage.setItem("ode_font_size", fontSize);
-        document.documentElement.setAttribute("data-font-size", fontSize);
-        updated = true;
-      }
-      
-    } catch (e) {
-      // Browsers with strict privacy settings might throw on localStorage access
-      console.warn("Could not sync preferences to localStorage:", e);
-    }
-  }, [typography, theme, fontSize]);
-
-  return null; // This is a silent, renderless component
+  return null;
 }
