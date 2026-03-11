@@ -11,6 +11,8 @@ export interface Poem {
     original: string;
     translation: string;
   };
+  average_review?: number;
+  reviews_count?: number;
 }
 
 export interface CommunityActivity {
@@ -36,4 +38,6 @@ export interface Collection {
   summary?: string;
   cover_url?: string;
   poems_count: number;
+  average_review?: number;
+  reviews_count?: number;
 }

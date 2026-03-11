@@ -6,6 +6,7 @@ import PoemListItem from "@/components/collection/PoemListItem";
 import ReviewSection from "@/components/ui/ReviewSection";
 import FadeIn from "@/components/ui/FadeIn";
 import { Metadata } from "next";
+import { getCollectionBySlug } from "@/utils/supabase/queries";
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
     const resolvedParams = await params;
@@ -20,17 +21,20 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
 export default async function CollectionPage({ params }: { params: Promise<{ slug: string }> }) {
     const resolvedParams = await params;
     const collectionSlug = resolvedParams.slug;
+    const collectionData = await getCollectionBySlug(collectionSlug);
 
     // --- MOCK DATA --- 
     // Dans une version avec BDD, ceci serait un appel à Supabase récupérant `collections` et ses `poems` triés par `order_index`.
     const mockedCollection = {
-        title: collectionSlug.split('-').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' '),
+        title: collectionData?.title || collectionSlug.split('-').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' '),
         authorName: "Charles Baudelaire",
         authorSlug: "charles-baudelaire",
-        year: 1857,
-        poemCount: 163,
+        year: collectionData?.publication_year || 1857,
+        poemCount: collectionData?.poems_count || 163,
         coverColor: "from-zinc-800 to-black",
-        description: "Œuvre majeure de la poésie française, Les Fleurs du mal intègre le romantisme, le Parnasse et le symbolisme. Baudelaire y exprime l'oscillation constante de l'être humain entre le Spleen, source de la dépression, et l'Idéal, source d'élévation."
+        description: collectionData?.summary || "Œuvre majeure de la poésie française, Les Fleurs du mal intègre le romantisme, le Parnasse et le symbolisme.",
+        averageReview: collectionData?.average_review || 4.6,
+        reviewsCount: collectionData?.reviews_count || 892
     };
 
     // Mock des poèmes groupés par "Section" (Livre/Partie) - comme demandé
@@ -111,7 +115,11 @@ export default async function CollectionPage({ params }: { params: Promise<{ slu
                 </div>
 
                 {/* Avis & Notes */}
-                <ReviewSection averageReview={4.6} totalReviews={892} variant="full" />
+                <ReviewSection
+                    averageReview={mockedCollection.averageReview}
+                    totalReviews={mockedCollection.reviewsCount}
+                    variant="full"
+                />
 
             </main>
 

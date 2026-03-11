@@ -119,7 +119,11 @@ export default async function PoemPage({ params }: PoemPageProps) {
                 </FadeIn>
 
                 {/* Avis & Notes — placed after reading, not intrusive */}
-                <ReviewSection averageReview={4.8} totalReviews={1247} variant="minimal" />
+                <ReviewSection
+                    averageReview={poem.average_review || 0}
+                    totalReviews={poem.reviews_count || 0}
+                    variant="minimal"
+                />
 
             </main>
 

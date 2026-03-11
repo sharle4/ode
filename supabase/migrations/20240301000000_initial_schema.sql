@@ -523,6 +523,68 @@ create trigger set_updated_at_categories before update on public.categories for 
 create trigger set_updated_at_highlights before update on public.highlights for each row execute procedure handle_updated_at();
 create trigger set_updated_at_lists before update on public.lists for each row execute procedure handle_updated_at();
 
+-- Trigger to calculate average_review and reviews_count for poems
+create or replace function public.update_poem_review_stats()
+returns trigger as $$
+begin
+  if tg_op = 'INSERT' or tg_op = 'UPDATE' then
+    update public.poems
+    set 
+      average_review = (select coalesce(round(avg(score), 2), 0.00) from public.poem_reviews where poem_id = coalesce(new.poem_id, old.poem_id)),
+      reviews_count = (select count(*) from public.poem_reviews where poem_id = coalesce(new.poem_id, old.poem_id))
+    where id = coalesce(new.poem_id, old.poem_id);
+  elsif tg_op = 'DELETE' then
+    update public.poems
+    set 
+      average_review = (select coalesce(round(avg(score), 2), 0.00) from public.poem_reviews where poem_id = old.poem_id),
+      reviews_count = (select count(*) from public.poem_reviews where poem_id = old.poem_id)
+    where id = old.poem_id;
+  end if;
+  return null; -- After trigger doesn't need to return row
+end;
+$$ language plpgsql security definer;
+
+create trigger on_poem_review_change
+  after insert or update of score on public.poem_reviews
+  for each row execute procedure public.update_poem_review_stats();
+
+create trigger on_poem_review_delete
+  after delete on public.poem_reviews
+  for each row execute procedure public.update_poem_review_stats();
+
+-- Trigger to calculate average_review and reviews_count for collections
+-- First we need to make sure collections have these columns
+alter table public.collections add column if not exists average_review numeric(3,2) default 0.00 not null;
+alter table public.collections add column if not exists reviews_count int default 0 not null;
+
+create or replace function public.update_collection_review_stats()
+returns trigger as $$
+begin
+  if tg_op = 'INSERT' or tg_op = 'UPDATE' then
+    update public.collections
+    set 
+      average_review = (select coalesce(round(avg(score), 2), 0.00) from public.collection_reviews where collection_id = coalesce(new.collection_id, old.collection_id)),
+      reviews_count = (select count(*) from public.collection_reviews where collection_id = coalesce(new.collection_id, old.collection_id))
+    where id = coalesce(new.collection_id, old.collection_id);
+  elsif tg_op = 'DELETE' then
+    update public.collections
+    set 
+      average_review = (select coalesce(round(avg(score), 2), 0.00) from public.collection_reviews where collection_id = old.collection_id),
+      reviews_count = (select count(*) from public.collection_reviews where collection_id = old.collection_id)
+    where id = old.collection_id;
+  end if;
+  return null;
+end;
+$$ language plpgsql security definer;
+
+create trigger on_collection_review_change
+  after insert or update of score on public.collection_reviews
+  for each row execute procedure public.update_collection_review_stats();
+
+create trigger on_collection_review_delete
+  after delete on public.collection_reviews
+  for each row execute procedure public.update_collection_review_stats();
+
 -- 7. BACKGROUND JOBS & CRON (pg_cron)
 create extension if not exists pg_cron;
 create extension if not exists tsm_system_rows;

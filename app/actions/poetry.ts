@@ -14,7 +14,7 @@ export const ratePoem = authActionClient
     }))
     .action(async ({ parsedInput: { poemId, slug, score, reviewText }, ctx: { supabase, user } }) => {
         const { error } = await supabase
-            .from('reviews')
+            .from('poem_reviews')
             .upsert(
                 {
                     user_id: user.id,
@@ -32,6 +32,36 @@ export const ratePoem = authActionClient
         }
 
         revalidateTag(CACHE_TAGS.poem(slug))
+        return { success: true }
+    })
+
+export const rateCollection = authActionClient
+    .schema(z.object({
+        collectionId: z.string().uuid(),
+        slug: z.string().min(1),
+        score: z.number().min(0.5).max(5.0),
+        reviewText: z.string().max(1000).optional(),
+    }))
+    .action(async ({ parsedInput: { collectionId, slug, score, reviewText }, ctx: { supabase, user } }) => {
+        const { error } = await supabase
+            .from('collection_reviews')
+            .upsert(
+                {
+                    user_id: user.id,
+                    collection_id: collectionId,
+                    score,
+                    review_text: reviewText || null,
+                    updated_at: new Date().toISOString()
+                },
+                { onConflict: 'user_id,collection_id' }
+            )
+
+        if (error) {
+            console.error('Failed to rate collection:', error.message)
+            return { failure: 'Impossible de sauvegarder votre avis sur ce recueil.' }
+        }
+
+        revalidateTag(CACHE_TAGS.collection(slug))
         return { success: true }
     })
 

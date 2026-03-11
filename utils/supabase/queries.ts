@@ -21,7 +21,7 @@ export const getPoemBySlug = async (slug: string) => {
             const { data: poem, error } = await supabase
                 .from('poems')
                 .select(`
-                  *,
+                  id, title, slug, original_text, language, publication_year, average_review, reviews_count, content,
                   authors ( id, name, slug ),
                   collections ( id, title )
                 `)
@@ -79,7 +79,7 @@ const fetchCollectionByField = async (field: 'id' | 'slug', value: string) => {
             const supabase = getPublicClient()
             const { data: collection, error } = await supabase
                 .from('collections')
-                .select('*, authors ( id, name, slug )')
+                .select('id, title, slug, publication_year, summary, cover_url, poems_count, average_review, reviews_count, authors ( id, name, slug )')
                 .eq(field, value)
                 .maybeSingle()
 
