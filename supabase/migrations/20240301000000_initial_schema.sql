@@ -646,3 +646,51 @@ select cron.schedule('generate-daily-poem', '0 0 * * *', 'select public.select_d
 
 -- Schedule cleanup of processed reads (every day at 3am)
 select cron.schedule('cleanup-processed-reads', '0 3 * * *', $$ DELETE FROM public.reads WHERE processed = true AND created_at < NOW() - INTERVAL '7 days'; $$);
+
+
+-- 8. FEATURED CONTENT (HOME PAGE)
+
+create table public.featured_authors (
+    id uuid primary key default gen_random_uuid(),
+    author_id uuid references public.authors(id) on delete cascade not null,
+    position int not null,
+    created_at timestamptz default now() not null,
+    updated_at timestamptz default now() not null,
+    unique(position) deferrable initially deferred,
+    check (position >= 1),
+    unique(author_id)
+);
+
+create table public.featured_poems (
+    id uuid primary key default gen_random_uuid(),
+    poem_id uuid references public.poems(id) on delete cascade not null,
+    position int not null,
+    created_at timestamptz default now() not null,
+    updated_at timestamptz default now() not null,
+    unique(position) deferrable initially deferred,
+    check (position >= 1),
+    unique(poem_id)
+);
+
+create table public.featured_collections (
+    id uuid primary key default gen_random_uuid(),
+    collection_id uuid references public.collections(id) on delete cascade not null,
+    position int not null,
+    created_at timestamptz default now() not null,
+    updated_at timestamptz default now() not null,
+    unique(position) deferrable initially deferred,
+    check (position >= 1),
+    unique(collection_id)
+);
+
+alter table public.featured_authors enable row level security;
+alter table public.featured_poems enable row level security;
+alter table public.featured_collections enable row level security;
+
+create policy "Featured authors are viewable by everyone." on public.featured_authors for select using (true);
+create policy "Featured poems are viewable by everyone." on public.featured_poems for select using (true);
+create policy "Featured collections are viewable by everyone." on public.featured_collections for select using (true);
+
+create trigger set_updated_at_featured_authors before update on public.featured_authors for each row execute procedure handle_updated_at();
+create trigger set_updated_at_featured_poems before update on public.featured_poems for each row execute procedure handle_updated_at();
+create trigger set_updated_at_featured_collections before update on public.featured_collections for each row execute procedure handle_updated_at();
