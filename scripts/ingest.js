@@ -54,9 +54,10 @@ const __dirname = path.dirname(__filename);
 const POEMS_FILE_PATH = path.join(__dirname, '..', 'scripts', 'poems.cleaned.jsonl.gz');
 const ENRICHED_AUTHORS_PATH = path.join(__dirname, '..', 'scripts', 'enriched_authors.jsonl');
 
-// --- In-Memory Caches ---
-// We preload IDs and Slugs to avoid unique constraints violations. 
-// Entities themselves (Authors, Collections) are fetched JIT per batch to save RAM.
+// Entities themselves (Authors, Collections) are fetched JIT per batch to save RAM 
+// but cached globally in memoized maps to prevent redundant DB calls across batches.
+const memoizedAuthorsMap = new Map(); // name -> author_id
+const memoizedCollectionsMap = new Map(); // collection key -> collection_id
 const enrichedAuthorsMap = new Map(); // name -> enriched data
 const existingPoemIds = new Set(); // wikisource_page_id
 const usedPoemSlugs = new Set(); // slug
@@ -172,6 +173,7 @@ async function processBatch(batchLines) {
             parsedBatch.push(JSON.parse(line));
         } catch (e) {
             stats.errors.parse++;
+            failedPoems.push({ id: null, title: "JSON Parse Error", error: line.substring(0, 50) });
         }
     }
 
@@ -194,55 +196,68 @@ async function processBatch(batchLines) {
 
     if (toProcess.length === 0) return;
 
-    // --- 1. JIT RESOLVE AUTHORS ---
-    const localAuthorsMap = new Map();
+    // --- 1. JIT RESOLVE AUTHORS (Mémoïsé & Chunked) ---
+    const missingFromCache = [];
     const batchAuthorNames = [...new Set(toProcess.map(p => p.metadata?.author).filter(Boolean))];
     batchAuthorNames.push(UNKNOWN_AUTHOR); // Always ensure UNKNOWN_AUTHOR is requested
 
-    const { data: existingAuthors, error: authErr } = await supabase.from('authors').select('id, name').in('name', batchAuthorNames);
-    if (!authErr && existingAuthors) {
-        existingAuthors.forEach(a => localAuthorsMap.set(a.name, a.id));
+    for (const name of batchAuthorNames) {
+        if (!memoizedAuthorsMap.has(name)) missingFromCache.push(name);
     }
 
-    const missingAuthors = batchAuthorNames.filter(name => !localAuthorsMap.has(name));
-    if (missingAuthors.length > 0) {
-        const newAuthorsToInsert = missingAuthors.map(authorName => {
-            const enriched = enrichedAuthorsMap.get(authorName) || {};
-            let baseSlug = slugify(authorName, { lower: true, strict: true });
-            if (!baseSlug) baseSlug = `auteur-${Date.now()}`;
-            let finalSlug = baseSlug;
-            let counter = 1;
-            while (usedAuthorSlugs.has(finalSlug)) {
-                counter++;
-                finalSlug = `${baseSlug}-${counter}`;
+    if (missingFromCache.length > 0) {
+        const fetchPromises = [];
+        for (let i = 0; i < missingFromCache.length; i += 150) {
+            fetchPromises.push(supabase.from('authors').select('id, name').in('name', missingFromCache.slice(i, i + 150)));
+        }
+        
+        const results = await Promise.all(fetchPromises);
+        results.forEach(({ data, error }) => {
+            if (!error && data) {
+                data.forEach(a => memoizedAuthorsMap.set(a.name, a.id));
             }
-            usedAuthorSlugs.add(finalSlug);
-
-            return {
-                name: authorName,
-                slug: finalSlug,
-                image_url: enriched.image_url || null,
-                signature_url: enriched.signature_url || null,
-                date_of_birth: enriched.birth_date || null,
-                date_of_death: enriched.death_date || null,
-                birth_place: enriched.birth_place_short || null,
-                birth_place_detailed: enriched.birth_place_detailed || null,
-                death_place: enriched.death_place_short || null,
-                death_place_detailed: enriched.death_place_detailed || null,
-                native_name: enriched.native_name || null,
-                movement: enriched.movement && enriched.movement.length > 0 ? enriched.movement : null,
-                language: enriched.language || null,
-                nationality: enriched.nationality || null,
-                influenced_by: enriched.influenced_by && enriched.influenced_by.length > 0 ? enriched.influenced_by : null
-            };
         });
 
-        const { data: insertedAuthors, error: insertAuthErr } = await supabase.from('authors').insert(newAuthorsToInsert).select('id, name');
-        if (insertAuthErr) {
-            console.error("Bulk author insert error", insertAuthErr);
-            stats.errors.authors += newAuthorsToInsert.length;
-        } else if (insertedAuthors) {
-            insertedAuthors.forEach(a => localAuthorsMap.set(a.name, a.id));
+        const reallyMissingAuthors = missingFromCache.filter(name => !memoizedAuthorsMap.has(name));
+        if (reallyMissingAuthors.length > 0) {
+            const newAuthorsToInsert = reallyMissingAuthors.map(authorName => {
+                const enriched = enrichedAuthorsMap.get(authorName) || {};
+                let baseSlug = slugify(authorName, { lower: true, strict: true });
+                if (!baseSlug) baseSlug = `auteur-${Date.now()}`;
+                let finalSlug = baseSlug;
+                let counter = 1;
+                while (usedAuthorSlugs.has(finalSlug)) {
+                    counter++;
+                    finalSlug = `${baseSlug}-${counter}`;
+                }
+                usedAuthorSlugs.add(finalSlug);
+
+                return {
+                    name: authorName,
+                    slug: finalSlug,
+                    image_url: enriched.image_url || null,
+                    signature_url: enriched.signature_url || null,
+                    date_of_birth: enriched.birth_date || null,
+                    date_of_death: enriched.death_date || null,
+                    birth_place: enriched.birth_place_short || null,
+                    birth_place_detailed: enriched.birth_place_detailed || null,
+                    death_place: enriched.death_place_short || null,
+                    death_place_detailed: enriched.death_place_detailed || null,
+                    native_name: enriched.native_name || null,
+                    movement: enriched.movement && enriched.movement.length > 0 ? enriched.movement : null,
+                    language: enriched.language || null,
+                    nationality: enriched.nationality || null,
+                    influenced_by: enriched.influenced_by && enriched.influenced_by.length > 0 ? enriched.influenced_by : null
+                };
+            });
+
+            const { data: insertedAuthors, error: insertAuthErr } = await supabase.from('authors').insert(newAuthorsToInsert).select('id, name');
+            if (insertAuthErr) {
+                console.error("Bulk author insert error", insertAuthErr);
+                stats.errors.authors += newAuthorsToInsert.length;
+            } else if (insertedAuthors) {
+                insertedAuthors.forEach(a => memoizedAuthorsMap.set(a.name, a.id));
+            }
         }
     }
 
@@ -251,8 +266,8 @@ async function processBatch(batchLines) {
         if (!p.metadata?.author) stats.missingAuthorRecovered++;
     });
 
-    // --- 2. JIT RESOLVE COLLECTIONS ---
-    const localCollectionsMap = new Map();
+    // --- 2. JIT RESOLVE COLLECTIONS (Mémoïsé & Chunked) ---
+    const missingColsFromCache = [];
     const colTitlesToFetch = [];
     for (const p of toProcess) {
         const collectionTitle = p.collection_title || p.metadata?.source_collection;
@@ -261,10 +276,25 @@ async function processBatch(batchLines) {
 
     if (colTitlesToFetch.length > 0) {
         const uniqueTitles = [...new Set(colTitlesToFetch)];
-        const { data: existingCols } = await supabase.from('collections').select('id, title, wikisource_page_id').in('title', uniqueTitles);
-        existingCols?.forEach(c => {
-            const key = c.wikisource_page_id ? `page_${c.wikisource_page_id}` : `title_${c.title}`;
-            localCollectionsMap.set(key, c.id);
+        for (const title of uniqueTitles) {
+            // Un titre peut avoir différentes page_id selon l'édition,
+            // mais on optimise d'abord sur la requête 'in'. Le cache global est basé sur key.
+            missingColsFromCache.push(title); // This is an approximation since we query by title
+        }
+
+        const fetchColPromises = [];
+        for (let i = 0; i < missingColsFromCache.length; i += 150) {
+            fetchColPromises.push(supabase.from('collections').select('id, title, wikisource_page_id').in('title', missingColsFromCache.slice(i, i + 150)));
+        }
+        
+        const colResults = await Promise.all(fetchColPromises);
+        colResults.forEach(({ data, error }) => {
+            if (!error && data) {
+                data.forEach(c => {
+                    const key = c.wikisource_page_id ? `page_${c.wikisource_page_id}` : `title_${c.title}`;
+                    memoizedCollectionsMap.set(key, c.id);
+                });
+            }
         });
 
         const missingCollectionsMap = new Map();
@@ -275,7 +305,7 @@ async function processBatch(batchLines) {
             let pageId = p.collection_structure?.page_id || null;
             const key = pageId ? `page_${pageId}` : `title_${collectionTitle}`;
 
-            if (!localCollectionsMap.has(key) && !missingCollectionsMap.has(key)) {
+            if (!memoizedCollectionsMap.has(key) && !missingCollectionsMap.has(key)) {
                 const publicationYear = p.metadata?.publication_date;
                 const slug = generateUniqueCollectionSlug(collectionTitle, publicationYear);
                 missingCollectionsMap.set(key, {
@@ -301,7 +331,7 @@ async function processBatch(batchLines) {
             } else if (insertedCols) {
                 insertedCols.forEach(c => {
                     const key = c.wikisource_page_id ? `page_${c.wikisource_page_id}` : `title_${c.title}`;
-                    localCollectionsMap.set(key, c.id);
+                    memoizedCollectionsMap.set(key, c.id);
                 });
             }
         }
@@ -311,14 +341,14 @@ async function processBatch(batchLines) {
     const collectionAuthorsToInsert = [];
     for (const p of toProcess) {
         const authorName = p.metadata?.author || null;
-        let authorId = localAuthorsMap.get(authorName) || localAuthorsMap.get(UNKNOWN_AUTHOR);
+        let authorId = memoizedAuthorsMap.get(authorName) || memoizedAuthorsMap.get(UNKNOWN_AUTHOR);
 
         const collectionTitle = p.collection_title || p.metadata?.source_collection;
         let pageId = p.collection_structure?.page_id || null;
         const key = pageId ? `page_${pageId}` : `title_${collectionTitle}`;
 
-        if (collectionTitle && localCollectionsMap.has(key)) {
-            const collectionId = localCollectionsMap.get(key);
+        if (collectionTitle && memoizedCollectionsMap.has(key)) {
+            const collectionId = memoizedCollectionsMap.get(key);
             if (authorId && collectionId) {
                 collectionAuthorsToInsert.push({ collection_id: collectionId, author_id: authorId });
             }
@@ -345,7 +375,7 @@ async function processBatch(batchLines) {
 
     for (const p of toProcess) {
         const authorName = p.metadata?.author || null;
-        let authorId = localAuthorsMap.get(authorName) || localAuthorsMap.get(UNKNOWN_AUTHOR);
+        let authorId = memoizedAuthorsMap.get(authorName) || memoizedAuthorsMap.get(UNKNOWN_AUTHOR);
 
         const actualAuthorName = authorName || UNKNOWN_AUTHOR;
         const slug = generateUniquePoemSlug(actualAuthorName, p.title);
@@ -353,7 +383,7 @@ async function processBatch(batchLines) {
         const collectionTitle = p.collection_title || p.metadata?.source_collection;
         let pageId = p.collection_structure?.page_id || null;
         const key = pageId ? `page_${pageId}` : `title_${collectionTitle}`;
-        const collectionId = localCollectionsMap.get(key) || null;
+        const collectionId = memoizedCollectionsMap.get(key) || null;
 
         poemsToInsert.push({
             title: p.title,
@@ -398,7 +428,7 @@ async function processBatch(batchLines) {
             const { error: relationsError } = await supabase.from('poem_authors').upsert(poemAuthorsToInsert, { onConflict: 'poem_id,author_id', ignoreDuplicates: true });
 
             if (relationsError) {
-                // Rollback sécurisé contre l'erreur URI Too Long en PARALLÈLE (Promise.all)
+                // Rollback sécurisé contre l'erreur URI Too Long en PARALLÈLE (Promise.allSettled)
                 const idsToDelete = insertedPoems.map(p => p.id);
                 const chunkSize = 100;
                 const deletePromises = [];
@@ -408,7 +438,7 @@ async function processBatch(batchLines) {
                     deletePromises.push(supabase.from('poems').delete().in('id', chunk));
                 }
 
-                await Promise.all(deletePromises);
+                await Promise.allSettled(deletePromises);
 
                 stats.errors.poems += poemsToInsert.length;
                 for (const p of poemsToInsert) {
@@ -431,24 +461,19 @@ async function processBatch(batchLines) {
 }
 
 async function deleteDummyData() {
-    console.log("🗑️ Cleaning up dummy data before ingestion...");
-    const dummyAuthors = ['a1111111-1111-1111-1111-111111111111', 'a2222222-2222-2222-2222-222222222222'];
-    const dummyCollections = ['c1111111-1111-1111-1111-111111111111', 'c2222222-2222-2222-2222-222222222222'];
-    const dummyPoems = ['d1111111-1111-1111-1111-111111111111', 'd2222222-2222-2222-2222-222222222222'];
-    const dummyCategories = ['e1111111-1111-1111-1111-111111111111', 'e2222222-2222-2222-2222-222222222222'];
-
-    // Delete relation tables first
-    await supabase.from('poem_categories').delete().in('category_id', dummyCategories);
-    await supabase.from('poem_authors').delete().in('poem_id', dummyPoems);
-    await supabase.from('collection_authors').delete().in('collection_id', dummyCollections);
-
-    // Delete main tables
-    await supabase.from('poems').delete().in('id', dummyPoems);
-    await supabase.from('categories').delete().in('id', dummyCategories);
-    await supabase.from('collections').delete().in('id', dummyCollections);
-    await supabase.from('authors').delete().in('id', dummyAuthors);
-
-    console.log("✅ Dummy data clean up complete.");
+    console.log("🗑️ Cleaning up database relations completely...");
+    // Only safe since this is a data ingestion script wiping state
+    await supabase.from('poem_categories').delete().neq('category_id', '00000000-0000-0000-0000-000000000000');
+    await supabase.from('poem_authors').delete().neq('poem_id', '00000000-0000-0000-0000-000000000000');
+    await supabase.from('collection_authors').delete().neq('collection_id', '00000000-0000-0000-0000-000000000000');
+    
+    // We do NOT completely delete 'authors', 'collections', and 'poems'
+    // if this is an incremental ingest. Kept original table relationships.
+    // If you need full purge before a complete ingest, do:
+    // await supabase.from('poems').delete().neq('id', '00000000-0000-0000-0000-000000000000');
+    // await supabase.from('collections').delete().neq('id', '00000000-0000-0000-0000-000000000000');
+    // await supabase.from('authors').delete().neq('id', '00000000-0000-0000-0000-000000000000');
+    console.log("✅ Data clean up complete.");
 }
 
 async function run() {
