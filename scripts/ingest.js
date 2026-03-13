@@ -124,19 +124,7 @@ async function preloadData() {
     }
     console.log(`✅ Loaded ${collectionsMap.size} collections.`);
 
-    // 3. Poèmes (IDs existants pour éviter les doublons lors des re-runs)
-    offset = 0; hasMore = true;
-    while (hasMore) {
-        let { data, error } = await supabase.from('poems').select('wikisource_page_id, slug').range(offset, offset + limit - 1);
-        if (error) { console.error("Error preloading poems", error); break; }
-        data?.forEach(p => {
-            if (p.wikisource_page_id) existingPoemIds.add(p.wikisource_page_id);
-            if (p.slug) usedPoemSlugs.add(p.slug);
-        });
-        hasMore = data?.length === limit;
-        offset += limit;
-    }
-    console.log(`✅ Loaded ${existingPoemIds.size} existing poems, ${usedPoemSlugs.size} poem slugs, ${usedCollectionSlugs.size} collection slugs, and ${usedAuthorSlugs.size} author slugs.`);
+    console.log(`✅ Loaded ${usedCollectionSlugs.size} collection slugs, and ${usedAuthorSlugs.size} author slugs. (Poems are JIT loaded)`);
 }
 
 function generateUniquePoemSlug(authorName, poemTitle) {
@@ -179,6 +167,31 @@ function generateUniqueCollectionSlug(title, year) {
 }
 
 async function processBatch(batch) {
+    const batchPageIds = batch.map(line => {
+        try { return JSON.parse(line).page_id; } catch { return null; }
+    }).filter(Boolean);
+
+    if (batchPageIds.length > 0) {
+        const { data: existingPoems } = await supabase.from('poems').select('wikisource_page_id, slug').in('wikisource_page_id', batchPageIds);
+        existingPoems?.forEach(p => {
+            if (p.wikisource_page_id) existingPoemIds.add(p.wikisource_page_id);
+            if (p.slug) usedPoemSlugs.add(p.slug);
+        });
+    }
+
+    const proposedPoemSlugs = batch.map(line => {
+        try {
+            const p = JSON.parse(line);
+            const author = p.metadata?.author || UNKNOWN_AUTHOR;
+            return slugify(`${author} ${p.title}`, { lower: true, strict: true }) || 'poeme-sans-titre';
+        } catch { return null; }
+    }).filter(Boolean);
+
+    if (proposedPoemSlugs.length > 0) {
+        const { data: existingSlugs } = await supabase.from('poems').select('slug').in('slug', proposedPoemSlugs);
+        existingSlugs?.forEach(p => usedPoemSlugs.add(p.slug));
+    }
+
     const toProcess = [];
     for (const line of batch) {
         if (!line.trim()) continue;
@@ -202,6 +215,8 @@ async function processBatch(batch) {
             continue;
         }
 
+        // Ajout optimiste IMMÉDIAT pour bloquer les doublons du même lot
+        existingPoemIds.add(poemData.page_id);
         toProcess.push(poemData);
     }
 
@@ -381,7 +396,7 @@ async function processBatch(batch) {
     if (poemsToInsert.length === 0) return;
 
     try {
-        const { data: insertedPoems, error: poemsError } = await supabase.from('poems').insert(poemsToInsert).select('id, wikisource_page_id');
+        const { data: insertedPoems, error: poemsError } = await supabase.from('poems').upsert(poemsToInsert, { onConflict: 'wikisource_page_id', ignoreDuplicates: true }).select('id, wikisource_page_id');
 
         if (poemsError) {
             stats.errors.poems += poemsToInsert.length;
@@ -390,6 +405,8 @@ async function processBatch(batch) {
             }
             return;
         }
+        
+        if (!insertedPoems || insertedPoems.length === 0) return;
 
         // 5. Insert Relations for Poems
         const poemAuthorsToInsert = insertedPoems.map(p => ({
@@ -401,8 +418,14 @@ async function processBatch(batch) {
             const { error: relationsError } = await supabase.from('poem_authors').upsert(poemAuthorsToInsert, { onConflict: 'poem_id,author_id', ignoreDuplicates: true });
 
             if (relationsError) {
-                // Rollback manuals
-                await supabase.from('poems').delete().in('id', insertedPoems.map(p => p.id));
+                // Rollback sécurisé contre l'erreur URI Too Long
+                const idsToDelete = insertedPoems.map(p => p.id);
+                const chunkSize = 100;
+                
+                for (let i = 0; i < idsToDelete.length; i += chunkSize) {
+                    const chunk = idsToDelete.slice(i, i + chunkSize);
+                    await supabase.from('poems').delete().in('id', chunk);
+                }
 
                 stats.errors.poems += poemsToInsert.length;
                 for (const p of poemsToInsert) {
@@ -410,12 +433,10 @@ async function processBatch(batch) {
                 }
             } else {
                 stats.insertedPoems += insertedPoems.length;
-                insertedPoems.forEach(p => existingPoemIds.add(p.wikisource_page_id));
             }
         } else {
             // No relations, just update stats
             stats.insertedPoems += insertedPoems.length;
-            insertedPoems.forEach(p => existingPoemIds.add(p.wikisource_page_id));
         }
 
         // Throttle slightly to keep connections happy between batches
