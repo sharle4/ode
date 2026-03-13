@@ -55,11 +55,9 @@ const POEMS_FILE_PATH = path.join(__dirname, '..', 'scripts', 'poems.cleaned.jso
 const ENRICHED_AUTHORS_PATH = path.join(__dirname, '..', 'scripts', 'enriched_authors.jsonl');
 
 // --- In-Memory Caches ---
-// We preload data to avoid 50,000+ sequential GET requests that exhaust local ports. 
-const authorsMap = new Map(); // name -> author_id
-const authorIdToNameMap = new Map(); // author_id -> name
+// We preload IDs and Slugs to avoid unique constraints violations. 
+// Entities themselves (Authors, Collections) are fetched JIT per batch to save RAM.
 const enrichedAuthorsMap = new Map(); // name -> enriched data
-const collectionsMap = new Map(); // collection key -> collection_id
 const existingPoemIds = new Set(); // wikisource_page_id
 const usedPoemSlugs = new Set(); // slug
 const usedCollectionSlugs = new Set(); // slug
@@ -83,48 +81,45 @@ const stats = {
 const failedPoems = []; // stores detailed context on failures
 
 async function preloadData() {
-    console.log("📥 Preloading existing database state into memory to optimize ingestion...");
-    let offset = 0; let limit = 1000; let hasMore = true;
+    console.log("📥 Preloading existing IDs and Slugs into memory to avoid conflicts...");
+    let offset = 0; let limit = 5000; let hasMore = true;
 
     // 1. Authors
     while (hasMore) {
-        let { data, error } = await supabase.from('authors').select('id, name, slug').range(offset, offset + limit - 1);
+        let { data, error } = await supabase.from('authors').select('slug').range(offset, offset + limit - 1);
         if (error) { console.error("Error preloading authors", error); break; }
         data?.forEach(a => {
-            authorsMap.set(a.name, a.id);
-            authorIdToNameMap.set(a.id, a.name);
             if (a.slug) usedAuthorSlugs.add(a.slug);
         });
         hasMore = data?.length === limit;
         offset += limit;
     }
 
-    // Create unknown author if missing
-    if (!authorsMap.has(UNKNOWN_AUTHOR)) {
-        const { data } = await supabase.from('authors').insert({ name: UNKNOWN_AUTHOR }).select('id').single();
-        if (data) {
-            authorsMap.set(UNKNOWN_AUTHOR, data.id);
-            authorIdToNameMap.set(data.id, UNKNOWN_AUTHOR);
-        }
-    }
-    console.log(`✅ Loaded ${authorsMap.size} authors.`);
-
     // 2. Collections
     offset = 0; hasMore = true;
     while (hasMore) {
-        let { data, error } = await supabase.from('collections').select('id, title, wikisource_page_id, slug').range(offset, offset + limit - 1);
+        let { data, error } = await supabase.from('collections').select('slug').range(offset, offset + limit - 1);
         if (error) { console.error("Error preloading collections", error); break; }
         data?.forEach(c => {
-            const key = c.wikisource_page_id ? `page_${c.wikisource_page_id}` : `title_${c.title}`;
-            collectionsMap.set(key, { id: c.id });
             if (c.slug) usedCollectionSlugs.add(c.slug);
         });
         hasMore = data?.length === limit;
         offset += limit;
     }
-    console.log(`✅ Loaded ${collectionsMap.size} collections.`);
 
-    console.log(`✅ Loaded ${usedCollectionSlugs.size} collection slugs, and ${usedAuthorSlugs.size} author slugs. (Poems are JIT loaded)`);
+    // 3. Poèmes (IDs existants pour éviter les doublons lors des re-runs)
+    offset = 0; hasMore = true;
+    while (hasMore) {
+        let { data, error } = await supabase.from('poems').select('wikisource_page_id, slug').range(offset, offset + limit - 1);
+        if (error) { console.error("Error preloading poems", error); break; }
+        data?.forEach(p => {
+            if (p.wikisource_page_id) existingPoemIds.add(p.wikisource_page_id);
+            if (p.slug) usedPoemSlugs.add(p.slug);
+        });
+        hasMore = data?.length === limit;
+        offset += limit;
+    }
+    console.log(`✅ Loaded ${existingPoemIds.size} existing poems, ${usedPoemSlugs.size} poem slugs, ${usedCollectionSlugs.size} collection slugs, and ${usedAuthorSlugs.size} author slugs.`);
 }
 
 function generateUniquePoemSlug(authorName, poemTitle) {
@@ -166,45 +161,22 @@ function generateUniqueCollectionSlug(title, year) {
     return finalSlug;
 }
 
-async function processBatch(batch) {
-    const batchPageIds = batch.map(line => {
-        try { return JSON.parse(line).page_id; } catch { return null; }
-    }).filter(Boolean);
-
-    if (batchPageIds.length > 0) {
-        const { data: existingPoems } = await supabase.from('poems').select('wikisource_page_id, slug').in('wikisource_page_id', batchPageIds);
-        existingPoems?.forEach(p => {
-            if (p.wikisource_page_id) existingPoemIds.add(p.wikisource_page_id);
-            if (p.slug) usedPoemSlugs.add(p.slug);
-        });
-    }
-
-    const proposedPoemSlugs = batch.map(line => {
-        try {
-            const p = JSON.parse(line);
-            const author = p.metadata?.author || UNKNOWN_AUTHOR;
-            return slugify(`${author} ${p.title}`, { lower: true, strict: true }) || 'poeme-sans-titre';
-        } catch { return null; }
-    }).filter(Boolean);
-
-    if (proposedPoemSlugs.length > 0) {
-        const { data: existingSlugs } = await supabase.from('poems').select('slug').in('slug', proposedPoemSlugs);
-        existingSlugs?.forEach(p => usedPoemSlugs.add(p.slug));
-    }
-
-    const toProcess = [];
-    for (const line of batch) {
+async function processBatch(batchLines) {
+    // SINGLE JSON.parse pass for all lines in the batch
+    const parsedBatch = [];
+    for (const line of batchLines) {
         if (!line.trim()) continue;
         stats.totalLines++;
 
-        let poemData;
         try {
-            poemData = JSON.parse(line);
+            parsedBatch.push(JSON.parse(line));
         } catch (e) {
             stats.errors.parse++;
-            continue;
         }
+    }
 
+    const toProcess = [];
+    for (const poemData of parsedBatch) {
         if (!poemData.page_id) {
             failedPoems.push({ id: null, title: poemData.title || "Unknown", error: "Missing wikisource_page_id" });
             continue;
@@ -222,25 +194,22 @@ async function processBatch(batch) {
 
     if (toProcess.length === 0) return;
 
-    // 1. Resolve Authors
-    const authorsToCreate = new Map();
-    for (const p of toProcess) {
-        const authorName = p.metadata?.author || null;
-        if (!authorName) {
-            stats.missingAuthorRecovered++;
-        } else if (!authorsMap.has(authorName) && !authorsToCreate.has(authorName)) {
-            authorsToCreate.set(authorName, { name: authorName });
-        }
+    // --- 1. JIT RESOLVE AUTHORS ---
+    const localAuthorsMap = new Map();
+    const batchAuthorNames = [...new Set(toProcess.map(p => p.metadata?.author).filter(Boolean))];
+    batchAuthorNames.push(UNKNOWN_AUTHOR); // Always ensure UNKNOWN_AUTHOR is requested
+
+    const { data: existingAuthors, error: authErr } = await supabase.from('authors').select('id, name').in('name', batchAuthorNames);
+    if (!authErr && existingAuthors) {
+        existingAuthors.forEach(a => localAuthorsMap.set(a.name, a.id));
     }
 
-    if (authorsToCreate.size > 0) {
-        const newAuthors = [];
-        for (const [authorName, _] of authorsToCreate) {
+    const missingAuthors = batchAuthorNames.filter(name => !localAuthorsMap.has(name));
+    if (missingAuthors.length > 0) {
+        const newAuthorsToInsert = missingAuthors.map(authorName => {
             const enriched = enrichedAuthorsMap.get(authorName) || {};
-
             let baseSlug = slugify(authorName, { lower: true, strict: true });
             if (!baseSlug) baseSlug = `auteur-${Date.now()}`;
-
             let finalSlug = baseSlug;
             let counter = 1;
             while (usedAuthorSlugs.has(finalSlug)) {
@@ -249,7 +218,7 @@ async function processBatch(batch) {
             }
             usedAuthorSlugs.add(finalSlug);
 
-            newAuthors.push({
+            return {
                 name: authorName,
                 slug: finalSlug,
                 image_url: enriched.image_url || null,
@@ -265,80 +234,91 @@ async function processBatch(batch) {
                 language: enriched.language || null,
                 nationality: enriched.nationality || null,
                 influenced_by: enriched.influenced_by && enriched.influenced_by.length > 0 ? enriched.influenced_by : null
-            });
+            };
+        });
+
+        const { data: insertedAuthors, error: insertAuthErr } = await supabase.from('authors').insert(newAuthorsToInsert).select('id, name');
+        if (insertAuthErr) {
+            console.error("Bulk author insert error", insertAuthErr);
+            stats.errors.authors += newAuthorsToInsert.length;
+        } else if (insertedAuthors) {
+            insertedAuthors.forEach(a => localAuthorsMap.set(a.name, a.id));
+        }
+    }
+
+    // Compute missing authors recovery stats
+    toProcess.forEach(p => {
+        if (!p.metadata?.author) stats.missingAuthorRecovered++;
+    });
+
+    // --- 2. JIT RESOLVE COLLECTIONS ---
+    const localCollectionsMap = new Map();
+    const colTitlesToFetch = [];
+    for (const p of toProcess) {
+        const collectionTitle = p.collection_title || p.metadata?.source_collection;
+        if (collectionTitle) colTitlesToFetch.push(collectionTitle);
+    }
+
+    if (colTitlesToFetch.length > 0) {
+        const uniqueTitles = [...new Set(colTitlesToFetch)];
+        const { data: existingCols } = await supabase.from('collections').select('id, title, wikisource_page_id').in('title', uniqueTitles);
+        existingCols?.forEach(c => {
+            const key = c.wikisource_page_id ? `page_${c.wikisource_page_id}` : `title_${c.title}`;
+            localCollectionsMap.set(key, c.id);
+        });
+
+        const missingCollectionsMap = new Map();
+        for (const p of toProcess) {
+            const collectionTitle = p.collection_title || p.metadata?.source_collection;
+            if (!collectionTitle) continue;
+
+            let pageId = p.collection_structure?.page_id || null;
+            const key = pageId ? `page_${pageId}` : `title_${collectionTitle}`;
+
+            if (!localCollectionsMap.has(key) && !missingCollectionsMap.has(key)) {
+                const publicationYear = p.metadata?.publication_date;
+                const slug = generateUniqueCollectionSlug(collectionTitle, publicationYear);
+                missingCollectionsMap.set(key, {
+                    title: collectionTitle,
+                    slug: slug,
+                    publication_year: publicationYear ? parseInt(publicationYear, 10) : null,
+                    wikisource_page_id: pageId,
+                    poems_count: 0,
+                    _key: key
+                });
+            }
         }
 
-        if (newAuthors.length > 0) {
-            const { data, error } = await supabase.from('authors').insert(newAuthors).select('id, name');
-            if (error) {
-                console.error("Bulk author insert error", error);
-                stats.errors.authors += newAuthors.length;
-                newAuthors.forEach(a => {
-                    authorsMap.set(a.name, authorsMap.get(UNKNOWN_AUTHOR));
-                });
-            } else if (data) {
-                data.forEach(a => {
-                    authorsMap.set(a.name, a.id);
-                    authorIdToNameMap.set(a.id, a.name);
+        if (missingCollectionsMap.size > 0) {
+            const insertData = Array.from(missingCollectionsMap.values()).map(c => {
+                const { _key, ...rest } = c;
+                return rest;
+            });
+            const { data: insertedCols, error: colsErr } = await supabase.from('collections').insert(insertData).select('id, wikisource_page_id, title');
+            if (colsErr) {
+                console.error("Bulk collection insert error", colsErr);
+                stats.errors.collections += insertData.length;
+            } else if (insertedCols) {
+                insertedCols.forEach(c => {
+                    const key = c.wikisource_page_id ? `page_${c.wikisource_page_id}` : `title_${c.title}`;
+                    localCollectionsMap.set(key, c.id);
                 });
             }
         }
     }
 
-    // 2. Resolve Collections
-    const collectionsToCreateMap = new Map();
-    for (const p of toProcess) {
-        const collectionTitle = p.collection_title || p.metadata?.source_collection;
-        if (!collectionTitle) continue;
-
-        let pageId = p.collection_structure?.page_id || null;
-        const key = pageId ? `page_${pageId}` : `title_${collectionTitle}`;
-
-        if (!collectionsMap.has(key) && !collectionsToCreateMap.has(key)) {
-            const publicationYear = p.metadata?.publication_date;
-            const slug = generateUniqueCollectionSlug(collectionTitle, publicationYear);
-            collectionsToCreateMap.set(key, {
-                title: collectionTitle,
-                slug: slug,
-                publication_year: publicationYear ? parseInt(publicationYear, 10) : null,
-                wikisource_page_id: pageId,
-                poems_count: 0,
-                _key: key
-            });
-        }
-    }
-
-    if (collectionsToCreateMap.size > 0) {
-        const newCollections = Array.from(collectionsToCreateMap.values());
-        const insertData = newCollections.map(c => {
-            const { _key, ...rest } = c;
-            return rest;
-        });
-
-        const { data, error } = await supabase.from('collections').insert(insertData).select('id, wikisource_page_id, title');
-        if (error) {
-            console.error("Bulk collection insert error", error);
-            stats.errors.collections += insertData.length;
-        } else if (data) {
-            data.forEach(c => {
-                const key = c.wikisource_page_id ? `page_${c.wikisource_page_id}` : `title_${c.title}`;
-                collectionsMap.set(key, { id: c.id });
-            });
-        }
-    }
-
-    // 3. Collection Authors Relations
+    // --- 3. COLLECTION AUTHORS RELATIONS ---
     const collectionAuthorsToInsert = [];
     for (const p of toProcess) {
         const authorName = p.metadata?.author || null;
-        let authorId = authorsMap.get(authorName) || authorsMap.get(UNKNOWN_AUTHOR);
+        let authorId = localAuthorsMap.get(authorName) || localAuthorsMap.get(UNKNOWN_AUTHOR);
 
         const collectionTitle = p.collection_title || p.metadata?.source_collection;
         let pageId = p.collection_structure?.page_id || null;
         const key = pageId ? `page_${pageId}` : `title_${collectionTitle}`;
 
-        if (collectionTitle && collectionsMap.has(key)) {
-            const collectionId = collectionsMap.get(key).id;
+        if (collectionTitle && localCollectionsMap.has(key)) {
+            const collectionId = localCollectionsMap.get(key);
             if (authorId && collectionId) {
                 collectionAuthorsToInsert.push({ collection_id: collectionId, author_id: authorId });
             }
@@ -359,13 +339,13 @@ async function processBatch(batch) {
         await supabase.from('collection_authors').upsert(uniqueColAuth, { onConflict: 'collection_id,author_id', ignoreDuplicates: true });
     }
 
-    // 4. Insert Poems
+    // --- 4. INSERT POEMS ---
     const poemsToInsert = [];
-    const poemRelationsLookup = new Map(); // page_id -> authorId
+    const poemRelationsLookup = new Map();
 
     for (const p of toProcess) {
         const authorName = p.metadata?.author || null;
-        let authorId = authorsMap.get(authorName) || authorsMap.get(UNKNOWN_AUTHOR);
+        let authorId = localAuthorsMap.get(authorName) || localAuthorsMap.get(UNKNOWN_AUTHOR);
 
         const actualAuthorName = authorName || UNKNOWN_AUTHOR;
         const slug = generateUniquePoemSlug(actualAuthorName, p.title);
@@ -373,7 +353,7 @@ async function processBatch(batch) {
         const collectionTitle = p.collection_title || p.metadata?.source_collection;
         let pageId = p.collection_structure?.page_id || null;
         const key = pageId ? `page_${pageId}` : `title_${collectionTitle}`;
-        const collectionId = collectionsMap.get(key)?.id || null;
+        const collectionId = localCollectionsMap.get(key) || null;
 
         poemsToInsert.push({
             title: p.title,
@@ -408,7 +388,7 @@ async function processBatch(batch) {
         
         if (!insertedPoems || insertedPoems.length === 0) return;
 
-        // 5. Insert Relations for Poems
+        // --- 5. INSERT RELATIONS FOR POEMS ---
         const poemAuthorsToInsert = insertedPoems.map(p => ({
             poem_id: p.id,
             author_id: poemRelationsLookup.get(p.wikisource_page_id)
@@ -418,14 +398,17 @@ async function processBatch(batch) {
             const { error: relationsError } = await supabase.from('poem_authors').upsert(poemAuthorsToInsert, { onConflict: 'poem_id,author_id', ignoreDuplicates: true });
 
             if (relationsError) {
-                // Rollback sécurisé contre l'erreur URI Too Long
+                // Rollback sécurisé contre l'erreur URI Too Long en PARALLÈLE (Promise.all)
                 const idsToDelete = insertedPoems.map(p => p.id);
                 const chunkSize = 100;
+                const deletePromises = [];
                 
                 for (let i = 0; i < idsToDelete.length; i += chunkSize) {
                     const chunk = idsToDelete.slice(i, i + chunkSize);
-                    await supabase.from('poems').delete().in('id', chunk);
+                    deletePromises.push(supabase.from('poems').delete().in('id', chunk));
                 }
+
+                await Promise.all(deletePromises);
 
                 stats.errors.poems += poemsToInsert.length;
                 for (const p of poemsToInsert) {
