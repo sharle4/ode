@@ -184,3 +184,400 @@ export const getTrendingPoems = (limit: number = 10) => executeCachedQuery(
         return poems;
     }
 );
+
+// ── FEATURED CONTENT (Homepage) ──
+
+export const getFeaturedAuthors = () => executeCachedQuery(
+    {
+        keyParts: ['featured-authors'],
+        tags: [CACHE_TAGS.featured],
+        revalidate: 86400,
+        errorMessage: 'Database Error fetching featured authors:'
+    },
+    async (supabase) => {
+        const { data } = await supabase
+            .from('featured_authors')
+            .select('position, authors ( id, name, slug, image_url )')
+            .order('position', { ascending: true })
+            .throwOnError();
+
+        // Flatten the join: { position, authors: { ... } } → { position, ...author }
+        return (data || []).map((row: any) => ({
+            ...row.authors,
+            position: row.position,
+        }));
+    }
+);
+
+export const getFeaturedCollections = () => executeCachedQuery(
+    {
+        keyParts: ['featured-collections'],
+        tags: [CACHE_TAGS.featured],
+        revalidate: 86400,
+        errorMessage: 'Database Error fetching featured collections:'
+    },
+    async (supabase) => {
+        const { data } = await supabase
+            .from('featured_collections')
+            .select('position, collections ( id, title, slug, publication_year, poems_count, authors ( id, name, slug ) )')
+            .order('position', { ascending: true })
+            .throwOnError();
+
+        return (data || []).map((row: any) => ({
+            ...row.collections,
+            position: row.position,
+        }));
+    }
+);
+
+// ── COMMUNITY FEED ──
+
+export const getCommunityFeed = (limit: number = 8) => executeCachedQuery(
+    {
+        keyParts: [`community-feed-${limit}`],
+        tags: [CACHE_TAGS.community],
+        revalidate: 300, // 5 minutes for fresh community data
+        errorMessage: 'Database Error fetching community feed:'
+    },
+    async (supabase) => {
+        const { data } = await supabase
+            .from('poem_reviews')
+            .select(`
+                id, score, review_text, created_at,
+                users ( id, username, avatar_url ),
+                poems ( id, title, slug, authors ( id, name, slug ) )
+            `)
+            .order('created_at', { ascending: false })
+            .limit(limit)
+            .throwOnError();
+
+        return data || [];
+    }
+);
+
+// ── CATEGORIES ──
+
+export const getCategories = () => executeCachedQuery(
+    {
+        keyParts: ['all-categories'],
+        tags: [CACHE_TAGS.categories],
+        revalidate: 86400,
+        errorMessage: 'Database Error fetching categories:'
+    },
+    async (supabase) => {
+        const { data } = await supabase
+            .from('categories')
+            .select('id, name, description')
+            .order('name', { ascending: true })
+            .throwOnError();
+
+        return data || [];
+    }
+);
+
+// ── PLATFORM STATS (HeroSection) ──
+
+export const getPlatformStats = () => executeCachedQuery(
+    {
+        keyParts: ['platform-stats'],
+        tags: [CACHE_TAGS.stats],
+        revalidate: 3600,
+        errorMessage: 'Database Error fetching platform stats:'
+    },
+    async (supabase) => {
+        const [poemsResult, languagesResult, usersResult] = await Promise.all([
+            supabase.from('poems').select('id', { count: 'exact', head: true }).throwOnError(),
+            supabase.from('poems').select('language').throwOnError(),
+            supabase.from('users').select('id', { count: 'exact', head: true }).throwOnError(),
+        ]);
+
+        const uniqueLanguages = new Set((languagesResult.data || []).map((p: any) => p.language));
+
+        return {
+            poemsCount: poemsResult.count || 0,
+            languagesCount: uniqueLanguages.size || 0,
+            usersCount: usersResult.count || 0,
+        };
+    }
+);
+
+// ── AUTHOR WITH FULL WORKS ──
+
+export const getAuthorWithWorks = (slug: string) => executeCachedQuery(
+    {
+        keyParts: [CACHE_TAGS.author(slug), 'works'],
+        tags: [CACHE_TAGS.author(slug)],
+        revalidate: 86400,
+        errorMessage: 'Database Error fetching author with works:'
+    },
+    async (supabase) => {
+        // 1. Fetch the author
+        const { data: author } = await supabase
+            .from('authors')
+            .select('*')
+            .eq('slug', slug)
+            .maybeSingle()
+            .throwOnError();
+
+        if (!author) return null;
+
+        // 2. Fetch author's collections via junction table
+        const { data: collectionLinks } = await supabase
+            .from('collection_authors')
+            .select('collections ( id, title, slug, publication_year, poems_count, summary )')
+            .eq('author_id', author.id)
+            .throwOnError();
+
+        const collections = (collectionLinks || []).map((link: any) => link.collections).filter(Boolean);
+
+        // 3. Fetch author's poems via junction table, ordered by popularity
+        const { data: poemLinks } = await supabase
+            .from('poem_authors')
+            .select('poems ( id, title, slug, average_review, reads_count )')
+            .eq('author_id', author.id)
+            .throwOnError();
+
+        const poems = (poemLinks || [])
+            .map((link: any) => link.poems)
+            .filter(Boolean)
+            .sort((a: any, b: any) => (b.reads_count || 0) - (a.reads_count || 0));
+
+        return { ...author, collections, poems };
+    }
+);
+
+// ── COLLECTION WITH SECTIONS ──
+
+export const getCollectionWithSections = (slug: string) => executeCachedQuery(
+    {
+        keyParts: [CACHE_TAGS.collection(slug), 'sections'],
+        tags: [CACHE_TAGS.collection(slug)],
+        revalidate: 86400,
+        errorMessage: 'Database Error fetching collection with sections:'
+    },
+    async (supabase) => {
+        // 1. Fetch the collection with its authors
+        const { data: collection } = await supabase
+            .from('collections')
+            .select('id, title, slug, publication_year, summary, cover_url, poems_count, average_review, reviews_count, authors ( id, name, slug )')
+            .eq('slug', slug)
+            .maybeSingle()
+            .throwOnError();
+
+        if (!collection) return null;
+
+        // 2. Fetch all poems in this collection, ordered
+        const { data: poems } = await supabase
+            .from('poems')
+            .select('id, title, slug, section_title, poem_order, reads_count')
+            .eq('collection_id', collection.id)
+            .order('poem_order', { ascending: true, nullsFirst: false })
+            .throwOnError();
+
+        // 3. Group poems by section_title
+        const sectionsMap = new Map<string, any[]>();
+        for (const poem of (poems || [])) {
+            const section = poem.section_title || 'Poèmes';
+            if (!sectionsMap.has(section)) {
+                sectionsMap.set(section, []);
+            }
+            sectionsMap.get(section)!.push(poem);
+        }
+
+        const sections = Array.from(sectionsMap.entries()).map(([title, poemsList]) => ({
+            title,
+            poems: poemsList,
+        }));
+
+        return { ...collection, sections, allPoems: poems || [] };
+    }
+);
+
+// ── CATEGORY WITH CONTENT ──
+
+export const getCategoryWithContent = (slug: string) => executeCachedQuery(
+    {
+        keyParts: [CACHE_TAGS.categoryDetail(slug)],
+        tags: [CACHE_TAGS.categoryDetail(slug)],
+        revalidate: 3600,
+        errorMessage: 'Database Error fetching category content:'
+    },
+    async (supabase) => {
+        // 1. Find the category by matching slug against name
+        const { data: categories } = await supabase
+            .from('categories')
+            .select('id, name, description')
+            .throwOnError();
+
+        // Match by normalizing name to slug form
+        const category = (categories || []).find((cat: any) => {
+            const catSlug = cat.name.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/\s+/g, '-');
+            return catSlug === slug;
+        });
+
+        if (!category) return null;
+
+        // 2. Fetch poems in this category
+        const { data: poemLinks } = await supabase
+            .from('poem_categories')
+            .select('poems ( id, title, slug, average_review, reads_count, authors ( id, name, slug ) )')
+            .eq('category_id', category.id)
+            .throwOnError();
+
+        const poems = (poemLinks || []).map((link: any) => link.poems).filter(Boolean);
+
+        // 3. Extract unique authors from these poems
+        const authorsMap = new Map<string, any>();
+        for (const poem of poems) {
+            for (const author of (poem.authors || [])) {
+                if (!authorsMap.has(author.id)) {
+                    authorsMap.set(author.id, author);
+                }
+            }
+        }
+
+        // 4. Extract unique collections by querying poems' collection_ids
+        // For now, we'll get featured collections as a reasonable default
+        const { data: featuredCollections } = await supabase
+            .from('featured_collections')
+            .select('collections ( id, title, slug, publication_year, poems_count )')
+            .order('position', { ascending: true })
+            .limit(4)
+            .throwOnError();
+
+        const collections = (featuredCollections || []).map((row: any) => row.collections).filter(Boolean);
+
+        return {
+            ...category,
+            poems: poems.slice(0, 8),
+            authors: Array.from(authorsMap.values()).slice(0, 4),
+            collections: collections.slice(0, 3),
+        };
+    }
+);
+
+// ── USER PROFILE ──
+
+export const getUserProfileByUsername = (username: string) => executeCachedQuery(
+    {
+        keyParts: [CACHE_TAGS.profile(username)],
+        tags: [CACHE_TAGS.profile(username)],
+        revalidate: 300,
+        errorMessage: 'Database Error fetching user profile:'
+    },
+    async (supabase) => {
+        // 1. Fetch user profile
+        const { data: user } = await supabase
+            .from('users')
+            .select('*')
+            .eq('username', username)
+            .maybeSingle()
+            .throwOnError();
+
+        if (!user) return null;
+
+        // 2. Fetch stats in parallel
+        const [readsResult, reviewsResult, listsResult, followersResult, followingResult] = await Promise.all([
+            supabase.from('reads').select('id', { count: 'exact', head: true }).eq('user_id', user.id).throwOnError(),
+            supabase.from('poem_reviews').select('id', { count: 'exact', head: true }).eq('user_id', user.id).throwOnError(),
+            supabase.from('lists').select('id', { count: 'exact', head: true }).eq('user_id', user.id).throwOnError(),
+            supabase.from('followers').select('follower_id', { count: 'exact', head: true }).eq('following_id', user.id).throwOnError(),
+            supabase.from('followers').select('following_id', { count: 'exact', head: true }).eq('follower_id', user.id).throwOnError(),
+        ]);
+
+        // 3. Fetch top poems
+        const { data: topPoemLinks } = await supabase
+            .from('user_top_poems')
+            .select('position, poems ( id, title, slug, average_review, authors ( id, name, slug ) )')
+            .eq('user_id', user.id)
+            .order('position', { ascending: true })
+            .throwOnError();
+
+        const topPoems = (topPoemLinks || []).map((link: any) => ({ ...link.poems, position: link.position })).filter((p: any) => p.id);
+
+        // 4. Fetch top authors
+        const { data: topAuthorLinks } = await supabase
+            .from('user_top_authors')
+            .select('position, authors ( id, name, slug, image_url )')
+            .eq('user_id', user.id)
+            .order('position', { ascending: true })
+            .throwOnError();
+
+        const topAuthors = (topAuthorLinks || []).map((link: any) => ({ ...link.authors, position: link.position })).filter((a: any) => a.id);
+
+        // 5. Fetch recent reviews
+        const { data: recentReviews } = await supabase
+            .from('poem_reviews')
+            .select('id, score, review_text, created_at, poems ( id, title, slug, authors ( id, name, slug ) )')
+            .eq('user_id', user.id)
+            .order('created_at', { ascending: false })
+            .limit(3)
+            .throwOnError();
+
+        // 6. Fetch badges
+        const { data: userBadges } = await supabase
+            .from('user_badges')
+            .select('unlocked_at, badges ( id, name, description, icon_url )')
+            .eq('user_id', user.id)
+            .throwOnError();
+
+        const badges = (userBadges || []).map((link: any) => ({ ...link.badges, unlocked_at: link.unlocked_at })).filter((b: any) => b.id);
+
+        // 7. Fetch review score distribution
+        const { data: allReviews } = await supabase
+            .from('poem_reviews')
+            .select('score')
+            .eq('user_id', user.id)
+            .throwOnError();
+
+        const reviewDistribution = [5, 4, 3, 2, 1].map(stars => ({
+            stars,
+            count: (allReviews || []).filter((r: any) => Math.round(r.score) === stars).length,
+        }));
+
+        return {
+            ...user,
+            stats: {
+                reads: readsResult.count || 0,
+                reviews: reviewsResult.count || 0,
+                lists: listsResult.count || 0,
+                followers: followersResult.count || 0,
+                following: followingResult.count || 0,
+            },
+            topPoems,
+            topAuthors,
+            recentReviews: recentReviews || [],
+            badges,
+            reviewDistribution,
+        };
+    }
+);
+
+// ── POEM REVIEW DISTRIBUTION ──
+
+export const getPoemReviewDistribution = (poemId: string) => executeCachedQuery(
+    {
+        keyParts: [`poem-reviews-dist-${poemId}`],
+        tags: [CACHE_TAGS.poem(poemId)],
+        revalidate: 3600,
+        errorMessage: 'Database Error fetching poem review distribution:'
+    },
+    async (supabase) => {
+        const { data: reviews } = await supabase
+            .from('poem_reviews')
+            .select('score')
+            .eq('poem_id', poemId)
+            .throwOnError();
+
+        const total = (reviews || []).length;
+        return [5, 4, 3, 2, 1].map(stars => {
+            const count = (reviews || []).filter((r: any) => Math.round(r.score) === stars).length;
+            return {
+                stars,
+                count,
+                pct: total > 0 ? Math.round((count / total) * 100) : 0,
+            };
+        });
+    }
+);
+

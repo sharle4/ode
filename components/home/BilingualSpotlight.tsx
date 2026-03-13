@@ -7,18 +7,10 @@ import FadeIn from "@/components/ui/FadeIn";
 
 interface BilingualSpotlightProps {
   poem: any;
+  reviewDistribution?: { stars: number; pct: number; count: number }[];
 }
 
-// Mock review distribution for the bar chart
-const mockReviews = [
-  { stars: 5, pct: 60 },
-  { stars: 4, pct: 20 },
-  { stars: 3, pct: 10 },
-  { stars: 2, pct: 6 },
-  { stars: 1, pct: 4 },
-];
-
-const BilingualSpotlight = React.memo(function BilingualSpotlight({ poem }: BilingualSpotlightProps) {
+const BilingualSpotlight = React.memo(function BilingualSpotlight({ poem, reviewDistribution }: BilingualSpotlightProps) {
   // Split on real newlines and filter blanks, take first 4 non-empty lines
   const lines: string[] = poem.normalized_text
     ? poem.normalized_text
@@ -28,8 +20,26 @@ const BilingualSpotlight = React.memo(function BilingualSpotlight({ poem }: Bili
       .slice(0, 4)
     : ["Poème non disponible..."];
 
+  // Use real data or derive sensible defaults
+  const avgReview = poem.average_review || 0;
+  const reviewsCount = poem.reviews_count || 0;
+  const filledStars = Math.round(avgReview);
+  const language = poem.language || 'fr';
+
+  // Map language code to display name
+  const languageNames: Record<string, string> = { fr: 'Français', en: 'Anglais', es: 'Espagnol', de: 'Allemand', it: 'Italien', pt: 'Portugais' };
+  const languageDisplay = languageNames[language] || language;
+
+  // Collection info from poem join
+  const collectionTitle = poem.collections?.[0]?.title || poem.collections?.title || null;
+  const collectionSlug = poem.collections?.[0]?.id ? `collection/${poem.collections[0].id}` : null;
+
+  // Default review distribution if none provided
+  const reviews = reviewDistribution && reviewDistribution.length > 0
+    ? reviewDistribution
+    : [5, 4, 3, 2, 1].map(s => ({ stars: s, pct: 0, count: 0 }));
+
   return (
-    // bg-charcoal text-cream: same pattern as AuthorRow – adapts to dark mode automatically
     <section id="daily-poem" className="py-20 md:py-32 bg-charcoal text-cream">
       <div className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8">
 
@@ -102,33 +112,41 @@ const BilingualSpotlight = React.memo(function BilingualSpotlight({ poem }: Bili
                   <p className="text-[11px] text-cream/40 uppercase tracking-wider mb-1">Auteur</p>
                   <Link href={`/author/${poem.authors?.[0]?.slug || "inconnu"}`}>
                     <p className="text-sm text-cream/90 font-serif font-medium hover:text-accent transition-colors cursor-pointer">
-                      {poem.authors?.map((a: any) => a.name).join(', ') || "Anonyme"}
+                      {poem.authors?.map((a: any) => a.name).join(', ') || poem.authors?.name || "Anonyme"}
                     </p>
                   </Link>
                 </div>
 
-                {/* Collection (mocked) */}
-                <div>
-                  <p className="text-[11px] text-cream/40 uppercase tracking-wider mb-1">Recueil</p>
-                  <Link href="/collection/les-fleurs-du-mal">
-                    <p className="text-sm text-cream/80 font-serif hover:text-accent transition-colors cursor-pointer">
-                      Les Fleurs du mal
-                    </p>
-                  </Link>
-                </div>
+                {/* Collection */}
+                {collectionTitle && (
+                  <div>
+                    <p className="text-[11px] text-cream/40 uppercase tracking-wider mb-1">Recueil</p>
+                    {collectionSlug ? (
+                      <Link href={`/${collectionSlug}`}>
+                        <p className="text-sm text-cream/80 font-serif hover:text-accent transition-colors cursor-pointer">
+                          {collectionTitle}
+                        </p>
+                      </Link>
+                    ) : (
+                      <p className="text-sm text-cream/80 font-serif">{collectionTitle}</p>
+                    )}
+                  </div>
+                )}
 
-                {/* Date (mocked) */}
-                <div>
-                  <p className="text-[11px] text-cream/40 uppercase tracking-wider mb-1">Date de publication</p>
-                  <p className="text-sm text-cream/80">1857</p>
-                </div>
+                {/* Date */}
+                {poem.publication_year && (
+                  <div>
+                    <p className="text-[11px] text-cream/40 uppercase tracking-wider mb-1">Date de publication</p>
+                    <p className="text-sm text-cream/80">{poem.publication_year}</p>
+                  </div>
+                )}
 
                 {/* Language */}
                 <div>
                   <p className="text-[11px] text-cream/40 uppercase tracking-wider mb-1">Langue originale</p>
                   <div className="flex items-center gap-1.5 text-cream/80 text-sm">
                     <Globe size={14} className="text-cream/50 flex-shrink-0" />
-                    Français
+                    {languageDisplay}
                   </div>
                 </div>
 
@@ -138,21 +156,26 @@ const BilingualSpotlight = React.memo(function BilingualSpotlight({ poem }: Bili
                 <div>
                   <p className="text-[11px] text-cream/40 uppercase tracking-wider mb-3">Note moyenne</p>
                   <div className="flex items-center gap-2 mb-3">
-                    <span className="font-serif text-2xl font-bold text-cream">4.8</span>
+                    <span className="font-serif text-2xl font-bold text-cream">
+                      {avgReview > 0 ? avgReview.toFixed(1) : '—'}
+                    </span>
                     <div className="flex items-center gap-0.5">
                       {Array.from({ length: 5 }).map((_, i) => (
                         <Star
                           key={i}
                           size={14}
-                          weight={i < 5 ? "fill" : "regular"}
-                          className={i < 5 ? "text-accent" : "text-cream/20"}
+                          weight={i < filledStars ? "fill" : "regular"}
+                          className={i < filledStars ? "text-accent" : "text-cream/20"}
                         />
                       ))}
                     </div>
+                    {reviewsCount > 0 && (
+                      <span className="text-[11px] text-cream/40 ml-1">({reviewsCount})</span>
+                    )}
                   </div>
                   {/* Review bar chart */}
                   <div className="space-y-1.5">
-                    {mockReviews.map(({ stars, pct }) => (
+                    {reviews.map(({ stars, pct }) => (
                       <div key={stars} className="flex items-center gap-2">
                         <span className="text-[11px] text-cream/40 w-3 text-right">{stars}</span>
                         <div className="flex-1 h-1.5 bg-cream/10 rounded-full overflow-hidden">

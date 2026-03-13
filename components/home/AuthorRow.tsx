@@ -7,9 +7,10 @@ import Image from "next/image";
 import FadeIn from "@/components/ui/FadeIn";
 
 interface Author {
+    id: string;
     name: string;
     slug: string;
-    img: string;
+    image_url: string | null;
 }
 
 interface AuthorRowProps {
@@ -73,20 +74,26 @@ const AuthorRow = React.memo(function AuthorRow({
                         className="flex overflow-x-auto gap-6 md:gap-10 pb-8 pt-2 -mx-4 px-4 md:mx-0 md:px-0 hide-scrollbar snap-x snap-mandatory scroll-smooth"
                         style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
                     >
-                        {authors.map((author, index) => (
+                        {authors.map((author) => (
                             <Link
                                 href={`/author/${author.slug}`}
                                 key={author.slug}
                                 className="flex-none w-[120px] sm:w-[140px] md:w-[160px] snap-center md:snap-start flex flex-col items-center group cursor-pointer"
                             >
                                 <div className="relative w-24 h-24 sm:w-32 sm:h-32 md:w-36 md:h-36 rounded-full overflow-hidden mb-4 shadow-xl border-2 border-charcoal group-hover:border-accent group-hover:shadow-accent/20 transition-all duration-300 md:group-hover:-translate-y-2">
-                                    <Image
-                                        src={author.img}
-                                        alt={author.name}
-                                        fill
-                                        sizes="(max-width: 640px) 96px, (max-width: 768px) 128px, 144px"
-                                        className="object-cover grayscale opacity-80 group-hover:grayscale-0 group-hover:opacity-100 transition-all duration-500"
-                                    />
+                                    {author.image_url ? (
+                                        <Image
+                                            src={author.image_url}
+                                            alt={author.name}
+                                            fill
+                                            sizes="(max-width: 640px) 96px, (max-width: 768px) 128px, 144px"
+                                            className="object-cover grayscale opacity-80 group-hover:grayscale-0 group-hover:opacity-100 transition-all duration-500"
+                                        />
+                                    ) : (
+                                        <div className="w-full h-full bg-zinc-700 flex items-center justify-center">
+                                            <span className="text-2xl font-serif text-white/60">{author.name.charAt(0)}</span>
+                                        </div>
+                                    )}
                                 </div>
                                 <span className="font-medium text-center text-sm md:text-base text-cream group-hover:text-accent transition-colors block text-balance">
                                     {author.name}

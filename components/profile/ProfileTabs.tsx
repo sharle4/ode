@@ -9,6 +9,10 @@ import ProfileHome from "@/components/profile/ProfileHome";
 interface ProfileTabsProps {
     username: string;
     favoritePoems: any[];
+    topAuthors?: any[];
+    recentReviews?: any[];
+    badges?: any[];
+    reviewDistribution?: { stars: number; count: number }[];
 }
 
 const TABS = [
@@ -21,7 +25,14 @@ const TABS = [
     { id: "reseau", label: "Réseau", param: "network" },
 ];
 
-export default function ProfileTabs({ username, favoritePoems }: ProfileTabsProps) {
+export default function ProfileTabs({
+    username,
+    favoritePoems,
+    topAuthors = [],
+    recentReviews = [],
+    badges = [],
+    reviewDistribution = [],
+}: ProfileTabsProps) {
     const searchParams = useSearchParams();
     const router = useRouter();
     const pathname = usePathname();
@@ -79,7 +90,14 @@ export default function ProfileTabs({ username, favoritePoems }: ProfileTabsProp
                             exit={{ opacity: 0, y: -10 }}
                             transition={{ duration: 0.2 }}
                         >
-                            <ProfileHome username={username} favoritePoems={favoritePoems} />
+                            <ProfileHome
+                                username={username}
+                                favoritePoems={favoritePoems}
+                                topAuthors={topAuthors}
+                                recentReviews={recentReviews}
+                                badges={badges}
+                                reviewDistribution={reviewDistribution}
+                            />
                         </motion.div>
                     )}
 

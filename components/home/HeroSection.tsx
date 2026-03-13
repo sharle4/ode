@@ -5,12 +5,14 @@ import Link from "next/link";
 import { ArrowRight, BookOpen, BookOpenText } from "@phosphor-icons/react";
 import OdeLogo from "@/components/ui/OdeLogo";
 import FadeIn from "@/components/ui/FadeIn";
+import { formatCount } from "@/utils/gradient";
 
 interface HeroSectionProps {
   dailyPoem: any;
+  stats: { poemsCount: number; languagesCount: number; usersCount: number };
 }
 
-const HeroSection = React.memo(function HeroSection({ dailyPoem }: HeroSectionProps) {
+const HeroSection = React.memo(function HeroSection({ dailyPoem, stats }: HeroSectionProps) {
   return (
     <section className="relative min-h-[100dvh] overflow-hidden">
       <div className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8">
@@ -24,7 +26,7 @@ const HeroSection = React.memo(function HeroSection({ dailyPoem }: HeroSectionPr
                 {dailyPoem ? (
                   <>
                     Lumière sur <br />
-                    <span className="italic text-warm-gray">{dailyPoem.authors?.name}</span>
+                    <span className="italic text-warm-gray">{dailyPoem.authors?.name || dailyPoem.authors?.[0]?.name}</span>
                   </>
                 ) : (
                   <>
@@ -37,7 +39,7 @@ const HeroSection = React.memo(function HeroSection({ dailyPoem }: HeroSectionPr
 
             <FadeIn delay={0.3}>
               <p className="mt-8 text-base text-warm-gray leading-relaxed max-w-[45ch]">
-                Lisez, notez et parcategoryez des milliers de poèmes. Rejoignez la communauté francophone de la poésie.
+                Lisez, notez et parcourez des milliers de poèmes. Rejoignez la communauté francophone de la poésie.
               </p>
             </FadeIn>
 
@@ -71,17 +73,17 @@ const HeroSection = React.memo(function HeroSection({ dailyPoem }: HeroSectionPr
             <FadeIn delay={0.5}>
               <div className="mt-14 flex items-center gap-6">
                 <div>
-                  <p className="text-2xl font-serif font-semibold text-charcoal tracking-tight">42.8k</p>
+                  <p className="text-2xl font-serif font-semibold text-charcoal tracking-tight">{formatCount(stats.poemsCount)}</p>
                   <p className="text-xs text-warm-gray/70 mt-0.5">Poèmes catalogués</p>
                 </div>
                 <div className="h-8 w-px bg-soft-border" />
                 <div>
-                  <p className="text-2xl font-serif font-semibold text-charcoal tracking-tight">127</p>
+                  <p className="text-2xl font-serif font-semibold text-charcoal tracking-tight">{formatCount(stats.languagesCount)}</p>
                   <p className="text-xs text-warm-gray/70 mt-0.5">Langues</p>
                 </div>
                 <div className="h-8 w-px bg-soft-border" />
                 <div>
-                  <p className="text-2xl font-serif font-semibold text-charcoal tracking-tight">18.3k</p>
+                  <p className="text-2xl font-serif font-semibold text-charcoal tracking-tight">{formatCount(stats.usersCount)}</p>
                   <p className="text-xs text-warm-gray/70 mt-0.5">Lecteurs actifs</p>
                 </div>
               </div>

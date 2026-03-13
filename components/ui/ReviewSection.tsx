@@ -3,58 +3,49 @@
 import React, { useState } from "react";
 import { Star, User, ThumbsUp, ChatCircle } from "@phosphor-icons/react";
 import FadeIn from "@/components/ui/FadeIn";
+import { formatRelativeTime } from "@/utils/gradient";
 
-// Mock review distribution
-const mockDistribution = [
-    { stars: 5, pct: 58 },
-    { stars: 4, pct: 22 },
-    { stars: 3, pct: 12 },
-    { stars: 2, pct: 5 },
-    { stars: 1, pct: 3 },
-];
-
-// Mock reviews
-const mockReviews = [
-    {
-        id: 1,
-        authors: [{ id: "marguerite-d-id", name: "Marguerite D.", slug: "marguerite-d" }],
-        date: "14 fév. 2026",
-        review: 5,
-        text: "Ce poème m'a profondément touchée. La musicalité des vers et la richesse des images créent une atmosphère envoûtante. Un chef-d'œuvre intemporel.",
-        likes: 24,
-    },
-    {
-        id: 2,
-        authors: [{ id: "émile-v-id", name: "Émile V.", slug: "émile-v" }],
-        date: "8 fév. 2026",
-        review: 4,
-        text: "Baudelaire capture avec génie l'essence même de la mélancolie. On sent la tension constante entre le sordide et le sublime. Quelques passages restent hermétiques à la première lecture.",
-        likes: 17,
-    },
-    {
-        id: 3,
-        authors: [{ id: "clara-s-id", name: "Clara S.", slug: "clara-s" }],
-        date: "2 fév. 2026",
-        review: 5,
-        text: "Chaque relecture révèle une couche de sens nouvelle. La modernité de ce texte, écrit il y a plus d'un siècle, est saisissante.",
-        likes: 11,
-    },
-];
+interface ReviewItem {
+    id: string | number;
+    username?: string;
+    avatar_url?: string | null;
+    date?: string;
+    created_at?: string;
+    score: number;
+    review_text?: string;
+    likes?: number;
+}
 
 interface ReviewSectionProps {
     averageReview?: number;
     totalReviews?: number;
+    /** Optional: review distribution from DB, otherwise derived from totalReviews */
+    distribution?: { stars: number; pct: number }[];
+    /** Optional: actual review items from DB */
+    reviews?: ReviewItem[];
     /** Optional: use 'minimal' for poem pages that should be less intrusive */
     variant?: "full" | "minimal";
 }
 
 export default function ReviewSection({
-    averageReview = 4.8,
-    totalReviews = 1247,
+    averageReview = 0,
+    totalReviews = 0,
+    distribution,
+    reviews = [],
     variant = "full",
 }: ReviewSectionProps) {
     const [showAllReviews, setShowAllReviews] = useState(false);
-    const visibleReviews = showAllReviews ? mockReviews : mockReviews.slice(0, 2);
+
+    // If no distribution provided, generate a placeholder based on averageReview
+    const displayDistribution = distribution || [
+        { stars: 5, pct: averageReview >= 4.5 ? 58 : averageReview >= 3.5 ? 35 : 15 },
+        { stars: 4, pct: averageReview >= 4.0 ? 22 : 25 },
+        { stars: 3, pct: 12 },
+        { stars: 2, pct: averageReview <= 3.0 ? 15 : 5 },
+        { stars: 1, pct: averageReview <= 2.0 ? 20 : 3 },
+    ];
+
+    const visibleReviews = showAllReviews ? reviews : reviews.slice(0, 2);
 
     return (
         <FadeIn delay={0.3} duration={0.8} y={30}>
@@ -73,9 +64,9 @@ export default function ReviewSection({
                             {/* Big review number */}
                             <div className="flex items-baseline gap-3 mb-4">
                                 <span className="font-serif text-5xl font-bold text-charcoal tracking-tight">
-                                    {averageReview}
+                                    {averageReview > 0 ? averageReview.toFixed(1) : '—'}
                                 </span>
-                                <span className="text-sm text-warm-gray">/ 5</span>
+                                {averageReview > 0 && <span className="text-sm text-warm-gray">/ 5</span>}
                             </div>
 
                             {/* Stars */}
@@ -94,33 +85,35 @@ export default function ReviewSection({
                                 ))}
                             </div>
                             <p className="text-xs text-warm-gray mb-8">
-                                {totalReviews.toLocaleString("fr-FR")} avis
+                                {totalReviews > 0 ? `${totalReviews.toLocaleString("fr-FR")} avis` : 'Aucun avis'}
                             </p>
 
                             {/* Distribution bars */}
-                            <div className="space-y-2">
-                                {mockDistribution.map(({ stars, pct }) => (
-                                    <div key={stars} className="flex items-center gap-3">
-                                        <span className="text-xs text-warm-gray w-6 text-right font-medium">
-                                            {stars}
-                                            <Star
-                                                size={9}
-                                                weight="fill"
-                                                className="text-warm-gray/60 inline ml-0.5 -mt-0.5"
-                                            />
-                                        </span>
-                                        <div className="flex-1 h-2 bg-paper rounded-full overflow-hidden border border-soft-border/50">
-                                            <div
-                                                className="h-full bg-accent/60 rounded-full transition-all duration-700"
-                                                style={{ width: `${pct}%` }}
-                                            />
+                            {totalReviews > 0 && (
+                                <div className="space-y-2">
+                                    {displayDistribution.map(({ stars, pct }) => (
+                                        <div key={stars} className="flex items-center gap-3">
+                                            <span className="text-xs text-warm-gray w-6 text-right font-medium">
+                                                {stars}
+                                                <Star
+                                                    size={9}
+                                                    weight="fill"
+                                                    className="text-warm-gray/60 inline ml-0.5 -mt-0.5"
+                                                />
+                                            </span>
+                                            <div className="flex-1 h-2 bg-paper rounded-full overflow-hidden border border-soft-border/50">
+                                                <div
+                                                    className="h-full bg-accent/60 rounded-full transition-all duration-700"
+                                                    style={{ width: `${pct}%` }}
+                                                />
+                                            </div>
+                                            <span className="text-xs text-warm-gray/60 w-8">
+                                                {pct}%
+                                            </span>
                                         </div>
-                                        <span className="text-xs text-warm-gray/60 w-8">
-                                            {pct}%
-                                        </span>
-                                    </div>
-                                ))}
-                            </div>
+                                    ))}
+                                </div>
+                            )}
                         </div>
 
                         {/* Right: Reviews list */}
@@ -139,61 +132,75 @@ export default function ReviewSection({
                                 )}
                             </div>
 
-                            <div className="space-y-0">
-                                {visibleReviews.map((review, index) => (
-                                    <div
-                                        key={review.id}
-                                        className={`py-6 ${index < visibleReviews.length - 1
-                                                ? "border-b border-soft-border/60"
-                                                : ""
-                                            }`}
-                                    >
-                                        {/* Review header */}
-                                        <div className="flex items-center justify-between mb-3">
-                                            <div className="flex items-center gap-3">
-                                                <div className="w-8 h-8 rounded-full bg-paper border border-soft-border flex items-center justify-center">
-                                                    <User size={14} className="text-warm-gray" />
+                            {visibleReviews.length > 0 ? (
+                                <div className="space-y-0">
+                                    {visibleReviews.map((review, index) => (
+                                        <div
+                                            key={review.id}
+                                            className={`py-6 ${index < visibleReviews.length - 1
+                                                    ? "border-b border-soft-border/60"
+                                                    : ""
+                                                }`}
+                                        >
+                                            {/* Review header */}
+                                            <div className="flex items-center justify-between mb-3">
+                                                <div className="flex items-center gap-3">
+                                                    <div className="w-8 h-8 rounded-full bg-paper border border-soft-border flex items-center justify-center overflow-hidden">
+                                                        {review.avatar_url ? (
+                                                            <img src={review.avatar_url} alt={review.username || ''} className="w-full h-full object-cover" />
+                                                        ) : (
+                                                            <User size={14} className="text-warm-gray" />
+                                                        )}
+                                                    </div>
+                                                    <div>
+                                                        <p className="text-sm font-medium text-charcoal">
+                                                            {review.username || 'Anonyme'}
+                                                        </p>
+                                                        <p className="text-xs text-warm-gray">
+                                                            {review.created_at ? formatRelativeTime(review.created_at) : review.date || ''}
+                                                        </p>
+                                                    </div>
                                                 </div>
-                                                <div>
-                                                    <p className="text-sm font-medium text-charcoal">
-                                                        {review.author}
-                                                    </p>
-                                                    <p className="text-xs text-warm-gray">
-                                                        {review.date}
-                                                    </p>
+                                                <div className="flex items-center gap-0.5">
+                                                    {Array.from({ length: 5 }).map((_, i) => (
+                                                        <Star
+                                                            key={i}
+                                                            size={12}
+                                                            weight={i < Math.round(review.score) ? "fill" : "regular"}
+                                                            className={
+                                                                i < Math.round(review.score)
+                                                                    ? "text-accent"
+                                                                    : "text-soft-border"
+                                                            }
+                                                        />
+                                                    ))}
                                                 </div>
                                             </div>
-                                            <div className="flex items-center gap-0.5">
-                                                {Array.from({ length: 5 }).map((_, i) => (
-                                                    <Star
-                                                        key={i}
-                                                        size={12}
-                                                        weight={i < review.review ? "fill" : "regular"}
-                                                        className={
-                                                            i < review.review
-                                                                ? "text-accent"
-                                                                : "text-soft-border"
-                                                        }
-                                                    />
-                                                ))}
-                                            </div>
+
+                                            {/* Review text */}
+                                            {review.review_text && (
+                                                <p className="text-sm text-charcoal/80 leading-relaxed font-serif mb-3">
+                                                    {review.review_text}
+                                                </p>
+                                            )}
+
+                                            {/* Review actions */}
+                                            {review.likes !== undefined && review.likes > 0 && (
+                                                <button className="flex items-center gap-1.5 text-xs text-warm-gray hover:text-charcoal transition-colors">
+                                                    <ThumbsUp size={12} />
+                                                    Utile ({review.likes})
+                                                </button>
+                                            )}
                                         </div>
+                                    ))}
+                                </div>
+                            ) : (
+                                <p className="text-warm-gray italic font-serif py-8">
+                                    Aucune critique pour le moment. Soyez le premier à donner votre avis !
+                                </p>
+                            )}
 
-                                        {/* Review text */}
-                                        <p className="text-sm text-charcoal/80 leading-relaxed font-serif mb-3">
-                                            {review.text}
-                                        </p>
-
-                                        {/* Review actions */}
-                                        <button className="flex items-center gap-1.5 text-xs text-warm-gray hover:text-charcoal transition-colors">
-                                            <ThumbsUp size={12} />
-                                            Utile ({review.likes})
-                                        </button>
-                                    </div>
-                                ))}
-                            </div>
-
-                            {!showAllReviews && mockReviews.length > 2 && (
+                            {!showAllReviews && reviews.length > 2 && (
                                 <button
                                     onClick={() => setShowAllReviews(true)}
                                     className="mt-4 text-sm text-accent hover:text-charcoal transition-colors font-medium"

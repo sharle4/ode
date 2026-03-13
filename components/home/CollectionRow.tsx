@@ -5,14 +5,15 @@ import { CaretRight, CaretLeft } from "@phosphor-icons/react";
 import { motion } from "framer-motion";
 import Link from "next/link";
 import FadeIn from "@/components/ui/FadeIn";
+import { getCoverGradient } from "@/utils/gradient";
 
 interface Collection {
+    id?: string;
     title: string;
     slug: string;
-    author: string;
-    year: number;
-    poemCount: number;
-    coverColor: string;
+    publication_year: number | null;
+    poems_count: number;
+    authors?: { id: string; name: string; slug: string }[] | { id: string; name: string; slug: string };
 }
 
 interface CollectionRowProps {
@@ -42,6 +43,14 @@ const CollectionRow = React.memo(function CollectionRow({
     }
 
     const cardWidth = `calc((100% - ${CARD_GAP * (VISIBLE_CARDS - 1)}px) / ${VISIBLE_CARDS})`;
+
+    function getAuthorName(collection: Collection): string {
+        if (!collection.authors) return '';
+        if (Array.isArray(collection.authors)) {
+            return collection.authors.map(a => a.name).join(', ');
+        }
+        return collection.authors.name;
+    }
 
     return (
         <FadeIn className="py-8 md:py-12" y={40} duration={0.8} delay={0.15}>
@@ -84,47 +93,50 @@ const CollectionRow = React.memo(function CollectionRow({
                             msOverflowStyle: "none",
                         }}
                     >
-                        {collections.map((collection, index) => (
-                            <Link
-                                href={`/collection/${collection.slug}`}
-                                key={collection.slug}
-                                data-collection-card
-                                className="flex-none snap-start"
-                                style={{ width: cardWidth }}
-                            >
-                                <motion.div
-                                    className="flex flex-col group cursor-pointer h-full"
-                                    initial={{ opacity: 0, y: 20 }}
-                                    animate={{ opacity: 1, y: 0 }}
-                                    transition={{ duration: 0.5, delay: index * 0.08 }}
+                        {collections.map((collection, index) => {
+                            const coverColor = getCoverGradient(collection.slug);
+                            return (
+                                <Link
+                                    href={`/collection/${collection.slug}`}
+                                    key={collection.slug}
+                                    data-collection-card
+                                    className="flex-none snap-start"
+                                    style={{ width: cardWidth }}
                                 >
-                                    <div
-                                        className={`relative w-full aspect-[2/3] rounded-r-lg rounded-l-sm shadow-md group-hover:shadow-xl transition-all duration-300 md:group-hover:-translate-y-2 overflow-hidden bg-gradient-to-br ${collection.coverColor}`}
+                                    <motion.div
+                                        className="flex flex-col group cursor-pointer h-full"
+                                        initial={{ opacity: 0, y: 20 }}
+                                        animate={{ opacity: 1, y: 0 }}
+                                        transition={{ duration: 0.5, delay: index * 0.08 }}
                                     >
-                                        {/* Spine effect */}
-                                        <div className="absolute left-0 top-0 bottom-0 w-3 lg:w-4 bg-black/20 z-10 border-r border-white/10 shadow-[inset_-2px_0_4px_rgba(0,0,0,0.1)]" />
+                                        <div
+                                            className={`relative w-full aspect-[2/3] rounded-r-lg rounded-l-sm shadow-md group-hover:shadow-xl transition-all duration-300 md:group-hover:-translate-y-2 overflow-hidden bg-gradient-to-br ${coverColor}`}
+                                        >
+                                            {/* Spine effect */}
+                                            <div className="absolute left-0 top-0 bottom-0 w-3 lg:w-4 bg-black/20 z-10 border-r border-white/10 shadow-[inset_-2px_0_4px_rgba(0,0,0,0.1)]" />
 
-                                        <div className="absolute inset-x-0 bottom-0 p-4 border-t border-white/10 bg-black/10 backdrop-blur-sm z-20">
-                                            <p className="font-serif text-white drop-shadow-md leading-tight text-base sm:text-lg line-clamp-2">
-                                                {collection.title}
-                                            </p>
+                                            <div className="absolute inset-x-0 bottom-0 p-4 border-t border-white/10 bg-black/10 backdrop-blur-sm z-20">
+                                                <p className="font-serif text-white drop-shadow-md leading-tight text-base sm:text-lg line-clamp-2">
+                                                    {collection.title}
+                                                </p>
+                                            </div>
                                         </div>
-                                    </div>
 
-                                    <div className="mt-3 flex flex-col gap-0.5 px-1">
-                                        <span className="text-sm font-serif text-charcoal truncate">
-                                            {collection.author}
-                                        </span>
-                                        <div className="flex justify-between items-baseline">
-                                            <span className="text-xs text-warm-gray">{collection.year}</span>
-                                            <span className="text-xs text-warm-gray/60 uppercase tracking-wider">
-                                                {collection.poemCount} poèmes
+                                        <div className="mt-3 flex flex-col gap-0.5 px-1">
+                                            <span className="text-sm font-serif text-charcoal truncate">
+                                                {getAuthorName(collection)}
                                             </span>
+                                            <div className="flex justify-between items-baseline">
+                                                <span className="text-xs text-warm-gray">{collection.publication_year || '—'}</span>
+                                                <span className="text-xs text-warm-gray/60 uppercase tracking-wider">
+                                                    {collection.poems_count} poèmes
+                                                </span>
+                                            </div>
                                         </div>
-                                    </div>
-                                </motion.div>
-                            </Link>
-                        ))}
+                                    </motion.div>
+                                </Link>
+                            );
+                        })}
 
                         <Link
                             href="/explore"

@@ -3,6 +3,7 @@
 import React from "react";
 import { motion } from "framer-motion";
 import Link from "next/link";
+import { getCoverGradient } from "@/utils/gradient";
 
 interface CollectionCardProps {
     collection: {
@@ -10,13 +11,13 @@ interface CollectionCardProps {
         slug?: string;
         year: number;
         poemCount: number;
-        coverColor: string;
     };
     index: number;
 }
 
 export default function CollectionCard({ collection, index }: CollectionCardProps) {
-    const slug = collection.slug || "les-fleurs-du-mal"; // Fallback pour tester
+    const slug = collection.slug || collection.title.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/\s+/g, '-');
+    const coverColor = getCoverGradient(slug);
 
     return (
         <Link href={`/collection/${slug}`}>
@@ -30,7 +31,7 @@ export default function CollectionCard({ collection, index }: CollectionCardProp
                 }}
             >
                 <div
-                    className={`relative w-full aspect-[2/3] rounded-r-lg rounded-l-sm shadow-md group-hover:shadow-xl transition-all duration-300 md:group-hover:-translate-y-2 overflow-hidden bg-gradient-to-br ${collection.coverColor}`}
+                    className={`relative w-full aspect-[2/3] rounded-r-lg rounded-l-sm shadow-md group-hover:shadow-xl transition-all duration-300 md:group-hover:-translate-y-2 overflow-hidden bg-gradient-to-br ${coverColor}`}
                 >
                     {/* Effet reliure du livre */}
                     <div className="absolute left-0 top-0 bottom-0 w-3 lg:w-4 bg-black/20 z-10 
@@ -45,7 +46,7 @@ export default function CollectionCard({ collection, index }: CollectionCardProp
                 </div>
 
                 <div className="mt-4 flex justify-between items-baseline px-1">
-                    <span className="text-sm font-sans text-warm-gray">{collection.year}</span>
+                    <span className="text-sm font-sans text-warm-gray">{collection.year || '—'}</span>
                     <span className="text-xs uppercase tracking-widest text-warm-gray/60">{collection.poemCount} poèmes</span>
                 </div>
             </motion.div>

@@ -7,4 +7,9 @@ export const CACHE_TAGS = {
     profile: (username: string) => `profile-${username}`,
     trending: 'trending-poems',
     daily: 'daily-poem',
+    featured: 'featured-content',
+    community: 'community-feed',
+    categories: 'categories',
+    stats: 'platform-stats',
+    categoryDetail: (slug: string) => `category-${slug}`,
 } as const;

@@ -4,18 +4,23 @@ import Footer from "@/components/layout/Footer";
 import AuthorHeader from "@/components/author/AuthorHeader";
 import CollectionCard from "@/components/author/CollectionCard";
 import PoemCard from "@/components/ui/PoemCard";
-import { getTrendingPoems } from "@/utils/supabase/queries";
+import { getAuthorWithWorks } from "@/utils/supabase/queries";
 import { Metadata } from "next";
 import Link from "next/link";
 import FadeIn from "@/components/ui/FadeIn";
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
     const resolvedParams = await params;
-    // Basic formatting from slug for now ("charles-baudelaire" -> "Charles Baudelaire")
-    const authorName = resolvedParams.slug.split('-').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
+    const author = await getAuthorWithWorks(resolvedParams.slug);
+    
+    const authorName = author?.name || resolvedParams.slug.split('-').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
+    const description = author?.biography
+        ? author.biography.substring(0, 160) + '...'
+        : `Explorez l'œuvre poétique de ${authorName} sur ode.`;
+
     return {
         title: `${authorName} - Poèmes et Biographie | ode`,
-        description: `Explorez l'œuvre poétique de ${authorName} sur ode. Parcourez ses recueils et ses poèmes les plus célèbres.`,
+        description,
     };
 }
 
@@ -23,39 +28,27 @@ export default async function AuthorPage({ params }: { params: Promise<{ slug: s
     const resolvedParams = await params;
     const authorSlug = resolvedParams.slug;
 
-    // --- MOCK DATA --- 
-    // Dans le futur, ceci proviendra de Supabase: await supabase.from('authors').select('*').eq('slug', authorSlug)
-    const mockedAuthor = {
-        name: authorSlug.split('-').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' '),
-        birthYear: 1821,
-        deathYear: 1867,
-        bioShort: "Poète français, Charles Baudelaire est l'un des poètes les plus célèbres du XIXe siècle. Il est connu pour son recueil de poèmes, Les Fleurs du mal, qui a fait scandale à sa parution en 1857 pour son exploration de thèmes sulfureux.",
-        coverImage: "https://upload.wikimedia.org/wikipedia/commons/1/16/Charles_Baudelaire%2C_by_Etienne_Carjat.jpg", // Photo libre de droits
-        signatureImage: "https://upload.wikimedia.org/wikipedia/commons/thumb/f/f3/Baudelaire_signatur.svg/langfr-3840px-Baudelaire_signatur.svg.png",
-    };
+    const authorData = await getAuthorWithWorks(authorSlug);
 
-    const mockedCollections = [
-        { title: "Les Fleurs du mal", year: 1857, poemCount: 163, coverColor: "from-zinc-800 to-black" },
-        { title: "Le Spleen de Paris", year: 1869, poemCount: 50, coverColor: "from-amber-900 to-zinc-900" },
-        { title: "Les Épaves", year: 1866, poemCount: 23, coverColor: "from-stone-700 to-zinc-900" },
-    ];
+    if (!authorData) {
+        notFound();
+    }
 
-    // Utilisation de mocks temporaires pour les poèmes populaires de l'auteur
-    const popularPoems = await getTrendingPoems(5);
-
-    if (authorSlug !== "charles-baudelaire") {
-        // Pour les tests, on autorise charles-baudelaire. Sinon 404.
-        // nOtFound(); // Temporairement désactivé pour laisser voir la maquette universellement
+    // Extract year from date string safely
+    function extractYear(dateStr: string | null | undefined): string {
+        if (!dateStr) return '';
+        const match = dateStr.match(/\d{4}/);
+        return match ? match[0] : dateStr;
     }
 
     const jsonLd = {
         '@context': 'https://schema.org',
         '@type': 'Person',
-        name: mockedAuthor.name,
-        birthDate: mockedAuthor.birthYear?.toString(),
-        deathDate: mockedAuthor.deathYear?.toString(),
-        description: mockedAuthor.bioShort,
-        image: mockedAuthor.coverImage
+        name: authorData.name,
+        birthDate: authorData.date_of_birth || undefined,
+        deathDate: authorData.date_of_death || undefined,
+        description: authorData.biography || undefined,
+        image: authorData.image_url || undefined,
     };
 
     return (
@@ -68,7 +61,14 @@ export default async function AuthorPage({ params }: { params: Promise<{ slug: s
 
             <main className="flex-grow">
                 {/* 1. Hero Header */}
-                <AuthorHeader author={mockedAuthor} />
+                <AuthorHeader author={{
+                    name: authorData.name,
+                    date_of_birth: authorData.date_of_birth,
+                    date_of_death: authorData.date_of_death,
+                    biography: authorData.biography,
+                    image_url: authorData.image_url,
+                    signature_url: authorData.signature_url,
+                }} />
 
                 <div className="max-w-5xl mx-auto px-4 sm:px-6 py-16 md:py-24 grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-12">
 
@@ -76,60 +76,68 @@ export default async function AuthorPage({ params }: { params: Promise<{ slug: s
                     <div className="lg:col-span-8 flex flex-col gap-20">
 
                         {/* SECTION: Poèmes Populaires */}
-                        <FadeIn delay={0.2}>
-                            <h2 className="font-serif text-2xl text-charcoal mb-8 border-b border-soft-border pb-4 flex items-center justify-between">
-                                Poèmes Populaires
-                                <span className="text-sm font-sans text-warm-gray font-normal cursor-pointer hover:text-charcoal transition-colors">Tout voir</span>
-                            </h2>
-                            <div className="flex flex-col gap-4">
-                                {popularPoems.slice(0, 5).map((poem: any, index: number) => (
-                                    <Link key={poem.id} href={`/poem/${poem.id}`} className="flex items-center gap-4 p-3 rounded-xl hover:bg-black/5 dark:hover:bg-white/5 transition-colors group cursor-pointer">
-                                        <span className="w-6 text-center text-warm-gray font-serif text-lg">{index + 1}</span>
-                                        <div className="w-12 h-12 bg-zinc-900 rounded-md overflow-hidden flex-shrink-0 flex items-center justify-center text-white/20">
-                                            {/* Miniature (idéalement image, ici placeholder initiales) */}
-                                            {poem.title.substring(0, 2).toUpperCase()}
-                                        </div>
-                                        <div className="flex-grow">
-                                            <h3 className="font-serif text-charcoal group-hover:text-accent transition-colors">{poem.title}</h3>
-                                            <p className="text-xs text-warm-gray uppercase tracking-widest mt-1">{poem.likes || 142} likes</p>
-                                        </div>
-                                    </Link>
-                                ))}
-                            </div>
-                        </FadeIn>
+                        {authorData.poems && authorData.poems.length > 0 && (
+                            <FadeIn delay={0.2}>
+                                <h2 className="font-serif text-2xl text-charcoal mb-8 border-b border-soft-border pb-4 flex items-center justify-between">
+                                    Poèmes Populaires
+                                    <span className="text-sm font-sans text-warm-gray font-normal cursor-pointer hover:text-charcoal transition-colors">Tout voir</span>
+                                </h2>
+                                <div className="flex flex-col gap-4">
+                                    {authorData.poems.slice(0, 5).map((poem: any, index: number) => (
+                                        <Link key={poem.id} href={`/poem/${poem.slug || poem.id}`} className="flex items-center gap-4 p-3 rounded-xl hover:bg-black/5 dark:hover:bg-white/5 transition-colors group cursor-pointer">
+                                            <span className="w-6 text-center text-warm-gray font-serif text-lg">{index + 1}</span>
+                                            <div className="w-12 h-12 bg-zinc-900 rounded-md overflow-hidden flex-shrink-0 flex items-center justify-center text-white/20">
+                                                {poem.title.substring(0, 2).toUpperCase()}
+                                            </div>
+                                            <div className="flex-grow">
+                                                <h3 className="font-serif text-charcoal group-hover:text-accent transition-colors">{poem.title}</h3>
+                                                <p className="text-xs text-warm-gray uppercase tracking-widest mt-1">{poem.reads_count || 0} lectures</p>
+                                            </div>
+                                        </Link>
+                                    ))}
+                                </div>
+                            </FadeIn>
+                        )}
 
                         {/* SECTION: Recueils */}
-                        <FadeIn delay={0.4}>
-                            <h2 className="font-serif text-2xl text-charcoal mb-8 border-b border-soft-border pb-4">
-                                Recueils
-                            </h2>
-                            <div className="grid grid-cols-2 md:grid-cols-3 gap-6 md:gap-8">
-                                {mockedCollections.map((collection, index) => (
-                                    <CollectionCard key={index} collection={collection} index={index} />
-                                ))}
-                            </div>
-                        </FadeIn>
+                        {authorData.collections && authorData.collections.length > 0 && (
+                            <FadeIn delay={0.4}>
+                                <h2 className="font-serif text-2xl text-charcoal mb-8 border-b border-soft-border pb-4">
+                                    Recueils
+                                </h2>
+                                <div className="grid grid-cols-2 md:grid-cols-3 gap-6 md:gap-8">
+                                    {authorData.collections.map((collection: any, index: number) => (
+                                        <CollectionCard
+                                            key={collection.id || index}
+                                            collection={{
+                                                title: collection.title,
+                                                slug: collection.slug,
+                                                year: collection.publication_year || 0,
+                                                poemCount: collection.poems_count || 0,
+                                            }}
+                                            index={index}
+                                        />
+                                    ))}
+                                </div>
+                            </FadeIn>
+                        )}
 
                     </div>
 
-                    {/* Colonne Latérale (À propos, Stats, Liens) */}
+                    {/* Colonne Latérale (À propos) */}
                     <aside className="lg:col-span-4 flex flex-col gap-12 min-w-0 overflow-hidden">
 
                         {/* SECTION: À propos */}
-                        <FadeIn delay={0.6}>
-                            <h2 className="font-serif text-xl text-charcoal mb-6">À propos</h2>
-                            <div className="bg-paper p-6 md:p-8 rounded-2xl border border-soft-border">
-                                <p className="text-charcoal/80 font-serif leading-relaxed text-sm mb-6 drop-cap">
-                                    Charles-Pierre Baudelaire est né à Paris le 9 avril 1821 et y est mort le 31 août 1867. Il est l'un des poètes majeurs du XIXe siècle. Il s'attache à extraire la beauté du mal, transcendant les conventions morales de son époque.
-                                </p>
-                                <p className="text-charcoal/80 font-serif leading-relaxed text-sm">
-                                    Influencé par Edgar Allan Poe, qu'il a traduit, et par les Romantiques, il est le pont entre le Romantisme et le Symbolisme. Ses poèmes sont marqués par la dualité entre le spleen et l'idéal.
-                                </p>
-                                <button className="mt-8 text-accent hover:text-charcoal text-sm uppercase tracking-widest transition-colors w-full text-center border border-accent/20 rounded-full py-2 hover:border-black/10">
-                                    Lire la biographie complète
-                                </button>
-                            </div>
-                        </FadeIn>
+                        {authorData.biography && (
+                            <FadeIn delay={0.6}>
+                                <h2 className="font-serif text-xl text-charcoal mb-6">À propos</h2>
+                                <div className="bg-paper p-6 md:p-8 rounded-2xl border border-soft-border">
+                                    <p className="text-charcoal/80 font-serif leading-relaxed text-sm mb-6 drop-cap">
+                                        {authorData.biography}
+                                    </p>
+                                </div>
+                            </FadeIn>
+                        )}
 
                     </aside>
                 </div>

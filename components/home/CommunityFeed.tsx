@@ -1,13 +1,36 @@
-"use client";
-
 import React from "react";
-import { communityActivities } from "@/constants/mockData";
 import ActivityCard from "@/components/ui/ActivityCard";
 import FadeIn from "@/components/ui/FadeIn";
+import { getAvatarGradient, getInitials, formatRelativeTime } from "@/utils/gradient";
 
-const CommunityFeed = React.memo(function CommunityFeed() {
-  const leftColumn = communityActivities.filter((_, i) => i % 2 === 0);
-  const rightColumn = communityActivities.filter((_, i) => i % 2 !== 0);
+interface CommunityFeedProps {
+  activities: any[];
+}
+
+export default function CommunityFeed({ activities }: CommunityFeedProps) {
+  // Transform DB review data into the shape ActivityCard expects
+  const mappedActivities = activities.map((review: any) => ({
+    id: review.id,
+    username: review.users?.username || 'anonyme',
+    displayName: review.users?.username || 'Anonyme',
+    avatarGradient: getAvatarGradient(review.users?.username || review.id),
+    initials: getInitials(review.users?.username || 'A'),
+    action: review.review_text ? 'reviewed' as const : 'rated' as const,
+    poemTitle: review.poems?.title || 'Poème',
+    poemAuthors: review.poems?.authors || [],
+    review: review.score,
+    reviewText: review.review_text || undefined,
+    timestamp: formatRelativeTime(review.created_at),
+    likes: 0,
+    comments: 0,
+  }));
+
+  if (mappedActivities.length === 0) {
+    return null;
+  }
+
+  const leftColumn = mappedActivities.filter((_: any, i: number) => i % 2 === 0);
+  const rightColumn = mappedActivities.filter((_: any, i: number) => i % 2 !== 0);
 
   return (
     <section className="py-16 md:py-24">
@@ -30,7 +53,7 @@ const CommunityFeed = React.memo(function CommunityFeed() {
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-5">
           <div className="flex flex-col gap-4 md:gap-5">
-            {leftColumn.map((activity, index) => (
+            {leftColumn.map((activity: any, index: number) => (
               <FadeIn key={activity.id} delay={0.3 + index * 0.1}>
                 <ActivityCard
                   activity={activity}
@@ -41,7 +64,7 @@ const CommunityFeed = React.memo(function CommunityFeed() {
           </div>
 
           <div className="flex flex-col gap-4 md:gap-5 md:mt-8">
-            {rightColumn.map((activity, index) => (
+            {rightColumn.map((activity: any, index: number) => (
               <FadeIn key={activity.id} delay={0.4 + index * 0.1}>
                 <ActivityCard
                   activity={activity}
@@ -54,6 +77,4 @@ const CommunityFeed = React.memo(function CommunityFeed() {
       </div>
     </section>
   );
-});
-
-export default CommunityFeed;
+}
