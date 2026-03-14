@@ -244,7 +244,7 @@ export const getCommunityFeed = (limit: number = 8) => executeCachedQuery(
             .from('poem_reviews')
             .select(`
                 id, score, review_text, created_at,
-                users ( id, username, avatar_url ),
+                users!poem_reviews_user_id_fkey ( id, username, avatar_url ),
                 poems ( id, title, slug, authors ( id, name, slug ) )
             `)
             .order('created_at', { ascending: false })

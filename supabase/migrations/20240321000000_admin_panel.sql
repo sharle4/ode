@@ -11,6 +11,11 @@ CREATE OR REPLACE FUNCTION public.protect_is_admin_column()
 RETURNS trigger AS $$
 BEGIN
   IF NEW.is_admin IS DISTINCT FROM OLD.is_admin THEN
+
+    IF current_user IN ('postgres','service_role') THEN
+      RETURN NEW;
+    END IF;
+
     IF COALESCE((auth.jwt() -> 'app_metadata' ->> 'is_admin')::boolean, false) = false THEN
       RAISE EXCEPTION 'Unauthorized: cannot modify is_admin';
     END IF;
