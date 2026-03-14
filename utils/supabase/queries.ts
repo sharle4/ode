@@ -51,7 +51,7 @@ export const getPoemBySlug = (slug: string) => executeCachedQuery(
         const { data: poem } = await supabase
             .from('poems')
             .select(`
-                id, title, slug, original_text, language, publication_year, average_review, reviews_count, content,
+                id, title, slug, normalized_text, language, publication_year, average_review, reviews_count, content,
                 authors ( id, name, slug ),
                 collections ( id, title )
             `)

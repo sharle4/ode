@@ -80,39 +80,74 @@ CREATE POLICY "Admins can manage daily poems"
 CREATE OR REPLACE FUNCTION public.update_featured_poems(new_poem_ids uuid[])
 RETURNS void AS $$
 BEGIN
-  DELETE FROM public.featured_poems;
+  -- Authorization check
+  IF current_user NOT IN ('postgres', 'service_role') AND NOT EXISTS (
+    SELECT 1 FROM public.users 
+    WHERE id = auth.uid() AND is_admin = true
+  ) THEN
+    RAISE EXCEPTION 'Unauthorized: must be admin to update featured poems';
+  END IF;
+
+  DELETE FROM public.featured_poems WHERE true;
   INSERT INTO public.featured_poems (poem_id, position)
   SELECT val, ord::int
   FROM unnest(new_poem_ids) WITH ORDINALITY AS t(val, ord);
 END;
-$$ LANGUAGE plpgsql SECURITY INVOKER;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
 
 CREATE OR REPLACE FUNCTION public.update_featured_authors(new_author_ids uuid[])
 RETURNS void AS $$
 BEGIN
-  DELETE FROM public.featured_authors;
+  -- Authorization check
+  IF current_user NOT IN ('postgres', 'service_role') AND NOT EXISTS (
+    SELECT 1 FROM public.users 
+    WHERE id = auth.uid() AND is_admin = true
+  ) THEN
+    RAISE EXCEPTION 'Unauthorized: must be admin to update featured authors';
+  END IF;
+
+  DELETE FROM public.featured_authors WHERE true;
   INSERT INTO public.featured_authors (author_id, position)
   SELECT val, ord::int
   FROM unnest(new_author_ids) WITH ORDINALITY AS t(val, ord);
 END;
-$$ LANGUAGE plpgsql SECURITY INVOKER;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
 
 CREATE OR REPLACE FUNCTION public.update_featured_collections(new_collection_ids uuid[])
 RETURNS void AS $$
 BEGIN
-  DELETE FROM public.featured_collections;
+  -- Authorization check
+  IF current_user NOT IN ('postgres', 'service_role') AND NOT EXISTS (
+    SELECT 1 FROM public.users 
+    WHERE id = auth.uid() AND is_admin = true
+  ) THEN
+    RAISE EXCEPTION 'Unauthorized: must be admin to update featured collections';
+  END IF;
+
+  DELETE FROM public.featured_collections WHERE true;
   INSERT INTO public.featured_collections (collection_id, position)
   SELECT val, ord::int
   FROM unnest(new_collection_ids) WITH ORDINALITY AS t(val, ord);
 END;
-$$ LANGUAGE plpgsql SECURITY INVOKER;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
 
 CREATE OR REPLACE FUNCTION public.set_daily_poem(target_date date, target_poem_id uuid)
 RETURNS void AS $$
 BEGIN
+  -- Authorization check
+  IF current_user NOT IN ('postgres', 'service_role') AND NOT EXISTS (
+    SELECT 1 FROM public.users 
+    WHERE id = auth.uid() AND is_admin = true
+  ) THEN
+    RAISE EXCEPTION 'Unauthorized: must be admin to set daily poem';
+  END IF;
+
   INSERT INTO public.daily_poems (date, poem_id, is_manual)
   VALUES (target_date, target_poem_id, true)
   ON CONFLICT (date)
   DO UPDATE SET poem_id = EXCLUDED.poem_id, is_manual = true;
 END;
-$$ LANGUAGE plpgsql SECURITY INVOKER;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
