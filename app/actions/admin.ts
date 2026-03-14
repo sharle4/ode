@@ -21,7 +21,7 @@ export const saveFeaturedPoems = adminActionClient
             return { failure: 'Impossible de mettre à jour les poèmes à la une.' }
         }
 
-        revalidateTag(CACHE_TAGS.featured)
+        revalidateTag(CACHE_TAGS.featured, undefined as never)
         return { success: true }
     })
 
@@ -41,7 +41,7 @@ export const saveFeaturedAuthors = adminActionClient
             return { failure: 'Impossible de mettre à jour les auteurs à la une.' }
         }
 
-        revalidateTag(CACHE_TAGS.featured)
+        revalidateTag(CACHE_TAGS.featured, undefined as never)
         return { success: true }
     })
 
@@ -61,7 +61,7 @@ export const saveFeaturedCollections = adminActionClient
             return { failure: 'Impossible de mettre à jour les recueils à la une.' }
         }
 
-        revalidateTag(CACHE_TAGS.featured)
+        revalidateTag(CACHE_TAGS.featured, undefined as never)
         return { success: true }
     })
 
@@ -83,7 +83,7 @@ export const saveDailyPoem = adminActionClient
             return { failure: 'Impossible de définir le poème du jour.' }
         }
 
-        revalidateTag(CACHE_TAGS.daily)
+        revalidateTag(CACHE_TAGS.daily, undefined as never)
         return { success: true }
     })
 

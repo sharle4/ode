@@ -14,6 +14,8 @@ interface CollectionHeaderProps {
         poemCount: number;
         coverColor: string;
         description: string;
+        averageReview?: number;
+        reviewsCount?: number;
     };
 }
 

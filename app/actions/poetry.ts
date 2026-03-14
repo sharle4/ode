@@ -31,7 +31,7 @@ export const ratePoem = authActionClient
             return { failure: 'Impossible de sauvegarder votre avis.' }
         }
 
-        revalidateTag(CACHE_TAGS.poem(slug))
+        revalidateTag(CACHE_TAGS.poem(slug), undefined as never)
         return { success: true }
     })
 
@@ -61,7 +61,7 @@ export const rateCollection = authActionClient
             return { failure: 'Impossible de sauvegarder votre avis sur ce recueil.' }
         }
 
-        revalidateTag(CACHE_TAGS.collection(slug))
+        revalidateTag(CACHE_TAGS.collection(slug), undefined as never)
         return { success: true }
     })
 
@@ -115,7 +115,7 @@ export const highlightPoem = authActionClient
             return { failure: 'Impossible de sauvegarder votre surbrillance.' }
         }
 
-        revalidateTag(CACHE_TAGS.poem(slug))
+        revalidateTag(CACHE_TAGS.poem(slug), undefined as never)
         return { success: true }
     })
 
@@ -142,11 +142,11 @@ export const createList = authActionClient
             return { failure: 'Impossible de créer la liste.' }
         }
 
-        revalidateTag('public-lists')
+        revalidateTag('public-lists', undefined as never)
         // Invalidate the creator's profile using the safe dynamic tag, assuming their username relies on user_metadata
         const { data: currentUser } = await supabase.from('users').select('username').eq('id', user.id).maybeSingle();
         if (currentUser?.username) {
-            revalidateTag(CACHE_TAGS.profile(currentUser.username))
+            revalidateTag(CACHE_TAGS.profile(currentUser.username), undefined as never)
         }
         return { success: true, listId: data.id }
     })
@@ -173,7 +173,7 @@ export const addToList = authActionClient
             return { failure: "Impossible d'ajouter le poème à la liste." }
         }
 
-        revalidateTag(CACHE_TAGS.list(listId))
+        revalidateTag(CACHE_TAGS.list(listId), undefined as never)
         return { success: true }
     })
 
@@ -211,11 +211,11 @@ export const toggleFollow = authActionClient
         // Granular cache invalidation avoiding massive cross-user purge
         const { data: followedUser } = await supabase.from('users').select('username').eq('id', followingId).maybeSingle();
         if (followedUser?.username) {
-            revalidateTag(CACHE_TAGS.profile(followedUser.username));
+            revalidateTag(CACHE_TAGS.profile(followedUser.username), undefined as never);
         }
         const { data: currentUser } = await supabase.from('users').select('username').eq('id', user.id).maybeSingle();
         if (currentUser?.username) {
-            revalidateTag(CACHE_TAGS.profile(currentUser.username))
+            revalidateTag(CACHE_TAGS.profile(currentUser.username), undefined as never)
         }
         return { success: true, isFollowing: !existing }
     })

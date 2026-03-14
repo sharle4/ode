@@ -7,6 +7,7 @@ import ReviewSection from "@/components/ui/ReviewSection";
 import FadeIn from "@/components/ui/FadeIn";
 import { Metadata } from "next";
 import { getCollectionWithSections } from "@/utils/supabase/queries";
+import { getCoverGradient } from "@/utils/gradient";
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
     const resolvedParams = await params;
@@ -53,6 +54,7 @@ export default async function CollectionPage({ params }: { params: Promise<{ slu
                     authorSlug,
                     year: collectionData.publication_year || 0,
                     poemCount: collectionData.poems_count || collectionData.allPoems?.length || 0,
+                    coverColor: getCoverGradient(collectionData.slug || ''),
                     description: collectionData.summary || '',
                     averageReview: collectionData.average_review || 0,
                     reviewsCount: collectionData.reviews_count || 0,

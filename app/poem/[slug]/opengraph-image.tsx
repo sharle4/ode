@@ -10,7 +10,9 @@ export default async function Image({ params }: { params: Promise<{ slug: string
     const resolvedParams = await params;
     const poem = await getPoemBySlug(resolvedParams.slug)
     const title = poem?.title || "Poème"
-    const author = poem?.authors?.name || "ode"
+    const authorStr = Array.isArray(poem?.authors) 
+        ? poem.authors.map((a: any) => a.name).join(', ') 
+        : (poem?.authors as any)?.name || "ode"
 
     return new ImageResponse(
         (
@@ -31,7 +33,7 @@ export default async function Image({ params }: { params: Promise<{ slug: string
                         {title}
                     </h1>
                     <p style={{ fontSize: 40, color: '#6b665d', fontStyle: 'italic' }}>
-                        Par {author}
+                        Par {authorStr}
                     </p>
                 </div>
                 <div style={{ position: 'absolute', bottom: 40, fontSize: 30, color: '#1c1c1c', fontWeight: 'bold' }}>

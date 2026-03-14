@@ -23,7 +23,9 @@ export async function generateMetadata({ params }: PoemPageProps): Promise<Metad
         return { title: "Poème introuvable - ode" };
     }
 
-    const authorName = poem.authors?.name || "Auteur inconnu";
+    const authorName = Array.isArray(poem.authors)
+        ? poem.authors.map((a: any) => a.name).join(', ')
+        : (poem.authors as any)?.name || "Auteur inconnu";
 
     return {
         title: `${poem.title} de ${authorName} - ode`,
@@ -39,8 +41,15 @@ export default async function PoemPage({ params }: PoemPageProps) {
         notFound();
     }
 
-    const authorName = poem.authors?.name || "Auteur inconnu";
-    const collectionTitle = poem.collections?.title;
+    const authorName = Array.isArray(poem.authors)
+        ? poem.authors.map((a: any) => a.name).join(', ')
+        : (poem.authors as any)?.name || "Auteur inconnu";
+    const authorId = Array.isArray(poem.authors)
+        ? poem.authors[0]?.id
+        : (poem.authors as any)?.id || '#';
+    const collectionTitle = Array.isArray(poem.collections)
+        ? poem.collections[0]?.title
+        : (poem.collections as any)?.title;
 
     const jsonLd: WithContext<CreativeWork> = {
         '@context': 'https://schema.org',
@@ -50,7 +59,7 @@ export default async function PoemPage({ params }: PoemPageProps) {
             '@type': 'Person',
             name: authorName,
         },
-        text: poem.normalized_text || "Texte du poème",
+        text: (poem as any).normalized_text || "Texte du poème",
         datePublished: poem.publication_year?.toString(),
         inLanguage: poem.language || 'fr',
     };
@@ -90,7 +99,7 @@ export default async function PoemPage({ params }: PoemPageProps) {
                             {/* Author details */}
                             <div className="flex flex-col items-center justify-center gap-2">
                                 <Link
-                                    href={`/author/${poem.authors?.id || '#'}`}
+                                    href={`/author/${authorId}`}
                                     className="text-lg md:text-xl text-warm-gray hover:text-charcoal transition-colors italic"
                                 >
                                     Par {authorName} {poem.publication_year ? `(${poem.publication_year})` : ""}
