@@ -25,3 +25,14 @@ export const authActionClient = actionClient.use(async ({ next }) => {
 
     return next({ ctx: { supabase, user } });
 });
+
+// Admin client requiring is_admin in JWT app_metadata
+export const adminActionClient = authActionClient.use(async ({ next, ctx }) => {
+    const isAdmin = ctx.user.app_metadata?.is_admin === true;
+
+    if (!isAdmin) {
+        throw new Error("Accès réservé aux administrateurs.");
+    }
+
+    return next({ ctx });
+});

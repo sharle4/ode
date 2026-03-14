@@ -42,6 +42,7 @@ export async function updateSession(request: NextRequest) {
     const url = request.nextUrl.clone()
     const isOnboardingPage = url.pathname.startsWith('/onboarding')
     const isAuthPage = url.pathname.startsWith('/login') || url.pathname.startsWith('/signup')
+    const isAdminPage = url.pathname.startsWith('/admin')
 
     if (user) {
         // Read status directly from the JWT to avoid hitting the DB
@@ -58,6 +59,19 @@ export async function updateSession(request: NextRequest) {
             url.pathname = '/'
             return NextResponse.redirect(url)
         }
+
+        // Admin route protection — read is_admin from JWT app_metadata (O(1), no DB query)
+        if (isAdminPage) {
+            const isAdmin = user.app_metadata?.is_admin === true
+            if (!isAdmin) {
+                url.pathname = '/'
+                return NextResponse.redirect(url)
+            }
+        }
+    } else if (isAdminPage) {
+        // Not authenticated at all → redirect to login
+        url.pathname = '/login'
+        return NextResponse.redirect(url)
     }
     // -------------------------------------------------------------
 
