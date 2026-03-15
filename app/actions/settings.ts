@@ -54,9 +54,9 @@ export const updateProfile = authActionClient
         if (error) throw new Error("Erreur lors de la mise à jour du profil.");
 
         // Revalidate caches
-        revalidateTag(`profile-${currentUser.username}`);
+        revalidateTag(`profile-${currentUser.username}`, undefined as never);
         if (parsedInput.username !== currentUser.username) {
-            revalidateTag(`profile-${parsedInput.username}`);
+            revalidateTag(`profile-${parsedInput.username}`, undefined as never);
         }
 
         return { success: true, username: parsedInput.username };
@@ -140,7 +140,7 @@ export const updateFavorites = authActionClient
             .single();
 
         if (activeUser) {
-            revalidateTag(`profile-${activeUser.username}`);
+            revalidateTag(`profile-${activeUser.username}`, undefined as never);
         }
 
         return { success: true };
