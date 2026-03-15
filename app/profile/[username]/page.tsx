@@ -1,5 +1,7 @@
 import { notFound } from "next/navigation";
+import Link from "next/link";
 import { getUserProfileByUsername, getTrendingPoems } from "@/utils/supabase/queries";
+import { createClient } from "@/utils/supabase/server";
 import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
 import ProfileTabs from "@/components/profile/ProfileTabs";
@@ -25,19 +27,34 @@ export default async function ProfilePage({ params }: ProfilePageProps) {
     const resolvedParams = await params;
     const decodedUsername = decodeURIComponent(resolvedParams.username);
 
-    // Try to fetch user profile from DB; fallback to trending poems for a graceful display
+    // Try to fetch user profile from DB
     const userProfile = await getUserProfileByUsername(decodedUsername);
 
-    // If no user found in DB, show a graceful fallback with minimal data
-    const stats = userProfile?.stats || { reads: 0, reviews: 0, lists: 0, followers: 0, following: 0 };
-    const topPoems = userProfile?.topPoems || [];
-    const topAuthors = userProfile?.topAuthors || [];
-    const recentReviews = userProfile?.recentReviews || [];
-    const badges = userProfile?.badges || [];
-    const reviewDistribution = userProfile?.reviewDistribution || [5, 4, 3, 2, 1].map(s => ({ stars: s, count: 0 }));
-    const avatarUrl = userProfile?.avatar_url || null;
-    const bio = userProfile?.bio || null;
-    const createdAt = userProfile?.created_at ? new Date(userProfile.created_at).getFullYear() : null;
+    if (!userProfile) {
+        notFound();
+    }
+
+    const supabase = await createClient();
+    const { data: { user } } = await supabase.auth.getUser();
+    const isOwner = user?.id === userProfile.id;
+
+    const stats = userProfile.stats;
+    const topPoems = userProfile.topPoems;
+    const topAuthors = userProfile.topAuthors;
+    const recentReviews = userProfile.recentReviews;
+    const badges = userProfile.badges;
+    const reviewDistribution = userProfile.reviewDistribution;
+    const avatarUrl = userProfile.avatar_url;
+    const description = userProfile.description;
+    
+    // Safe timezone formatting to prevent hydration mismatch
+    const formattedDate = userProfile.created_at 
+        ? new Intl.DateTimeFormat('fr-FR', { 
+            month: 'long', 
+            year: 'numeric', 
+            timeZone: 'Europe/Paris' 
+          }).format(new Date(userProfile.created_at))
+        : null;
 
     // Fallback: if user has no top poems, show trending as recommendations
     let displayPoems = topPoems;
@@ -70,9 +87,9 @@ export default async function ProfilePage({ params }: ProfilePageProps) {
                                 <h1 className="font-serif text-3xl md:text-4xl text-charcoal mb-2">
                                     {decodedUsername}
                                 </h1>
-                                {(bio || createdAt) && (
+                                {(description || formattedDate) && (
                                     <p className="text-warm-gray text-sm italic mb-6">
-                                        {bio || (createdAt ? `Amoureux de poésie depuis ${createdAt}` : '')}
+                                        {description || (formattedDate ? `Amoureux de poésie depuis ${formattedDate}` : '')}
                                     </p>
                                 )}
 
@@ -89,9 +106,18 @@ export default async function ProfilePage({ params }: ProfilePageProps) {
 
                             {/* Edit / Follow Button */}
                             <div className="mt-4 md:mt-0">
-                                <button className="px-6 py-2 rounded-full bg-charcoal text-cream hover:bg-charcoal/90 transition-colors font-medium text-sm">
-                                    Suivre
-                                </button>
+                                {isOwner ? (
+                                    <Link 
+                                        href="/settings"
+                                        className="inline-flex items-center px-6 py-2 rounded-full border border-soft-border text-charcoal hover:bg-soft-border/50 transition-colors font-medium text-sm"
+                                    >
+                                        Modifier le profil
+                                    </Link>
+                                ) : (
+                                    <button className="px-6 py-2 rounded-full bg-charcoal text-cream hover:bg-charcoal/90 transition-colors font-medium text-sm">
+                                        Suivre
+                                    </button>
+                                )}
                             </div>
                         </header>
                     </FadeIn>

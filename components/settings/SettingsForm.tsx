@@ -1,18 +1,15 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useTransition, useOptimistic, useRef } from "react";
+import { useActionState } from "react";
 import {
-    User,
-    PencilSimple,
-    Camera,
-    Lock,
-    Palette,
-    Star,
-    BookOpen,
-    Check,
-    Eye,
-    EyeSlash,
+    User, PencilSimple, Camera, Lock, Palette, Star, BookOpen, Check, Eye, EyeSlash
 } from "@phosphor-icons/react";
+import { updateProfile, updatePassword, updateFavorites, searchContent } from "@/app/actions/settings";
+import SortableList, { SortableItem } from "@/components/admin/SortableList";
+import SearchSelect, { SearchResult } from "@/components/admin/SearchSelect";
+import { createClient } from "@/utils/supabase/client";
+import { useRouter } from "next/navigation";
 
 const HIGHLIGHT_COLORS = [
     { name: "Rouge classique", value: "#B85450" },
@@ -25,38 +22,146 @@ const HIGHLIGHT_COLORS = [
     { name: "Terre cuite", value: "#CC7351" },
 ];
 
-export default function SettingsForm() {
-    // Form states
-    const [username, setUsername] = useState("CharlesReader");
-    const [bio, setBio] = useState("Amoureux de poésie depuis 2026");
-    const [highlightColor, setHighlightColor] = useState("#B85450");
+export interface SettingsData {
+    username: string;
+    description: string;
+    annotationColor: string;
+    avatarUrl: string | null;
+    topAuthors: SearchResult[];
+    topPoems: SearchResult[];
+    isOAuth: boolean;
+}
+
+export default function SettingsForm({ initialData }: { initialData: SettingsData }) {
+    const router = useRouter();
+    const supabase = createClient();
+    
+    // --- Profile Section ---
+    const [username, setUsername] = useState(initialData.username);
+    const [description, setDescription] = useState(initialData.description);
+    const [highlightColor, setHighlightColor] = useState(initialData.annotationColor);
+    const [avatarUrl, setAvatarUrl] = useState<string | null>(initialData.avatarUrl);
+    const [isUploading, setIsUploading] = useState(false);
+    const fileInputRef = useRef<HTMLInputElement>(null);
+
+    const [profileState, profileAction, isProfilePending] = useActionState(async (prevState: any, formData: FormData) => {
+        const res = await updateProfile({
+            username: formData.get("username") as string,
+            description: formData.get("description") as string,
+            annotationColor: formData.get("annotationColor") as string,
+            avatarUrl: formData.get("avatarUrl") as string || null,
+        });
+
+        if (res?.serverError) {
+            return { error: res.serverError };
+        }
+        if (res?.validationErrors) {
+            return { error: "Erreur de validation des champs." };
+        }
+        
+        // Refresh router to get new SSR state if username changed
+        router.refresh();
+        return { success: true };
+    }, null);
+
+    const handleAvatarUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+        try {
+            const file = event.target.files?.[0];
+            if (!file) return;
+
+            setIsUploading(true);
+            const fileExt = file.name.split('.').pop();
+            const fileName = `${initialData.username}-${Math.random()}.${fileExt}`;
+            const filePath = `${fileName}`;
+
+            const { error: uploadError } = await supabase.storage
+                .from('avatars')
+                .upload(filePath, file, { upsert: true });
+
+            if (uploadError) {
+                throw uploadError;
+            }
+
+            const { data } = supabase.storage.from('avatars').getPublicUrl(filePath);
+            setAvatarUrl(data.publicUrl);
+        } catch (error) {
+            console.error('Error uploading avatar:', error);
+            alert("Erreur lors de l'upload de l'image.");
+        } finally {
+            setIsUploading(false);
+        }
+    };
+
+    // --- Favorites Section ---
+    const [topAuthors, setTopAuthors] = useState<SearchResult[]>(initialData.topAuthors);
+    const [topPoems, setTopPoems] = useState<SearchResult[]>(initialData.topPoems);
+
+    const [optimisticAuthors, addOptimisticAuthor] = useOptimistic(
+        topAuthors,
+        (state, newAuthors: SearchResult[]) => newAuthors
+    );
+    const [optimisticPoems, addOptimisticPoem] = useOptimistic(
+        topPoems,
+        (state, newPoems: SearchResult[]) => newPoems
+    );
+
+    const [favoritesState, favoritesAction, isFavoritesPending] = useActionState(async (prevState: any) => {
+        const res = await updateFavorites({
+            topAuthors: topAuthors.map(a => a.id),
+            topPoems: topPoems.map(p => p.id),
+        });
+
+        if (res?.serverError) return { error: res.serverError };
+        if (res?.validationErrors) return { error: "Erreur de validation." };
+        
+        return { success: true };
+    }, null);
+
+    const handleAddFavorite = (type: 'author' | 'poem', item: SearchResult) => {
+        if (type === 'author') {
+            if (topAuthors.length >= 3) return alert("Maximum 3 auteurs.");
+            if (topAuthors.find(a => a.id === item.id)) return;
+            const newAuthors = [...topAuthors, item];
+            setTopAuthors(newAuthors);
+            addOptimisticAuthor(newAuthors);
+        } else {
+            if (topPoems.length >= 3) return alert("Maximum 3 poèmes.");
+            if (topPoems.find(p => p.id === item.id)) return;
+            const newPoems = [...topPoems, item];
+            setTopPoems(newPoems);
+            addOptimisticPoem(newPoems);
+        }
+    };
+
+    const handleSearchContent = async (query: string, type: 'author' | 'poem') => {
+        const res = await searchContent({ query, type });
+        if (res?.data) {
+            return res.data;
+        }
+        return [];
+    };
+
+    // --- Password Section ---
     const [showPassword, setShowPassword] = useState(false);
-    const [currentPassword, setCurrentPassword] = useState("");
-    const [newPassword, setNewPassword] = useState("");
-    const [confirmPassword, setConfirmPassword] = useState("");
-    const [saved, setSaved] = useState<string | null>(null);
+    const [passwordState, passwordAction, isPasswordPending] = useActionState(async (prevState: any, formData: FormData) => {
+        const pass1 = formData.get("newPassword") as string;
+        const pass2 = formData.get("confirmPassword") as string;
 
-    // Mock top 3
-    const [topAuthors, setTopAuthors] = useState([
-        "Charles Baudelaire",
-        "Arthur Rimbaud",
-        "Paul Verlaine",
-    ]);
-    const [topPoems, setTopPoems] = useState([
-        "L'Albatros",
-        "Le Bateau ivre",
-        "Chanson d'automne",
-    ]);
+        if (pass1 !== pass2) {
+            return { error: "Les mots de passe ne correspondent pas." };
+        }
 
-    function handleSave(section: string) {
-        setSaved(section);
-        setTimeout(() => setSaved(null), 2000);
-    }
+        const res = await updatePassword({ newPassword: pass1 });
+        if (res?.serverError) return { error: res.serverError };
+        if (res?.validationErrors) return { error: "Mot de passe trop court." };
+        
+        return { success: true };
+    }, null);
 
     return (
         <div className="space-y-0">
             {/* ─── Profile Section ─── */}
-            <section className="py-10 border-b border-soft-border">
+            <form action={profileAction} className="py-10 border-b border-soft-border">
                 <div className="flex items-center gap-3 mb-8">
                     <User size={20} className="text-accent" />
                     <h2 className="font-serif text-xl text-charcoal">Profil</h2>
@@ -65,21 +170,43 @@ export default function SettingsForm() {
                 <div className="grid grid-cols-1 md:grid-cols-12 gap-8 md:gap-12">
                     {/* Avatar */}
                     <div className="md:col-span-3 flex flex-col items-center gap-4">
-                        <div className="relative group">
-                            <div className="w-28 h-28 rounded-full bg-gradient-to-br from-accent to-accent-light flex items-center justify-center text-white text-3xl font-serif shadow-lg">
-                                {username.charAt(0).toUpperCase()}
-                            </div>
-                            <button className="absolute inset-0 rounded-full bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center text-white">
-                                <Camera size={24} />
+                        <div className="relative group overflow-hidden rounded-full w-28 h-28 bg-gradient-to-br from-accent to-accent-light flex items-center justify-center text-white text-3xl font-serif shadow-lg">
+                            {avatarUrl ? (
+                                <img src={avatarUrl} alt={username} className="w-full h-full object-cover" />
+                            ) : (
+                                username.charAt(0).toUpperCase()
+                            )}
+                            <button 
+                                type="button"
+                                onClick={() => fileInputRef.current?.click()}
+                                disabled={isUploading}
+                                className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center text-white disabled:cursor-not-allowed"
+                            >
+                                <Camera size={24} className={isUploading ? "animate-pulse" : ""} />
                             </button>
+                            <input 
+                                type="file" 
+                                ref={fileInputRef} 
+                                onChange={handleAvatarUpload} 
+                                accept="image/*" 
+                                className="hidden" 
+                            />
                         </div>
-                        <button className="text-xs text-accent hover:text-charcoal transition-colors font-medium">
-                            Changer la photo
+                        <button 
+                            type="button"
+                            onClick={() => fileInputRef.current?.click()}
+                            disabled={isUploading}
+                            className="text-xs text-accent hover:text-charcoal transition-colors font-medium disabled:opacity-50"
+                        >
+                            {isUploading ? "Enregistrement..." : "Changer la photo"}
                         </button>
                     </div>
 
                     {/* Fields */}
                     <div className="md:col-span-9 space-y-6">
+                        <input type="hidden" name="avatarUrl" value={avatarUrl || ""} />
+                        <input type="hidden" name="annotationColor" value={highlightColor} />
+
                         <div>
                             <label className="block text-xs text-warm-gray uppercase tracking-wider mb-2 font-medium">
                                 Nom d'utilisateur
@@ -87,8 +214,13 @@ export default function SettingsForm() {
                             <div className="relative">
                                 <input
                                     type="text"
+                                    name="username"
                                     value={username}
                                     onChange={(e) => setUsername(e.target.value)}
+                                    required
+                                    minLength={3}
+                                    maxLength={30}
+                                    pattern="^[a-zA-Z0-9_]+$"
                                     className="w-full rounded-xl border border-soft-border bg-paper px-4 py-3 text-sm text-charcoal placeholder:text-warm-gray/50 outline-none focus:border-accent/40 focus:ring-2 focus:ring-accent/10 transition-all"
                                 />
                                 <PencilSimple
@@ -103,38 +235,46 @@ export default function SettingsForm() {
                                 Description
                             </label>
                             <textarea
-                                value={bio}
-                                onChange={(e) => setBio(e.target.value)}
+                                name="description"
+                                value={description}
+                                onChange={(e) => setDescription(e.target.value)}
                                 rows={3}
                                 maxLength={200}
                                 className="w-full rounded-xl border border-soft-border bg-paper px-4 py-3 text-sm text-charcoal placeholder:text-warm-gray/50 outline-none focus:border-accent/40 focus:ring-2 focus:ring-accent/10 transition-all resize-none"
                                 placeholder="Décrivez-vous en quelques mots…"
                             />
                             <p className="text-right text-xs text-warm-gray/50 mt-1">
-                                {bio.length}/200
+                                {description.length}/200
                             </p>
                         </div>
 
+                        {profileState?.error && (
+                            <p className="text-sm text-red-500 mt-2">{profileState.error}</p>
+                        )}
+                        {profileState?.success && (
+                            <p className="text-sm text-accent mt-2 flex items-center gap-1"><Check size={14}/> Profil mis à jour</p>
+                        )}
+
                         <div className="flex justify-end">
                             <button
-                                onClick={() => handleSave("profile")}
-                                className="inline-flex items-center gap-2 rounded-full bg-charcoal px-6 py-2.5 text-sm font-medium text-cream transition-colors hover:bg-charcoal/90 active:scale-[0.98]"
+                                type="submit"
+                                disabled={isProfilePending}
+                                className="inline-flex items-center gap-2 rounded-full bg-charcoal px-6 py-2.5 text-sm font-medium text-cream transition-colors hover:bg-charcoal/90 active:scale-[0.98] disabled:opacity-50"
                             >
-                                {saved === "profile" ? (
-                                    <>
-                                        <Check size={14} weight="bold" /> Enregistré
-                                    </>
-                                ) : (
-                                    "Enregistrer"
-                                )}
+                                {isProfilePending ? "Enregistrement..." : "Enregistrer"}
                             </button>
                         </div>
                     </div>
                 </div>
-            </section>
+            </form>
 
             {/* ─── Highlight Color ─── */}
-            <section className="py-10 border-b border-soft-border">
+            <form action={profileAction} className="py-10 border-b border-soft-border">
+                {/* We re-use profileAction since color is part of profile */}
+                <input type="hidden" name="username" value={username} />
+                <input type="hidden" name="description" value={description} />
+                <input type="hidden" name="avatarUrl" value={avatarUrl || ""} />
+                
                 <div className="flex items-center gap-3 mb-8">
                     <Palette size={20} className="text-accent" />
                     <h2 className="font-serif text-xl text-charcoal">
@@ -143,34 +283,38 @@ export default function SettingsForm() {
                 </div>
                 <p className="text-sm text-warm-gray mb-6 max-w-lg">
                     Choisissez la couleur qui apparaîtra pour vos sélections de texte,
-                    vos annotations et vos favoris.
+                    vos annotations et vos favoris. Ce réglage est sauvegardé avec votre profil en cliquant ci-dessous.
                 </p>
-                <div className="flex flex-wrap gap-3">
+                <div className="flex flex-wrap gap-3 mb-6">
                     {HIGHLIGHT_COLORS.map((color) => (
                         <button
                             key={color.value}
-                            onClick={() => {
-                                setHighlightColor(color.value);
-                                handleSave("color");
-                            }}
-                            className={`w-10 h-10 rounded-full border-2 transition-all hover:scale-110 ${highlightColor === color.value
+                            type="button"
+                            onClick={() => setHighlightColor(color.value)}
+                            className={`w-10 h-10 rounded-full border-2 transition-all hover:scale-110 ${
+                                highlightColor === color.value
                                     ? "border-charcoal ring-2 ring-charcoal/10 scale-110"
                                     : "border-soft-border"
-                                }`}
+                            }`}
                             style={{ backgroundColor: color.value }}
                             title={color.name}
                         />
                     ))}
+                    <input type="hidden" name="annotationColor" value={highlightColor} />
                 </div>
-                {saved === "color" && (
-                    <p className="mt-3 text-xs text-accent flex items-center gap-1">
-                        <Check size={12} weight="bold" /> Couleur mises à jour
-                    </p>
-                )}
-            </section>
+                <div className="flex justify-end">
+                    <button
+                        type="submit"
+                        disabled={isProfilePending}
+                        className="inline-flex items-center gap-2 rounded-full bg-charcoal px-6 py-2.5 text-sm font-medium text-cream transition-colors hover:bg-charcoal/90 active:scale-[0.98] disabled:opacity-50"
+                    >
+                        {isProfilePending ? "Enregistrement..." : "Enregistrer la couleur"}
+                    </button>
+                </div>
+            </form>
 
             {/* ─── Top 3 ─── */}
-            <section className="py-10 border-b border-soft-border">
+            <form action={favoritesAction} className="py-10 border-b border-soft-border">
                 <div className="flex items-center gap-3 mb-8">
                     <Star size={20} className="text-accent" />
                     <h2 className="font-serif text-xl text-charcoal">
@@ -180,157 +324,159 @@ export default function SettingsForm() {
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
                     {/* Top Authors */}
-                    <div>
-                        <h3 className="text-xs text-warm-gray uppercase tracking-wider mb-4 font-medium">
+                    <div className="bg-paper p-6 rounded-2xl border border-soft-border">
+                        <h3 className="text-sm text-charcoal font-serif mb-4 flex items-center justify-between">
                             Auteurs favoris
+                            <span className="text-xs text-warm-gray font-sans">{optimisticAuthors.length}/3</span>
                         </h3>
-                        <div className="space-y-3">
-                            {topAuthors.map((author, i) => (
-                                <div key={i} className="flex items-center gap-3">
-                                    <span className="w-6 h-6 rounded-full bg-accent/10 text-accent text-xs font-bold flex items-center justify-center flex-shrink-0">
-                                        {i + 1}
-                                    </span>
-                                    <input
-                                        type="text"
-                                        value={author}
-                                        onChange={(e) => {
-                                            const copy = [...topAuthors];
-                                            copy[i] = e.target.value;
-                                            setTopAuthors(copy);
-                                        }}
-                                        className="flex-1 rounded-lg border border-soft-border bg-paper px-3 py-2 text-sm text-charcoal placeholder:text-warm-gray/50 outline-none focus:border-accent/40 focus:ring-2 focus:ring-accent/10 transition-all"
-                                        placeholder={`Auteur #${i + 1}`}
-                                    />
-                                </div>
-                            ))}
+                        <div className="mb-4">
+                            <SortableList
+                                items={optimisticAuthors}
+                                emptyMessage="Aucun auteur sélectionné"
+                                onReorder={(items) => {
+                                    setTopAuthors(items);
+                                    addOptimisticAuthor(items);
+                                }}
+                                onRemove={(id) => {
+                                    const newItems = topAuthors.filter(a => a.id !== id);
+                                    setTopAuthors(newItems);
+                                    addOptimisticAuthor(newItems);
+                                }}
+                            />
                         </div>
+                        {optimisticAuthors.length < 3 && (
+                            <SearchSelect
+                                placeholder="Rechercher un auteur…"
+                                excludeIds={optimisticAuthors.map(a => a.id)}
+                                onSearch={(q) => handleSearchContent(q, 'author')}
+                                onSelect={(item) => handleAddFavorite('author', item)}
+                            />
+                        )}
                     </div>
 
                     {/* Top Poems */}
-                    <div>
-                        <h3 className="text-xs text-warm-gray uppercase tracking-wider mb-4 font-medium flex items-center gap-2">
-                            <BookOpen size={14} className="text-warm-gray/60" />
-                            Poèmes favoris
+                    <div className="bg-paper p-6 rounded-2xl border border-soft-border">
+                        <h3 className="text-sm text-charcoal font-serif mb-4 flex items-center justify-between">
+                            <span className="flex items-center gap-2">
+                                <BookOpen size={16} className="text-accent" />
+                                Poèmes favoris
+                            </span>
+                            <span className="text-xs text-warm-gray font-sans">{optimisticPoems.length}/3</span>
                         </h3>
-                        <div className="space-y-3">
-                            {topPoems.map((poem, i) => (
-                                <div key={i} className="flex items-center gap-3">
-                                    <span className="w-6 h-6 rounded-full bg-accent/10 text-accent text-xs font-bold flex items-center justify-center flex-shrink-0">
-                                        {i + 1}
-                                    </span>
-                                    <input
-                                        type="text"
-                                        value={poem}
-                                        onChange={(e) => {
-                                            const copy = [...topPoems];
-                                            copy[i] = e.target.value;
-                                            setTopPoems(copy);
-                                        }}
-                                        className="flex-1 rounded-lg border border-soft-border bg-paper px-3 py-2 text-sm text-charcoal placeholder:text-warm-gray/50 outline-none focus:border-accent/40 focus:ring-2 focus:ring-accent/10 transition-all"
-                                        placeholder={`Poème #${i + 1}`}
-                                    />
-                                </div>
-                            ))}
+                        <div className="mb-4">
+                            <SortableList
+                                items={optimisticPoems}
+                                emptyMessage="Aucun poème sélectionné"
+                                onReorder={(items) => {
+                                    setTopPoems(items);
+                                    addOptimisticPoem(items);
+                                }}
+                                onRemove={(id) => {
+                                    const newItems = topPoems.filter(p => p.id !== id);
+                                    setTopPoems(newItems);
+                                    addOptimisticPoem(newItems);
+                                }}
+                            />
                         </div>
+                        {optimisticPoems.length < 3 && (
+                            <SearchSelect
+                                placeholder="Rechercher un poème…"
+                                excludeIds={optimisticPoems.map(p => p.id)}
+                                onSearch={(q) => handleSearchContent(q, 'poem')}
+                                onSelect={(item) => handleAddFavorite('poem', item)}
+                            />
+                        )}
                     </div>
                 </div>
+
+                {favoritesState?.error && (
+                    <p className="text-sm text-red-500 mt-4 text-right">{favoritesState.error}</p>
+                )}
+                {favoritesState?.success && (
+                    <p className="text-sm text-accent mt-4 text-right flex items-center justify-end gap-1"><Check size={14}/> Favoris mis à jour</p>
+                )}
 
                 <div className="flex justify-end mt-8">
                     <button
-                        onClick={() => handleSave("top3")}
-                        className="inline-flex items-center gap-2 rounded-full bg-charcoal px-6 py-2.5 text-sm font-medium text-cream transition-colors hover:bg-charcoal/90 active:scale-[0.98]"
+                        type="submit"
+                        disabled={isFavoritesPending}
+                        className="inline-flex items-center gap-2 rounded-full bg-charcoal px-6 py-2.5 text-sm font-medium text-cream transition-colors hover:bg-charcoal/90 active:scale-[0.98] disabled:opacity-50"
                     >
-                        {saved === "top3" ? (
-                            <>
-                                <Check size={14} weight="bold" /> Enregistré
-                            </>
-                        ) : (
-                            "Enregistrer les favoris"
-                        )}
+                        {isFavoritesPending ? "Enregistrement..." : "Enregistrer les favoris"}
                     </button>
                 </div>
-            </section>
+            </form>
 
-            {/* ─── Password ─── */}
-            <section className="py-10">
-                <div className="flex items-center gap-3 mb-8">
-                    <Lock size={20} className="text-accent" />
-                    <h2 className="font-serif text-xl text-charcoal">
-                        Mot de passe
-                    </h2>
-                </div>
+            {/* ─── Password (Hidden if OAuth) ─── */}
+            {!initialData.isOAuth && (
+                <form action={passwordAction} className="py-10">
+                    <div className="flex items-center gap-3 mb-8">
+                        <Lock size={20} className="text-accent" />
+                        <h2 className="font-serif text-xl text-charcoal">
+                            Mot de passe
+                        </h2>
+                    </div>
 
-                <div className="max-w-md space-y-5">
-                    <div>
-                        <label className="block text-xs text-warm-gray uppercase tracking-wider mb-2 font-medium">
-                            Mot de passe actuel
-                        </label>
-                        <div className="relative">
+                    <div className="max-w-md space-y-5">
+                        {/* Optionnel: Mot de passe actuel, mais Supabase updateUser ne le requiert pas forcément coté client si la session JWT est fraîche, 
+                            bien que pour plus de sécurité on peut l'exiger via signInWithPassword d'abord. On va faire simple pour cet exemple */}
+                        
+                        <div>
+                            <label className="block text-xs text-warm-gray uppercase tracking-wider mb-2 font-medium">
+                                Nouveau mot de passe
+                            </label>
+                            <div className="relative">
+                                <input
+                                    type={showPassword ? "text" : "password"}
+                                    name="newPassword"
+                                    required
+                                    minLength={6}
+                                    className="w-full rounded-xl border border-soft-border bg-paper px-4 py-3 pr-12 text-sm text-charcoal outline-none focus:border-accent/40 focus:ring-2 focus:ring-accent/10 transition-all"
+                                    placeholder="••••••••"
+                                />
+                                <button
+                                    type="button"
+                                    onClick={() => setShowPassword(!showPassword)}
+                                    className="absolute right-4 top-1/2 -translate-y-1/2 text-warm-gray hover:text-charcoal transition-colors"
+                                >
+                                    {showPassword ? <EyeSlash size={16} /> : <Eye size={16} />}
+                                </button>
+                            </div>
+                        </div>
+
+                        <div>
+                            <label className="block text-xs text-warm-gray uppercase tracking-wider mb-2 font-medium">
+                                Confirmer le mot de passe
+                            </label>
                             <input
-                                type={showPassword ? "text" : "password"}
-                                value={currentPassword}
-                                onChange={(e) => setCurrentPassword(e.target.value)}
-                                className="w-full rounded-xl border border-soft-border bg-paper px-4 py-3 pr-12 text-sm text-charcoal outline-none focus:border-accent/40 focus:ring-2 focus:ring-accent/10 transition-all"
+                                type="password"
+                                name="confirmPassword"
+                                required
+                                minLength={6}
+                                className="w-full rounded-xl border border-soft-border bg-paper px-4 py-3 text-sm text-charcoal outline-none focus:border-accent/40 focus:ring-2 focus:ring-accent/10 transition-all"
                                 placeholder="••••••••"
                             />
+                        </div>
+
+                        {passwordState?.error && (
+                            <p className="text-sm text-red-500 mt-2">{passwordState.error}</p>
+                        )}
+                        {passwordState?.success && (
+                            <p className="text-sm text-accent mt-2 flex items-center gap-1"><Check size={14}/> Mot de passe mis à jour</p>
+                        )}
+
+                        <div className="flex justify-end pt-2">
                             <button
-                                type="button"
-                                onClick={() => setShowPassword(!showPassword)}
-                                className="absolute right-4 top-1/2 -translate-y-1/2 text-warm-gray hover:text-charcoal transition-colors"
+                                type="submit"
+                                disabled={isPasswordPending}
+                                className="inline-flex items-center gap-2 rounded-full bg-charcoal px-6 py-2.5 text-sm font-medium text-cream transition-colors hover:bg-charcoal/90 active:scale-[0.98] disabled:opacity-50"
                             >
-                                {showPassword ? <EyeSlash size={16} /> : <Eye size={16} />}
+                                {isPasswordPending ? "Chargement..." : "Modifier le mot de passe"}
                             </button>
                         </div>
                     </div>
-
-                    <div>
-                        <label className="block text-xs text-warm-gray uppercase tracking-wider mb-2 font-medium">
-                            Nouveau mot de passe
-                        </label>
-                        <input
-                            type="password"
-                            value={newPassword}
-                            onChange={(e) => setNewPassword(e.target.value)}
-                            className="w-full rounded-xl border border-soft-border bg-paper px-4 py-3 text-sm text-charcoal outline-none focus:border-accent/40 focus:ring-2 focus:ring-accent/10 transition-all"
-                            placeholder="••••••••"
-                        />
-                    </div>
-
-                    <div>
-                        <label className="block text-xs text-warm-gray uppercase tracking-wider mb-2 font-medium">
-                            Confirmer le mot de passe
-                        </label>
-                        <input
-                            type="password"
-                            value={confirmPassword}
-                            onChange={(e) => setConfirmPassword(e.target.value)}
-                            className="w-full rounded-xl border border-soft-border bg-paper px-4 py-3 text-sm text-charcoal outline-none focus:border-accent/40 focus:ring-2 focus:ring-accent/10 transition-all"
-                            placeholder="••••••••"
-                        />
-                        {confirmPassword && newPassword !== confirmPassword && (
-                            <p className="mt-2 text-xs text-red-500">
-                                Les mots de passe ne correspondent pas.
-                            </p>
-                        )}
-                    </div>
-
-                    <div className="flex justify-end pt-2">
-                        <button
-                            onClick={() => handleSave("password")}
-                            disabled={!currentPassword || !newPassword || newPassword !== confirmPassword}
-                            className="inline-flex items-center gap-2 rounded-full bg-charcoal px-6 py-2.5 text-sm font-medium text-cream transition-colors hover:bg-charcoal/90 active:scale-[0.98] disabled:opacity-40 disabled:cursor-not-allowed"
-                        >
-                            {saved === "password" ? (
-                                <>
-                                    <Check size={14} weight="bold" /> Mis à jour
-                                </>
-                            ) : (
-                                "Modifier le mot de passe"
-                            )}
-                        </button>
-                    </div>
-                </div>
-            </section>
+                </form>
+            )}
         </div>
     );
 }
