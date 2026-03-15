@@ -231,14 +231,26 @@ export default function SettingsForm({ initialData }: { initialData: SettingsDat
                                 className="hidden" 
                             />
                         </div>
-                        <button 
-                            type="button"
-                            onClick={() => fileInputRef.current?.click()}
-                            disabled={isUploading}
-                            className="text-xs text-accent hover:text-charcoal transition-colors font-medium disabled:opacity-50"
-                        >
-                            {isUploading ? "Enregistrement..." : "Changer la photo"}
-                        </button>
+                        <div className="flex items-center gap-3">
+                            <button 
+                                type="button"
+                                onClick={() => fileInputRef.current?.click()}
+                                disabled={isUploading}
+                                className="text-xs text-accent hover:text-charcoal transition-colors font-medium disabled:opacity-50"
+                            >
+                                {isUploading ? "Enregistrement..." : "Changer la photo"}
+                            </button>
+                            {avatarUrl && (
+                                <button 
+                                    type="button"
+                                    onClick={() => setAvatarUrl(null)}
+                                    disabled={isUploading}
+                                    className="text-xs text-red-500 hover:text-red-700 transition-colors font-medium disabled:opacity-50"
+                                >
+                                    Supprimer d'Ode
+                                </button>
+                            )}
+                        </div>
                     </div>
 
                     {/* Fields */}
@@ -513,14 +525,23 @@ export default function SettingsForm({ initialData }: { initialData: SettingsDat
                             <label className="block text-xs text-warm-gray uppercase tracking-wider mb-2 font-medium">
                                 Confirmer le mot de passe
                             </label>
-                            <input
-                                type="password"
-                                name="confirmPassword"
-                                required
-                                minLength={6}
-                                className="w-full rounded-xl border border-soft-border bg-paper px-4 py-3 text-sm text-charcoal outline-none focus:border-accent/40 focus:ring-2 focus:ring-accent/10 transition-all"
-                                placeholder="••••••••"
-                            />
+                            <div className="relative">
+                                <input
+                                    type={showPassword ? "text" : "password"}
+                                    name="confirmPassword"
+                                    required
+                                    minLength={6}
+                                    className="w-full rounded-xl border border-soft-border bg-paper px-4 py-3 pr-12 text-sm text-charcoal outline-none focus:border-accent/40 focus:ring-2 focus:ring-accent/10 transition-all"
+                                    placeholder="••••••••"
+                                />
+                                <button
+                                    type="button"
+                                    onClick={() => setShowPassword(!showPassword)}
+                                    className="absolute right-4 top-1/2 -translate-y-1/2 text-warm-gray hover:text-charcoal transition-colors"
+                                >
+                                    {showPassword ? <EyeSlash size={16} /> : <Eye size={16} />}
+                                </button>
+                            </div>
                         </div>
 
                         {passwordState?.error && (

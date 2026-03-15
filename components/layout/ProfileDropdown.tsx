@@ -64,12 +64,20 @@ export default function ProfileDropdown({ userProfile }: { userProfile: UserProf
 
     if (!userProfile) {
         return (
-            <Link
-                href="/login"
-                className="ml-4 rounded-full bg-charcoal text-white px-5 py-2 text-sm font-medium transition-transform hover:scale-105"
-            >
-                Connexion / Inscription
-            </Link>
+            <div className="flex items-center gap-2 ml-4">
+                <Link
+                    href="/login"
+                    className="rounded-full border border-soft-border bg-transparent text-charcoal px-5 py-2 text-sm font-medium transition-colors hover:bg-soft-border/50"
+                >
+                    Connexion
+                </Link>
+                <Link
+                    href="/signup"
+                    className="rounded-full bg-charcoal text-white px-5 py-2 text-sm font-medium transition-transform hover:scale-105"
+                >
+                    Inscription
+                </Link>
+            </div>
         );
     }
 

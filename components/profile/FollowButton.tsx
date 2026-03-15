@@ -103,7 +103,7 @@ export default function FollowButton({ profileId }: FollowButtonProps) {
     if (!isMounted) {
          // Prevent hydration mismatch by rendering a skeleton
          return (
-             <button disabled className="px-6 py-2 rounded-full border border-soft-border text-transparent bg-soft-border/20 animate-pulse font-medium text-sm">
+             <button disabled className="h-9 min-w-[110px] flex items-center justify-center rounded-full border border-soft-border text-transparent bg-soft-border/20 animate-pulse font-medium text-sm">
                  Chargement
              </button>
          );
@@ -111,7 +111,7 @@ export default function FollowButton({ profileId }: FollowButtonProps) {
 
     if (isLoading) {
          return (
-             <button disabled className="px-6 py-2 rounded-full border border-soft-border text-transparent bg-soft-border/20 animate-pulse font-medium text-sm">
+             <button disabled className="h-9 min-w-[110px] flex items-center justify-center rounded-full border border-soft-border text-transparent bg-soft-border/20 animate-pulse font-medium text-sm">
                  Chargement
              </button>
          );
@@ -121,7 +121,7 @@ export default function FollowButton({ profileId }: FollowButtonProps) {
         <button 
             onClick={handleToggle}
             disabled={isPending}
-            className={`px-6 py-2 rounded-full font-medium text-sm transition-colors ${
+            className={`h-9 min-w-[110px] flex items-center justify-center rounded-full font-medium text-sm transition-colors ${
                 optimisticIsFollowing 
                 ? "bg-white border text-charcoal shadow-sm hover:bg-rose-50 hover:text-rose-600 hover:border-rose-200" 
                 : "bg-charcoal text-cream hover:bg-charcoal/90"
