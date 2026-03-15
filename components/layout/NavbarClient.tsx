@@ -208,11 +208,15 @@ const NavbarClient = React.memo(function NavbarClient({ userProfile }: { userPro
                 animate={{ opacity: 1 }}
                 transition={{ delay: 0.3 }}
               >
-                <div className="h-11 w-11 rounded-full bg-gradient-to-br from-accent to-accent-light flex items-center justify-center text-white text-sm font-medium">
-                  V
+                <div className="h-11 w-11 overflow-hidden relative rounded-full bg-gradient-to-br from-accent to-accent-light flex items-center justify-center text-white text-sm font-medium">
+                  {userProfile?.avatar_url ? (
+                    <img src={userProfile.avatar_url} alt={userProfile.username} className="w-full h-full object-cover" />
+                  ) : (
+                    userProfile?.username?.charAt(0).toUpperCase() || "U"
+                  )}
                 </div>
                 <div>
-                  <p className="text-sm font-medium text-white">Profil</p>
+                  <p className="text-sm font-medium text-white">{userProfile?.username || "Profil"}</p>
                   <p className="text-xs text-zinc-400">Voir votre bibliothèque</p>
                 </div>
               </motion.div>

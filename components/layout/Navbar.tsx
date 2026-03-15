@@ -16,11 +16,17 @@ export default async function Navbar() {
   let userProfile: UserProfile = null;
 
   if (user) {
+    const { data: dbUser } = await supabase
+      .from('users')
+      .select('username, avatar_url')
+      .eq('id', user.id)
+      .single();
+
     userProfile = {
       id: user.id,
       email: user.email,
-      username: user.user_metadata?.username || user.email?.split("@")[0] || "Utilisateur",
-      avatar_url: user.user_metadata?.avatar_url,
+      username: dbUser?.username || user.user_metadata?.username || user.email?.split("@")[0] || "Utilisateur",
+      avatar_url: dbUser?.avatar_url || user.user_metadata?.avatar_url,
     };
   }
 

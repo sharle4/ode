@@ -14,7 +14,6 @@ import {
     Gear,
     SignOut,
 } from "@phosphor-icons/react";
-import Image from "next/image";
 import { signout } from "@/app/auth/actions";
 import { type UserProfile } from "./Navbar";
 
@@ -86,7 +85,7 @@ export default function ProfileDropdown({ userProfile }: { userProfile: UserProf
                 aria-expanded={open}
             >
                 {userProfile.avatar_url ? (
-                    <Image src={userProfile.avatar_url} alt={userProfile.username} fill className="object-cover" sizes="32px" />
+                    <img src={userProfile.avatar_url} alt={userProfile.username} className="w-full h-full object-cover" />
                 ) : (
                     getInitials(userProfile.username)
                 )}

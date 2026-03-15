@@ -52,6 +52,13 @@ export default function SettingsForm({ initialData }: { initialData: SettingsDat
         setAvatarUrl(initialData.avatarUrl || null);
     }, [initialData.username, initialData.description, initialData.annotationColor, initialData.avatarUrl]);
 
+    const isProfileDirty = 
+        username !== (initialData.username || "") ||
+        description !== (initialData.description || "") ||
+        avatarUrl !== (initialData.avatarUrl || null);
+
+    const isColorDirty = highlightColor !== (initialData.annotationColor || "#B85450");
+
     const [profileState, profileAction, isProfilePending] = useActionState(async (prevState: any, formData: FormData) => {
         const res = await updateProfile({
             username: formData.get("username") as string,
@@ -116,6 +123,10 @@ export default function SettingsForm({ initialData }: { initialData: SettingsDat
         setTopAuthors(initialData.topAuthors || []);
         setTopPoems(initialData.topPoems || []);
     }, [initialData.topAuthors, initialData.topPoems]);
+
+    const isFavoritesDirty = 
+        JSON.stringify(topAuthors.map(a => a.id)) !== JSON.stringify((initialData.topAuthors || []).map(a => a.id)) ||
+        JSON.stringify(topPoems.map(p => p.id)) !== JSON.stringify((initialData.topPoems || []).map(p => p.id));
 
     const [optimisticAuthors, addOptimisticAuthor] = useOptimistic(
         topAuthors,
@@ -285,7 +296,7 @@ export default function SettingsForm({ initialData }: { initialData: SettingsDat
                         <div className="flex justify-end">
                             <button
                                 type="submit"
-                                disabled={isProfilePending}
+                                disabled={isProfilePending || !isProfileDirty}
                                 className="inline-flex items-center gap-2 rounded-full bg-charcoal px-6 py-2.5 text-sm font-medium text-cream transition-colors hover:bg-charcoal/90 active:scale-[0.98] disabled:opacity-50"
                             >
                                 {isProfilePending ? "Enregistrement..." : "Enregistrer"}
@@ -332,7 +343,7 @@ export default function SettingsForm({ initialData }: { initialData: SettingsDat
                 <div className="flex justify-end">
                     <button
                         type="submit"
-                        disabled={isColorPending}
+                        disabled={isColorPending || !isColorDirty}
                         className="inline-flex items-center gap-2 rounded-full bg-charcoal px-6 py-2.5 text-sm font-medium text-cream transition-colors hover:bg-charcoal/90 active:scale-[0.98] disabled:opacity-50"
                     >
                         {isColorPending ? "Enregistrement..." : "Enregistrer la couleur"}
@@ -434,7 +445,7 @@ export default function SettingsForm({ initialData }: { initialData: SettingsDat
                 <div className="flex justify-end mt-8">
                     <button
                         type="submit"
-                        disabled={isFavoritesPending}
+                        disabled={isFavoritesPending || !isFavoritesDirty}
                         className="inline-flex items-center gap-2 rounded-full bg-charcoal px-6 py-2.5 text-sm font-medium text-cream transition-colors hover:bg-charcoal/90 active:scale-[0.98] disabled:opacity-50"
                     >
                         {isFavoritesPending ? "Enregistrement..." : "Enregistrer les favoris"}
