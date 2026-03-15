@@ -101,13 +101,14 @@ export default function OnboardingWizard({
       // Try to prepare the user experience for the exit by prefetching Home earlier
       // but double check it here.
 
-      const payload = overridePayload || {
+      const payload = {
         action: "submit",
         categories: selectedCategories,
         authors: selectedAuthors,
         typography,
         theme,
         fontSize,
+        ...(overridePayload || {}),
       };
 
       try {
