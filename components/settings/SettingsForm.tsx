@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useTransition, useOptimistic, useRef } from "react";
+import React, { useState, useTransition, useOptimistic, useRef, startTransition, useEffect } from "react";
 import { useActionState } from "react";
 import {
     User, PencilSimple, Camera, Lock, Palette, Star, BookOpen, Check, Eye, EyeSlash
@@ -37,29 +37,45 @@ export default function SettingsForm({ initialData }: { initialData: SettingsDat
     const supabase = createClient();
     
     // --- Profile Section ---
-    const [username, setUsername] = useState(initialData.username);
-    const [description, setDescription] = useState(initialData.description);
-    const [highlightColor, setHighlightColor] = useState(initialData.annotationColor);
-    const [avatarUrl, setAvatarUrl] = useState<string | null>(initialData.avatarUrl);
+    const [username, setUsername] = useState(initialData.username || "");
+    const [description, setDescription] = useState(initialData.description || "");
+    const [highlightColor, setHighlightColor] = useState(initialData.annotationColor || "#B85450");
+    const [avatarUrl, setAvatarUrl] = useState<string | null>(initialData.avatarUrl || null);
     const [isUploading, setIsUploading] = useState(false);
     const fileInputRef = useRef<HTMLInputElement>(null);
+
+    // Sync state when initialData changes (e.g. after a server action mutation and a router.refresh)
+    useEffect(() => {
+        setUsername(initialData.username || "");
+        setDescription(initialData.description || "");
+        setHighlightColor(initialData.annotationColor || "#B85450");
+        setAvatarUrl(initialData.avatarUrl || null);
+    }, [initialData.username, initialData.description, initialData.annotationColor, initialData.avatarUrl]);
 
     const [profileState, profileAction, isProfilePending] = useActionState(async (prevState: any, formData: FormData) => {
         const res = await updateProfile({
             username: formData.get("username") as string,
             description: formData.get("description") as string,
-            annotationColor: formData.get("annotationColor") as string,
+            annotationColor: highlightColor,
             avatarUrl: formData.get("avatarUrl") as string || null,
         });
 
-        if (res?.serverError) {
-            return { error: res.serverError };
-        }
-        if (res?.validationErrors) {
-            return { error: "Erreur de validation des champs." };
-        }
-        
-        // Refresh router to get new SSR state if username changed
+        if (res?.serverError) return { error: res.serverError };
+        if (res?.validationErrors) return { error: "Erreur de validation des champs." };
+        router.refresh();
+        return { success: true };
+    }, null);
+
+    const [colorState, colorAction, isColorPending] = useActionState(async (prevState: any, formData: FormData) => {
+        const res = await updateProfile({
+            username: username,
+            description: description,
+            annotationColor: formData.get("annotationColor") as string,
+            avatarUrl: avatarUrl,
+        });
+
+        if (res?.serverError) return { error: res.serverError };
+        if (res?.validationErrors) return { error: "Erreur lors de la sauvegarde." };
         router.refresh();
         return { success: true };
     }, null);
@@ -93,8 +109,13 @@ export default function SettingsForm({ initialData }: { initialData: SettingsDat
     };
 
     // --- Favorites Section ---
-    const [topAuthors, setTopAuthors] = useState<SearchResult[]>(initialData.topAuthors);
-    const [topPoems, setTopPoems] = useState<SearchResult[]>(initialData.topPoems);
+    const [topAuthors, setTopAuthors] = useState<SearchResult[]>(initialData.topAuthors || []);
+    const [topPoems, setTopPoems] = useState<SearchResult[]>(initialData.topPoems || []);
+
+    useEffect(() => {
+        setTopAuthors(initialData.topAuthors || []);
+        setTopPoems(initialData.topPoems || []);
+    }, [initialData.topAuthors, initialData.topPoems]);
 
     const [optimisticAuthors, addOptimisticAuthor] = useOptimistic(
         topAuthors,
@@ -123,13 +144,17 @@ export default function SettingsForm({ initialData }: { initialData: SettingsDat
             if (topAuthors.find(a => a.id === item.id)) return;
             const newAuthors = [...topAuthors, item];
             setTopAuthors(newAuthors);
-            addOptimisticAuthor(newAuthors);
+            startTransition(() => {
+                addOptimisticAuthor(newAuthors);
+            });
         } else {
             if (topPoems.length >= 3) return alert("Maximum 3 poèmes.");
             if (topPoems.find(p => p.id === item.id)) return;
             const newPoems = [...topPoems, item];
             setTopPoems(newPoems);
-            addOptimisticPoem(newPoems);
+            startTransition(() => {
+                addOptimisticPoem(newPoems);
+            });
         }
     };
 
@@ -143,7 +168,10 @@ export default function SettingsForm({ initialData }: { initialData: SettingsDat
 
     // --- Password Section ---
     const [showPassword, setShowPassword] = useState(false);
+    const [showCurrentPassword, setShowCurrentPassword] = useState(false);
+    
     const [passwordState, passwordAction, isPasswordPending] = useActionState(async (prevState: any, formData: FormData) => {
+        const current = formData.get("currentPassword") as string;
         const pass1 = formData.get("newPassword") as string;
         const pass2 = formData.get("confirmPassword") as string;
 
@@ -151,9 +179,9 @@ export default function SettingsForm({ initialData }: { initialData: SettingsDat
             return { error: "Les mots de passe ne correspondent pas." };
         }
 
-        const res = await updatePassword({ newPassword: pass1 });
+        const res = await updatePassword({ currentPassword: current, newPassword: pass1 });
         if (res?.serverError) return { error: res.serverError };
-        if (res?.validationErrors) return { error: "Mot de passe trop court." };
+        if (res?.validationErrors) return { error: "Vérifiez vos champs." };
         
         return { success: true };
     }, null);
@@ -205,7 +233,6 @@ export default function SettingsForm({ initialData }: { initialData: SettingsDat
                     {/* Fields */}
                     <div className="md:col-span-9 space-y-6">
                         <input type="hidden" name="avatarUrl" value={avatarUrl || ""} />
-                        <input type="hidden" name="annotationColor" value={highlightColor} />
 
                         <div>
                             <label className="block text-xs text-warm-gray uppercase tracking-wider mb-2 font-medium">
@@ -269,7 +296,7 @@ export default function SettingsForm({ initialData }: { initialData: SettingsDat
             </form>
 
             {/* ─── Highlight Color ─── */}
-            <form action={profileAction} className="py-10 border-b border-soft-border">
+            <form action={colorAction} className="py-10 border-b border-soft-border">
                 {/* We re-use profileAction since color is part of profile */}
                 <input type="hidden" name="username" value={username} />
                 <input type="hidden" name="description" value={description} />
@@ -305,10 +332,10 @@ export default function SettingsForm({ initialData }: { initialData: SettingsDat
                 <div className="flex justify-end">
                     <button
                         type="submit"
-                        disabled={isProfilePending}
+                        disabled={isColorPending}
                         className="inline-flex items-center gap-2 rounded-full bg-charcoal px-6 py-2.5 text-sm font-medium text-cream transition-colors hover:bg-charcoal/90 active:scale-[0.98] disabled:opacity-50"
                     >
-                        {isProfilePending ? "Enregistrement..." : "Enregistrer la couleur"}
+                        {isColorPending ? "Enregistrement..." : "Enregistrer la couleur"}
                     </button>
                 </div>
             </form>
@@ -335,12 +362,16 @@ export default function SettingsForm({ initialData }: { initialData: SettingsDat
                                 emptyMessage="Aucun auteur sélectionné"
                                 onReorder={(items) => {
                                     setTopAuthors(items);
-                                    addOptimisticAuthor(items);
+                                    startTransition(() => {
+                                        addOptimisticAuthor(items);
+                                    });
                                 }}
                                 onRemove={(id) => {
                                     const newItems = topAuthors.filter(a => a.id !== id);
                                     setTopAuthors(newItems);
-                                    addOptimisticAuthor(newItems);
+                                    startTransition(() => {
+                                        addOptimisticAuthor(newItems);
+                                    });
                                 }}
                             />
                         </div>
@@ -369,12 +400,16 @@ export default function SettingsForm({ initialData }: { initialData: SettingsDat
                                 emptyMessage="Aucun poème sélectionné"
                                 onReorder={(items) => {
                                     setTopPoems(items);
-                                    addOptimisticPoem(items);
+                                    startTransition(() => {
+                                        addOptimisticPoem(items);
+                                    });
                                 }}
                                 onRemove={(id) => {
                                     const newItems = topPoems.filter(p => p.id !== id);
                                     setTopPoems(newItems);
-                                    addOptimisticPoem(newItems);
+                                    startTransition(() => {
+                                        addOptimisticPoem(newItems);
+                                    });
                                 }}
                             />
                         </div>
@@ -418,9 +453,28 @@ export default function SettingsForm({ initialData }: { initialData: SettingsDat
                     </div>
 
                     <div className="max-w-md space-y-5">
-                        {/* Optionnel: Mot de passe actuel, mais Supabase updateUser ne le requiert pas forcément coté client si la session JWT est fraîche, 
-                            bien que pour plus de sécurité on peut l'exiger via signInWithPassword d'abord. On va faire simple pour cet exemple */}
-                        
+                        <div>
+                            <label className="block text-xs text-warm-gray uppercase tracking-wider mb-2 font-medium">
+                                Mot de passe actuel
+                            </label>
+                            <div className="relative">
+                                <input
+                                    type={showCurrentPassword ? "text" : "password"}
+                                    name="currentPassword"
+                                    required
+                                    className="w-full rounded-xl border border-soft-border bg-paper px-4 py-3 pr-12 text-sm text-charcoal outline-none focus:border-accent/40 focus:ring-2 focus:ring-accent/10 transition-all"
+                                    placeholder="••••••••"
+                                />
+                                <button
+                                    type="button"
+                                    onClick={() => setShowCurrentPassword(!showCurrentPassword)}
+                                    className="absolute right-4 top-1/2 -translate-y-1/2 text-warm-gray hover:text-charcoal transition-colors"
+                                >
+                                    {showCurrentPassword ? <EyeSlash size={16} /> : <Eye size={16} />}
+                                </button>
+                            </div>
+                        </div>
+
                         <div>
                             <label className="block text-xs text-warm-gray uppercase tracking-wider mb-2 font-medium">
                                 Nouveau mot de passe

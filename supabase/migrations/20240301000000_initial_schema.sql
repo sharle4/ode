@@ -694,3 +694,35 @@ create policy "Featured collections are viewable by everyone." on public.feature
 create trigger set_updated_at_featured_authors before update on public.featured_authors for each row execute procedure handle_updated_at();
 create trigger set_updated_at_featured_poems before update on public.featured_poems for each row execute procedure handle_updated_at();
 create trigger set_updated_at_featured_collections before update on public.featured_collections for each row execute procedure handle_updated_at();
+
+-- 9. STORAGE BUCKET SETUP
+
+-- 1. Create a public bucket named 'avatars'
+insert into storage.buckets (id, name, public) 
+values ('avatars', 'avatars', true)
+on conflict (id) do nothing;
+
+-- 2. Allow public access for SELECT (Reading the avatars)
+create policy "Avatars are publicly accessible."
+on storage.objects for select
+to public
+using ( bucket_id = 'avatars' );
+
+-- 3. Allow authenticated users to upload avatars
+-- It checks if the user is authenticated
+create policy "Authenticated users can upload avatars."
+on storage.objects for insert
+to authenticated
+with check ( bucket_id = 'avatars' );
+
+-- 4. Allow authenticated users to update their own avatars
+create policy "Authenticated users can update their avatars."
+on storage.objects for update
+to authenticated
+using ( bucket_id = 'avatars' );
+
+-- 5. (Optional) Allow authenticated users to delete avatars if needed
+create policy "Authenticated users can delete avatars."
+on storage.objects for delete
+to authenticated
+using ( bucket_id = 'avatars' );

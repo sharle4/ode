@@ -1,5 +1,7 @@
 'use client'
 
+import { useId, useState, useEffect } from 'react';
+
 import {
     DndContext,
     closestCenter,
@@ -55,12 +57,12 @@ function SortableRow({ item, onRemove }: { item: SortableItem; onRemove: (id: st
             style={style}
             className={`flex items-center gap-3 rounded-lg border px-4 py-3 transition-all ${
                 isDragging
-                    ? 'border-accent/60 bg-zinc-700/80 shadow-lg shadow-accent/10'
-                    : 'border-zinc-700/60 bg-zinc-800/40 hover:border-zinc-600'
+                    ? 'border-accent/60 bg-cream shadow-lg shadow-accent/10'
+                    : 'border-soft-border bg-paper hover:border-charcoal/20'
             }`}
         >
             <button
-                className="cursor-grab touch-none text-zinc-500 hover:text-zinc-300 active:cursor-grabbing"
+                className="cursor-grab touch-none text-warm-gray/70 hover:text-charcoal active:cursor-grabbing"
                 {...attributes}
                 {...listeners}
             >
@@ -68,15 +70,15 @@ function SortableRow({ item, onRemove }: { item: SortableItem; onRemove: (id: st
             </button>
 
             <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium text-zinc-100 truncate">{item.label}</p>
+                <p className="text-sm font-medium text-charcoal truncate">{item.label}</p>
                 {item.sublabel && (
-                    <p className="text-xs text-zinc-400 truncate">{item.sublabel}</p>
+                    <p className="text-xs text-warm-gray truncate">{item.sublabel}</p>
                 )}
             </div>
 
             <button
                 onClick={() => onRemove(item.id)}
-                className="rounded-md p-1.5 text-zinc-500 transition-colors hover:bg-red-500/10 hover:text-red-400"
+                className="rounded-md p-1.5 text-warm-gray/70 transition-colors hover:bg-red-500/10 hover:text-red-500"
                 title="Retirer"
             >
                 <Trash size={16} weight="bold" />
@@ -91,6 +93,8 @@ export default function SortableList({ items, onReorder, onRemove, emptyMessage 
         useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates })
     )
 
+    const dndId = useId();
+
     const handleDragEnd = (event: DragEndEvent) => {
         const { active, over } = event
         if (over && active.id !== over.id) {
@@ -100,16 +104,24 @@ export default function SortableList({ items, onReorder, onRemove, emptyMessage 
         }
     }
 
+    const [isMounted, setIsMounted] = useState(false);
+    useEffect(() => {
+        setIsMounted(true);
+    }, []);
+
     if (items.length === 0) {
         return (
-            <div className="rounded-lg border border-dashed border-zinc-700 px-6 py-12 text-center">
-                <p className="text-sm text-zinc-500">{emptyMessage}</p>
+            <div className="rounded-lg border border-dashed border-soft-border px-6 py-12 text-center">
+                <p className="text-sm text-warm-gray/70">{emptyMessage}</p>
             </div>
         )
     }
 
+    if (!isMounted) return null;
+
     return (
         <DndContext
+            id={dndId}
             sensors={sensors}
             collisionDetection={closestCenter}
             modifiers={[restrictToVerticalAxis]}
@@ -119,7 +131,7 @@ export default function SortableList({ items, onReorder, onRemove, emptyMessage 
                 <ul className="flex flex-col gap-2">
                     {items.map((item, idx) => (
                         <div key={item.id} className="flex items-center gap-2">
-                            <span className="w-6 text-center text-xs font-mono text-zinc-500">
+                            <span className="w-6 text-center text-xs font-mono text-warm-gray/70">
                                 {idx + 1}
                             </span>
                             <div className="flex-1">

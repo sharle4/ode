@@ -72,7 +72,7 @@ export default function SearchSelect({ placeholder = 'Rechercher…', onSearch, 
             <div className="relative">
                 <MagnifyingGlass
                     weight="bold"
-                    className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-500"
+                    className="absolute left-3 top-1/2 -translate-y-1/2 text-warm-gray"
                     size={18}
                 />
                 <input
@@ -81,18 +81,18 @@ export default function SearchSelect({ placeholder = 'Rechercher…', onSearch, 
                     onChange={handleChange}
                     onFocus={() => results.length > 0 && setIsOpen(true)}
                     placeholder={placeholder}
-                    className="w-full rounded-lg border border-zinc-700 bg-zinc-800/60 py-2.5 pl-10 pr-10 text-sm text-zinc-100 placeholder-zinc-500 outline-none transition-colors focus:border-accent focus:ring-1 focus:ring-accent/40"
+                    className="w-full rounded-lg border border-soft-border bg-paper py-2.5 pl-10 pr-10 text-sm text-charcoal placeholder:text-warm-gray/50 outline-none transition-colors focus:border-accent focus:ring-1 focus:ring-accent/40"
                 />
                 {isLoading && (
                     <Spinner
-                        className="absolute right-3 top-1/2 -translate-y-1/2 animate-spin text-zinc-500"
+                        className="absolute right-3 top-1/2 -translate-y-1/2 animate-spin text-warm-gray"
                         size={18}
                     />
                 )}
                 {query && !isLoading && (
                     <button
                         onClick={() => { setQuery(''); setResults([]); setIsOpen(false) }}
-                        className="absolute right-3 top-1/2 -translate-y-1/2 text-zinc-500 hover:text-zinc-300 transition-colors"
+                        className="absolute right-3 top-1/2 -translate-y-1/2 text-warm-gray hover:text-charcoal transition-colors"
                     >
                         <X size={16} />
                     </button>
@@ -100,16 +100,16 @@ export default function SearchSelect({ placeholder = 'Rechercher…', onSearch, 
             </div>
 
             {isOpen && (
-                <ul className="absolute z-50 mt-1 max-h-60 w-full overflow-y-auto rounded-lg border border-zinc-700 bg-zinc-800 shadow-xl">
+                <ul className="absolute z-50 mt-1 max-h-60 w-full overflow-y-auto rounded-lg border border-soft-border bg-paper shadow-xl">
                     {results.map((item) => (
                         <li key={item.id}>
                             <button
                                 onClick={() => handleSelect(item)}
-                                className="flex w-full flex-col gap-0.5 px-4 py-2.5 text-left transition-colors hover:bg-zinc-700/60"
+                                className="flex w-full flex-col gap-0.5 px-4 py-2.5 text-left transition-colors hover:bg-cream"
                             >
-                                <span className="text-sm font-medium text-zinc-100">{item.label}</span>
+                                <span className="text-sm font-medium text-charcoal">{item.label}</span>
                                 {item.sublabel && (
-                                    <span className="text-xs text-zinc-400">{item.sublabel}</span>
+                                    <span className="text-xs text-warm-gray">{item.sublabel}</span>
                                 )}
                             </button>
                         </li>

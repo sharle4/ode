@@ -63,14 +63,30 @@ export const updateProfile = authActionClient
     });
 
 const updatePasswordSchema = z.object({
+    currentPassword: z.string().min(1, "Mot de passe actuel requis."),
     newPassword: z.string().min(6, "Le mot de passe doit contenir au moins 6 caractères."),
 });
 
 export const updatePassword = authActionClient
     .schema(updatePasswordSchema)
     .action(async ({ parsedInput, ctx }) => {
-        const { supabase } = ctx;
+        const { supabase, user } = ctx;
 
+        if (!user.email) {
+            throw new Error("Impossible de changer le mot de passe pour un compte sans email.");
+        }
+
+        // Verify current password first to ensure absolute security
+        const { error: signInError } = await supabase.auth.signInWithPassword({
+            email: user.email,
+            password: parsedInput.currentPassword,
+        });
+
+        if (signInError) {
+            throw new Error("Le mot de passe actuel est incorrect.");
+        }
+
+        // Proceed to update
         const { error } = await supabase.auth.updateUser({
             password: parsedInput.newPassword,
         });
