@@ -14,20 +14,30 @@ import {
     Gear,
     SignOut,
 } from "@phosphor-icons/react";
+import Image from "next/image";
+import { signout } from "@/app/auth/actions";
+import { type UserProfile } from "./Navbar";
 
-const MOCK_USERNAME = "BaudelaireFan";
-
-const menuItems = [
-    { label: "Profil", icon: User, href: `/profile/${MOCK_USERNAME}` },
-    { label: "Mes poèmes", icon: BookOpenText, href: `/profile/${MOCK_USERNAME}?tab=poems` },
-    { label: "Mon journal", icon: Notebook, href: `/profile/${MOCK_USERNAME}?tab=journal` },
-    { label: "Mes critiques", icon: ChatCircle, href: `/profile/${MOCK_USERNAME}?tab=reviews` },
-    { label: "Mes listes", icon: ListBullets, href: `/profile/${MOCK_USERNAME}?tab=lists` },
-    { label: "Mes likes", icon: Heart, href: `/profile/${MOCK_USERNAME}?tab=likes` },
-    { label: "Mon réseau", icon: UsersThree, href: `/profile/${MOCK_USERNAME}?tab=network` },
+const getMenuItems = (username: string) => [
+    { label: "Profil", icon: User, href: `/profile/${username}` },
+    { label: "Mes poèmes", icon: BookOpenText, href: `/profile/${username}?tab=poems` },
+    { label: "Mon journal", icon: Notebook, href: `/profile/${username}?tab=journal` },
+    { label: "Mes critiques", icon: ChatCircle, href: `/profile/${username}?tab=reviews` },
+    { label: "Mes listes", icon: ListBullets, href: `/profile/${username}?tab=lists` },
+    { label: "Mes likes", icon: Heart, href: `/profile/${username}?tab=likes` },
+    { label: "Mon réseau", icon: UsersThree, href: `/profile/${username}?tab=network` },
 ];
 
-export default function ProfileDropdown() {
+function getInitials(name: string) {
+    if (!name) return "U";
+    const parts = name.trim().split(" ");
+    if (parts.length >= 2) {
+        return (parts[0][0] + parts[1][0]).toUpperCase();
+    }
+    return name.substring(0, 1).toUpperCase();
+}
+
+export default function ProfileDropdown({ userProfile }: { userProfile: UserProfile }) {
     const [open, setOpen] = useState(false);
     const containerRef = useRef<HTMLDivElement>(null);
 
@@ -53,16 +63,33 @@ export default function ProfileDropdown() {
         return () => document.removeEventListener("keydown", handleKey);
     }, [open]);
 
+    if (!userProfile) {
+        return (
+            <Link
+                href="/login"
+                className="ml-4 rounded-full bg-charcoal text-white px-5 py-2 text-sm font-medium transition-transform hover:scale-105"
+            >
+                Connexion / Inscription
+            </Link>
+        );
+    }
+
+    const menuItems = getMenuItems(userProfile.username);
+
     return (
         <div ref={containerRef} className="relative ml-3">
             {/* Avatar trigger */}
             <button
                 onClick={() => setOpen(!open)}
-                className="h-8 w-8 rounded-full bg-gradient-to-br from-accent to-accent-light flex items-center justify-center text-white text-xs font-medium cursor-pointer hover:shadow-lg transition-shadow focus:outline-none focus:ring-2 focus:ring-accent/30"
+                className="h-8 w-8 rounded-full bg-gradient-to-br from-accent to-accent-light flex items-center justify-center text-white text-xs font-medium cursor-pointer hover:shadow-lg transition-shadow focus:outline-none focus:ring-2 focus:ring-accent/30 relative overflow-hidden"
                 aria-label="Menu utilisateur"
                 aria-expanded={open}
             >
-                B
+                {userProfile.avatar_url ? (
+                    <Image src={userProfile.avatar_url} alt={userProfile.username} fill className="object-cover" sizes="32px" />
+                ) : (
+                    getInitials(userProfile.username)
+                )}
             </button>
 
             <AnimatePresence>
@@ -76,8 +103,8 @@ export default function ProfileDropdown() {
                     >
                         {/* Header */}
                         <div className="px-4 py-3 border-b border-soft-border">
-                            <p className="text-sm font-medium text-charcoal truncate">BaudelaireFan</p>
-                            <p className="text-xs text-warm-gray truncate">baudelaire@ode.fr</p>
+                            <p className="text-sm font-medium text-charcoal truncate">{userProfile.username}</p>
+                            <p className="text-xs text-warm-gray truncate">{userProfile.email}</p>
                         </div>
 
                         {/* Menu items */}
@@ -108,9 +135,11 @@ export default function ProfileDropdown() {
                             <button
                                 onClick={() => {
                                     setOpen(false);
-                                    // TODO: implement actual logout
+                                    React.startTransition(() => {
+                                        signout();
+                                    });
                                 }}
-                                className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-red-600/80 hover:bg-red-50 hover:text-red-700 transition-colors"
+                                className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-red-600/80 hover:bg-red-50 hover:text-red-700 transition-colors cursor-pointer"
                             >
                                 <SignOut size={16} className="flex-shrink-0" />
                                 Déconnexion
