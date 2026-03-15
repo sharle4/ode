@@ -13,6 +13,7 @@ import {
     UsersThree,
     Gear,
     SignOut,
+    SignIn,
 } from "@phosphor-icons/react";
 import { signout } from "@/app/auth/actions";
 import { type UserProfile } from "./Navbar";
@@ -64,16 +65,17 @@ export default function ProfileDropdown({ userProfile }: { userProfile: UserProf
 
     if (!userProfile) {
         return (
-            <div className="flex items-center gap-2 ml-4">
+            <div className="flex items-center gap-3 ml-3">
                 <Link
                     href="/login"
-                    className="rounded-full border border-soft-border bg-transparent text-charcoal px-5 py-2 text-sm font-medium transition-colors hover:bg-soft-border/50"
+                    className="flex items-center gap-2 rounded-full px-4 py-2 text-sm text-charcoal/80 transition-colors duration-200 hover:bg-charcoal/5 hover:text-charcoal"
                 >
+                    <SignIn size={18} weight="regular" />
                     Connexion
                 </Link>
                 <Link
                     href="/signup"
-                    className="rounded-full bg-charcoal text-white px-5 py-2 text-sm font-medium transition-transform hover:scale-105"
+                    className="rounded-full bg-accent text-white px-5 py-2 text-sm font-medium transition-all duration-200 hover:bg-accent-light hover:shadow-md hover:scale-[1.02] active:scale-[0.98]"
                 >
                     Inscription
                 </Link>

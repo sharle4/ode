@@ -60,6 +60,12 @@ export async function updateSession(request: NextRequest) {
             return NextResponse.redirect(url)
         }
 
+        // Si connecté et onboarding terminé, interdire l'accès aux pages auth
+        if ((onboardingStatus === 'completed' || onboardingStatus === 'skipped') && isAuthPage) {
+            url.pathname = '/'
+            return NextResponse.redirect(url)
+        }
+
         // Admin route protection — read is_admin from JWT app_metadata (O(1), no DB query)
         if (isAdminPage) {
             const isAdmin = user.app_metadata?.is_admin === true

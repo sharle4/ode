@@ -180,24 +180,48 @@ const NavbarClient = React.memo(function NavbarClient({ userProfile }: { userPro
                 ))}
               </nav>
 
-              <motion.div
-                className="mt-12 flex items-center gap-3"
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={{ delay: 0.3 }}
-              >
-                <div className="h-11 w-11 overflow-hidden relative rounded-full bg-gradient-to-br from-accent to-accent-light flex items-center justify-center text-white text-sm font-medium">
-                  {userProfile?.avatar_url ? (
-                    <img src={userProfile.avatar_url} alt={userProfile.username} className="w-full h-full object-cover" />
-                  ) : (
-                    userProfile?.username?.charAt(0).toUpperCase() || "U"
-                  )}
-                </div>
-                <div>
-                  <p className="text-sm font-medium text-white">{userProfile?.username || "Profil"}</p>
-                  <p className="text-xs text-zinc-400">Voir votre bibliothèque</p>
-                </div>
-              </motion.div>
+              {userProfile ? (
+                <motion.div
+                  className="mt-12 flex items-center gap-3"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ delay: 0.3 }}
+                >
+                  <div className="h-11 w-11 overflow-hidden relative rounded-full bg-gradient-to-br from-accent to-accent-light flex items-center justify-center text-white text-sm font-medium">
+                    {userProfile.avatar_url ? (
+                      <img src={userProfile.avatar_url} alt={userProfile.username} className="w-full h-full object-cover" />
+                    ) : (
+                      userProfile.username?.charAt(0).toUpperCase() || "U"
+                    )}
+                  </div>
+                  <div>
+                    <p className="text-sm font-medium text-white">{userProfile.username || "Profil"}</p>
+                    <p className="text-xs text-zinc-400">Voir votre bibliothèque</p>
+                  </div>
+                </motion.div>
+              ) : (
+                <motion.div
+                  className="mt-12 flex flex-col gap-3 w-full"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ delay: 0.3 }}
+                >
+                  <a
+                    href="/login"
+                    onClick={() => setMobileMenuOpen(false)}
+                    className="w-full text-center rounded-full border border-white/20 text-white px-6 py-3.5 text-sm font-medium transition-colors hover:bg-white/10"
+                  >
+                    Se connecter
+                  </a>
+                  <a
+                    href="/signup"
+                    onClick={() => setMobileMenuOpen(false)}
+                    className="w-full text-center rounded-full bg-accent text-white px-6 py-3.5 text-sm font-medium transition-colors hover:bg-accent-light"
+                  >
+                    Créer un compte
+                  </a>
+                </motion.div>
+              )}
             </div>
           </motion.div>
         )}

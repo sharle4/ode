@@ -1,71 +1,39 @@
-import { signup } from '../auth/actions'
-import Link from 'next/link'
+import { redirect } from "next/navigation";
+import { createClient } from "@/utils/supabase/server";
+import AuthSidePanel from "@/components/auth/AuthSidePanel";
+import SignupForm from "@/components/auth/SignupForm";
 
-export default async function SignupPage({ searchParams }: { searchParams: Promise<{ error?: string; message?: string }> }) {
-    const { error, message } = await searchParams
+import type { Metadata } from "next";
+
+export const metadata: Metadata = {
+    title: "Inscription — ode",
+    description: "Créez un compte ode pour rejoindre la plus grande communauté francophone de poésie. Découvrez, notez et partagez des milliers de poèmes.",
+};
+
+export default async function SignupPage() {
+    // Server-side auth check — redirect if already logged in
+    const supabase = await createClient();
+    const { data: { user } } = await supabase.auth.getUser();
+    if (user) {
+        redirect("/");
+    }
 
     return (
-        <div className="flex min-h-screen items-center justify-center p-4 bg-zinc-950">
-            <div className="w-full max-w-sm p-8 space-y-6 bg-zinc-900 border border-zinc-800 rounded-2xl shadow-xl">
-                <div className="text-center space-y-2">
-                    <h1 className="text-3xl font-bold tracking-tight text-white">ode.</h1>
-                    <p className="text-zinc-400 text-sm">Create a new account</p>
+        <div className="min-h-[100dvh] grid grid-cols-1 md:grid-cols-2">
+            {/* Left — Social proof (hidden on mobile) */}
+            <AuthSidePanel variant="signup" />
+
+            {/* Right — Form */}
+            <div className="flex flex-col justify-center px-6 sm:px-12 lg:px-16 py-12 pb-32 md:pb-12 bg-cream">
+                {/* Mobile logo */}
+                <div className="md:hidden mb-10">
+                    <a href="/" className="font-serif text-3xl tracking-tight text-charcoal">
+                        ode.
+                    </a>
                 </div>
 
-                <form className="space-y-4">
-                    <div className="space-y-2">
-                        <label className="text-sm font-medium text-zinc-300" htmlFor="username">Username</label>
-                        <input
-                            id="username"
-                            name="username"
-                            type="text"
-                            placeholder="cbaudelaire"
-                            required
-                            className="w-full px-3 py-2 bg-zinc-950 border border-zinc-800 rounded-lg text-white placeholder-zinc-600 focus:outline-none focus:ring-2 focus:ring-white/20 focus:border-white transition-colors"
-                        />
-                    </div>
-
-                    <div className="space-y-2">
-                        <label className="text-sm font-medium text-zinc-300" htmlFor="email">Email</label>
-                        <input
-                            id="email"
-                            name="email"
-                            type="email"
-                            placeholder="baudelaire@spleen.fr"
-                            required
-                            className="w-full px-3 py-2 bg-zinc-950 border border-zinc-800 rounded-lg text-white placeholder-zinc-600 focus:outline-none focus:ring-2 focus:ring-white/20 focus:border-white transition-colors"
-                        />
-                    </div>
-
-                    <div className="space-y-2">
-                        <label className="text-sm font-medium text-zinc-300" htmlFor="password">Password</label>
-                        <input
-                            id="password"
-                            name="password"
-                            type="password"
-                            required
-                            className="w-full px-3 py-2 bg-zinc-950 border border-zinc-800 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-white/20 focus:border-white transition-colors"
-                        />
-                    </div>
-
-                    {error && <div className="text-sm text-red-500 bg-red-500/10 p-3 rounded-lg border border-red-500/20">{error}</div>}
-                    {message && <div className="text-sm text-green-500 bg-green-500/10 p-3 rounded-lg border border-green-500/20">{message}</div>}
-
-                    <button
-                        formAction={signup}
-                        className="w-full py-2 px-4 bg-white text-black font-semibold rounded-lg hover:bg-zinc-200 focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-zinc-900 transition-all active:scale-[0.98]"
-                    >
-                        Sign up
-                    </button>
-                </form>
-
-                <div className="text-center text-sm text-zinc-500">
-                    Already have an account?{' '}
-                    <Link href="/login" className="text-white hover:underline underline-offset-4">
-                        Log in
-                    </Link>
-                </div>
+                <SignupForm />
             </div>
         </div>
-    )
+    );
 }
