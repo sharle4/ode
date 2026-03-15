@@ -7,6 +7,7 @@ import Footer from "@/components/layout/Footer";
 import ProfileTabs from "@/components/profile/ProfileTabs";
 import FadeIn from "@/components/ui/FadeIn";
 import StatBlock from "@/components/profile/StatBlock";
+import FollowButton from "@/components/profile/FollowButton";
 import { Metadata } from "next";
 
 interface ProfilePageProps {
@@ -55,14 +56,6 @@ export default async function ProfilePage({ params }: ProfilePageProps) {
             timeZone: 'Europe/Paris' 
           }).format(new Date(userProfile.created_at))
         : null;
-
-    // Fallback: if user has no top poems, show trending as recommendations
-    let displayPoems = topPoems;
-    if (displayPoems.length === 0) {
-        try {
-            displayPoems = await getTrendingPoems(4);
-        } catch { /* non-critical */ }
-    }
 
     return (
         <div className="min-h-[100dvh] bg-cream flex flex-col">
@@ -114,9 +107,7 @@ export default async function ProfilePage({ params }: ProfilePageProps) {
                                         Modifier le profil
                                     </Link>
                                 ) : (
-                                    <button className="px-6 py-2 rounded-full bg-charcoal text-cream hover:bg-charcoal/90 transition-colors font-medium text-sm">
-                                        Suivre
-                                    </button>
+                                    <FollowButton profileId={userProfile.id} />
                                 )}
                             </div>
                         </header>
@@ -126,7 +117,7 @@ export default async function ProfilePage({ params }: ProfilePageProps) {
                     <FadeIn delay={0.3}>
                         <ProfileTabs
                             username={decodedUsername}
-                            favoritePoems={displayPoems as any}
+                            favoritePoems={topPoems}
                             topAuthors={topAuthors}
                             recentReviews={recentReviews}
                             badges={badges}

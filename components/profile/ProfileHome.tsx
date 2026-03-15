@@ -7,6 +7,7 @@ import PoemCard from "@/components/ui/PoemCard";
 import Link from "next/link";
 import Image from "next/image";
 import { getInitials, formatRelativeTime } from "@/utils/gradient";
+import EditProfileCTA from "./EditProfileCTA";
 
 interface ProfileHomeProps {
     username: string;
@@ -53,14 +54,17 @@ export default function ProfileHome({
                     <div className="flex items-center justify-between mb-6 border-b border-soft-border pb-2">
                         <h2 className="font-serif text-xl text-charcoal">Poèmes Favoris (Top 3)</h2>
                     </div>
-                    {favoritePoems.length > 0 ? (
+                    {favoritePoems && favoritePoems.length > 0 ? (
                         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 lg:gap-6">
                             {favoritePoems.slice(0, 3).map((poem, i) => (
                                 <PoemCard key={poem.id} poem={poem} index={i} layout="grid" />
                             ))}
                         </div>
                     ) : (
-                        <p className="text-warm-gray italic font-serif">Aucun poème défini en favori.</p>
+                        <div className="text-center py-8 bg-paper border border-soft-border border-dashed rounded-xl">
+                            <p className="text-warm-gray italic font-serif">Cet utilisateur n'a pas encore défini de poèmes favoris.</p>
+                            <EditProfileCTA profileUsername={username} />
+                        </div>
                     )}
                 </section>
 
@@ -116,27 +120,29 @@ export default function ProfileHome({
             <div className="md:col-span-4 flex flex-col gap-14">
 
                 {/* SECTION: Top Auteurs Sidebar */}
-                {topAuthors.length > 0 && (
+                {topAuthors && topAuthors.length > 0 ? (
                     <section>
                         <h2 className="font-serif text-lg text-charcoal mb-4 border-b border-soft-border pb-2">Auteurs Favoris</h2>
                         <div className="flex flex-wrap justify-center sm:justify-start gap-4">
                             {topAuthors.map((author: any, i: number) => (
                                 <Link href={`/author/${author.slug}`} key={author.id || i} className="flex flex-col items-center group cursor-pointer">
-                                    <div className="relative w-16 h-16 rounded-full overflow-hidden border-2 border-transparent group-hover:border-accent transition-colors shadow-sm mb-2">
-                                        {author.image_url ? (
-                                            <Image
-                                                src={author.image_url}
-                                                alt={author.name}
-                                                width={64}
-                                                height={64}
-                                                className="w-full h-full object-cover filter grayscale group-hover:grayscale-0 transition-all duration-300"
-                                            />
-                                        ) : (
-                                            <div className="w-full h-full bg-zinc-300 flex items-center justify-center">
-                                                <span className="text-sm font-serif text-white">{getInitials(author.name)}</span>
-                                            </div>
-                                        )}
-                                        <div className="absolute bottom-0 right-0 bg-accent text-white w-4 h-4 rounded-full flex items-center justify-center text-[10px] font-bold shadow-sm">
+                                    <div className="relative group mb-2">
+                                        <div className="w-16 h-16 rounded-full overflow-hidden border-2 border-transparent group-hover:border-accent transition-colors shadow-sm">
+                                            {author.image_url ? (
+                                                <Image
+                                                    src={author.image_url}
+                                                    alt={author.name}
+                                                    width={64}
+                                                    height={64}
+                                                    className="w-full h-full object-cover filter grayscale group-hover:grayscale-0 transition-all duration-300"
+                                                />
+                                            ) : (
+                                                <div className="w-full h-full bg-zinc-300 flex items-center justify-center">
+                                                    <span className="text-sm font-serif text-white">{getInitials(author.name)}</span>
+                                                </div>
+                                            )}
+                                        </div>
+                                        <div className="absolute -bottom-1 -right-1 z-10 bg-accent text-white w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-bold shadow-md border-2 border-cream">
                                             {i + 1}
                                         </div>
                                     </div>
@@ -145,6 +151,14 @@ export default function ProfileHome({
                                     </span>
                                 </Link>
                             ))}
+                        </div>
+                    </section>
+                ) : (
+                    <section>
+                        <h2 className="font-serif text-lg text-charcoal mb-4 border-b border-soft-border pb-2">Auteurs Favoris</h2>
+                        <div className="text-center py-6 bg-paper border border-soft-border border-dashed rounded-xl">
+                            <p className="text-warm-gray italic font-serif text-sm">Aucun auteur défini.</p>
+                            <EditProfileCTA profileUsername={username} />
                         </div>
                     </section>
                 )}

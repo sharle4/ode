@@ -100,40 +100,18 @@ const NavbarClient = React.memo(function NavbarClient({ userProfile }: { userPro
               </a>
             ))}
 
-            {mounted && (
-              <motion.button
+            <button
                 onClick={handleThemeToggle}
                 className="ml-1 p-2 rounded-full text-charcoal/80 hover:bg-charcoal/5 hover:text-charcoal transition-colors relative flex items-center justify-center w-9 h-9"
                 aria-label="Toggle theme"
-                whileTap={{ scale: 0.9 }}
-              >
-                <AnimatePresence mode="wait" initial={false}>
-                  {resolvedTheme === "dark" ? (
-                    <motion.div
-                      key="dark"
-                      initial={{ opacity: 0, rotate: -45, scale: 0.5 }}
-                      animate={{ opacity: 1, rotate: 0, scale: 1 }}
-                      exit={{ opacity: 0, rotate: 45, scale: 0.5 }}
-                      transition={{ duration: 0.2 }}
-                      className="absolute"
-                    >
-                      <Sun size={18} />
-                    </motion.div>
-                  ) : (
-                    <motion.div
-                      key="light"
-                      initial={{ opacity: 0, rotate: -45, scale: 0.5 }}
-                      animate={{ opacity: 1, rotate: 0, scale: 1 }}
-                      exit={{ opacity: 0, rotate: 45, scale: 0.5 }}
-                      transition={{ duration: 0.2 }}
-                      className="absolute"
-                    >
-                      <Moon size={18} />
-                    </motion.div>
-                  )}
-                </AnimatePresence>
-              </motion.button>
-            )}
+            >
+                {/* 
+                  Using pure CSS (hidden/block) for the icons ensures no hydration mismatch
+                  nor flashing when the page performs SSR and first paints.
+                */}
+                <Sun size={18} className="hidden dark:block" />
+                <Moon size={18} className="block dark:hidden" />
+            </button>
 
             <ProfileDropdown userProfile={userProfile} />
           </div>
