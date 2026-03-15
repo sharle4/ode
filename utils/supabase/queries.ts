@@ -279,24 +279,22 @@ export const getCategories = () => executeCachedQuery(
 
 export const getPlatformStats = () => executeCachedQuery(
     {
-        keyParts: ['platform-stats'],
+        keyParts: ['platform-stats-v2'],
         tags: [CACHE_TAGS.stats],
         revalidate: 3600,
         errorMessage: 'Database Error fetching platform stats:'
     },
     async (supabase) => {
-        const [poemsResult, languagesResult, usersResult] = await Promise.all([
+        const [poemsResult, collectionsResult, authorsResult] = await Promise.all([
             supabase.from('poems').select('id', { count: 'exact', head: true }).throwOnError(),
-            supabase.from('poems').select('language').throwOnError(),
-            supabase.from('users').select('id', { count: 'exact', head: true }).throwOnError(),
+            supabase.from('collections').select('id', { count: 'exact', head: true }).throwOnError(),
+            supabase.from('authors').select('id', { count: 'exact', head: true }).throwOnError(),
         ]);
-
-        const uniqueLanguages = new Set((languagesResult.data || []).map((p: any) => p.language));
 
         return {
             poemsCount: poemsResult.count || 0,
-            languagesCount: uniqueLanguages.size || 0,
-            usersCount: usersResult.count || 0,
+            collectionsCount: collectionsResult.count || 0,
+            authorsCount: authorsResult.count || 0,
         };
     }
 );

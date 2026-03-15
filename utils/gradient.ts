@@ -101,7 +101,8 @@ export function formatRelativeTime(dateStr: string): string {
     return `il y a ${Math.floor(diffDays / 30)} mois`;
 }
 
-export function formatCount(count: number): string {
+export function formatCount(count: number | undefined | null): string {
+    if (count == null) return "0";
     if (count >= 1000000) return `${(count / 1000000).toFixed(1)}M`;
     if (count >= 1000) return `${(count / 1000).toFixed(1)}k`;
     return count.toString();

@@ -34,7 +34,7 @@ export default async function Home() {
   const featuredAuthors = authorsResult.status === 'fulfilled' ? authorsResult.value : [];
   const featuredCollections = collectionsResult.status === 'fulfilled' ? collectionsResult.value : [];
   const communityFeed = communityResult.status === 'fulfilled' ? communityResult.value : [];
-  const platformStats = statsResult.status === 'fulfilled' ? statsResult.value : { poemsCount: 0, languagesCount: 0, usersCount: 0 };
+  const platformStats = statsResult.status === 'fulfilled' ? statsResult.value : { poemsCount: 0, collectionsCount: 0, authorsCount: 0 };
 
   // Fetch review distribution for the daily poem if available
   let dailyPoemReviews: any[] = [];

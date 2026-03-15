@@ -9,7 +9,7 @@ import { formatCount } from "@/utils/gradient";
 
 interface HeroSectionProps {
   dailyPoem: any;
-  stats: { poemsCount: number; languagesCount: number; usersCount: number };
+  stats: { poemsCount: number; collectionsCount: number; authorsCount: number };
 }
 
 const HeroSection = React.memo(function HeroSection({ dailyPoem, stats }: HeroSectionProps) {
@@ -74,17 +74,17 @@ const HeroSection = React.memo(function HeroSection({ dailyPoem, stats }: HeroSe
               <div className="mt-14 flex items-center gap-6">
                 <div>
                   <p className="text-2xl font-serif font-semibold text-charcoal tracking-tight">{formatCount(stats.poemsCount)}</p>
-                  <p className="text-xs text-warm-gray/70 mt-0.5">Poèmes catalogués</p>
+                  <p className="text-xs text-warm-gray/70 mt-0.5">Poèmes</p>
                 </div>
                 <div className="h-8 w-px bg-soft-border" />
                 <div>
-                  <p className="text-2xl font-serif font-semibold text-charcoal tracking-tight">{formatCount(stats.languagesCount)}</p>
-                  <p className="text-xs text-warm-gray/70 mt-0.5">Langues</p>
+                  <p className="text-2xl font-serif font-semibold text-charcoal tracking-tight">{formatCount(stats.collectionsCount)}</p>
+                  <p className="text-xs text-warm-gray/70 mt-0.5">Recueils</p>
                 </div>
                 <div className="h-8 w-px bg-soft-border" />
                 <div>
-                  <p className="text-2xl font-serif font-semibold text-charcoal tracking-tight">{formatCount(stats.usersCount)}</p>
-                  <p className="text-xs text-warm-gray/70 mt-0.5">Lecteurs actifs</p>
+                  <p className="text-2xl font-serif font-semibold text-charcoal tracking-tight">{formatCount(stats.authorsCount)}</p>
+                  <p className="text-xs text-warm-gray/70 mt-0.5">Auteurs</p>
                 </div>
               </div>
             </FadeIn>
