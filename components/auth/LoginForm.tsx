@@ -37,7 +37,7 @@ export default function LoginForm({ redirectTo }: LoginFormProps) {
                     execute({
                         email: fd.get("email") as string,
                         password: fd.get("password") as string,
-                        redirectTo: fd.get("redirectTo") as string | undefined,
+                        redirectTo: fd.get("redirectTo") ? String(fd.get("redirectTo")) : undefined,
                     });
                 }}
                 className="space-y-5"
