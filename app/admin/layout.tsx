@@ -1,6 +1,6 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
-import { House, PenNib, UsersThree, Books, Sun } from '@phosphor-icons/react/dist/ssr'
+import { House, PenNib, UsersThree, Books, Sun, Tag } from '@phosphor-icons/react/dist/ssr'
 
 export const metadata: Metadata = {
     title: 'Admin — ode.',
@@ -9,6 +9,7 @@ export const metadata: Metadata = {
 
 const navItems = [
     { href: '/admin', label: 'Dashboard', icon: House },
+    { href: '/admin/categories', label: 'Catégories', icon: Tag },
     { href: '/admin/featured-poems', label: 'Poèmes', icon: PenNib },
     { href: '/admin/featured-authors', label: 'Auteurs', icon: UsersThree },
     { href: '/admin/featured-collections', label: 'Recueils', icon: Books },

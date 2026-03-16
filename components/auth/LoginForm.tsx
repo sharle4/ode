@@ -76,6 +76,7 @@ export default function LoginForm({ redirectTo }: LoginFormProps) {
                         <input
                             id="login-password"
                             name="password"
+                            placeholder="••••••••"
                             type={showPassword ? "text" : "password"}
                             autoComplete="current-password"
                             minLength={6}

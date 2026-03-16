@@ -95,6 +95,7 @@ export default function SignupForm() {
                         <input
                             id="signup-password"
                             name="password"
+                            placeholder="••••••••"
                             type={showPassword ? "text" : "password"}
                             autoComplete="new-password"
                             minLength={6}

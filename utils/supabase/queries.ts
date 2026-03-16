@@ -267,7 +267,7 @@ export const getCategories = () => executeCachedQuery(
     async (supabase) => {
         const { data } = await supabase
             .from('categories')
-            .select('id, name, description')
+            .select('id, name, description, slug, ornament_id, color')
             .order('name', { ascending: true })
             .throwOnError();
 
@@ -401,55 +401,84 @@ export const getCategoryWithContent = (slug: string) => executeCachedQuery(
         errorMessage: 'Database Error fetching category content:'
     },
     async (supabase) => {
-        // 1. Find the category by matching slug against name
-        const { data: categories } = await supabase
+        // 1. Fetch category directly by its unique slug
+        const { data: category } = await supabase
             .from('categories')
-            .select('id, name, description')
+            .select('id, name, description, slug, ornament_id, color')
+            .eq('slug', slug)
+            .maybeSingle()
             .throwOnError();
-
-        // Match by normalizing name to slug form
-        const category = (categories || []).find((cat: any) => {
-            const catSlug = cat.name.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/\s+/g, '-');
-            return catSlug === slug;
-        });
 
         if (!category) return null;
 
-        // 2. Fetch poems in this category
+        // 2. Fetch explicitly linked poems, respecting editorial sort position
         const { data: poemLinks } = await supabase
             .from('poem_categories')
-            .select('poems ( id, title, slug, average_review, reads_count, authors ( id, name, slug ) )')
+            .select('position, poems ( id, title, slug, average_review, reads_count, authors ( id, name, slug ) )')
             .eq('category_id', category.id)
+            .order('position', { ascending: true })
             .throwOnError();
 
         const poems = (poemLinks || []).map((link: any) => link.poems).filter(Boolean);
 
-        // 3. Extract unique authors from these poems
-        const authorsMap = new Map<string, any>();
+        // 3. Extract implicitly linked authors from the poems
+        const implicitAuthorsMap = new Map<string, any>();
         for (const poem of poems) {
             for (const author of (poem.authors || [])) {
-                if (!authorsMap.has(author.id)) {
-                    authorsMap.set(author.id, author);
+                if (!implicitAuthorsMap.has(author.id)) {
+                    implicitAuthorsMap.set(author.id, author);
                 }
             }
         }
 
-        // 4. Extract unique collections by querying poems' collection_ids
-        // For now, we'll get featured collections as a reasonable default
-        const { data: featuredCollections } = await supabase
-            .from('featured_collections')
-            .select('collections ( id, title, slug, publication_year, poems_count )')
+        // 4. Fetch explicitly linked authors, respecting editorial sort position
+        const { data: authorLinks } = await supabase
+            .from('author_categories')
+            .select('position, authors ( id, name, slug, image_url )')
+            .eq('category_id', category.id)
             .order('position', { ascending: true })
-            .limit(4)
             .throwOnError();
 
-        const collections = (featuredCollections || []).map((row: any) => row.collections).filter(Boolean);
+        const explicitAuthors = (authorLinks || []).map((link: any) => link.authors).filter(Boolean);
+
+        // Combine: Prioritize explicitly linked authors for order, then append implicitly linked ones
+        const finalAuthorsMap = new Map<string, any>();
+        for (const author of explicitAuthors) {
+            finalAuthorsMap.set(author.id, author);
+        }
+        for (const [id, author] of implicitAuthorsMap.entries()) {
+            if (!finalAuthorsMap.has(id)) {
+                finalAuthorsMap.set(id, author);
+            }
+        }
+
+        // 5. Fetch explicitly linked collections, respecting editorial sort position
+        const { data: collectionLinks } = await supabase
+            .from('collection_categories')
+            .select('position, collections ( id, title, slug, publication_year, poems_count )')
+            .eq('category_id', category.id)
+            .order('position', { ascending: true })
+            .throwOnError();
+
+        const explicitCollections = (collectionLinks || []).map((link: any) => link.collections).filter(Boolean);
+
+        // Fallback: Use featured collections if there are absolutely no explicit collections
+        let collections = explicitCollections;
+        if (collections.length === 0) {
+            const { data: featuredCollections } = await supabase
+                .from('featured_collections')
+                .select('collections ( id, title, slug, publication_year, poems_count )')
+                .order('position', { ascending: true })
+                .limit(3)
+                .throwOnError();
+            collections = (featuredCollections || []).map((row: any) => row.collections).filter(Boolean);
+        }
 
         return {
             ...category,
-            poems: poems.slice(0, 8),
-            authors: Array.from(authorsMap.values()).slice(0, 4),
-            collections: collections.slice(0, 3),
+            poems,
+            authors: Array.from(finalAuthorsMap.values()),
+            collections,
         };
     }
 );
