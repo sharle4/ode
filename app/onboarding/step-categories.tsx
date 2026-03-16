@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Check } from "@phosphor-icons/react";
 import FadeIn from "@/components/ui/FadeIn";
+import { OrnamentIcon } from "@/components/ui/ornaments";
 
 interface StepCategoriesProps {
   categories: any[];
@@ -69,8 +70,8 @@ export default function StepCategories({ categories, selected, onChange }: StepC
                   {category.name}
                 </span>
                 {/* Optional: if you have emojis or icons for categories in the DB, render them here */}
-                {category.emoji && (
-                  <span className="text-2xl mt-2 block">{category.emoji}</span>
+                {category.ornament_id && (
+                  <OrnamentIcon id={category.ornament_id} className="w-7 h-7 mt-2 opacity-60" />
                 )}
               </button>
             </FadeIn>

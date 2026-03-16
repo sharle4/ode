@@ -8,6 +8,7 @@ import { saveCategory, deleteCategory, saveCategoryPoems, saveCategoryAuthors, s
 import { searchPoems, searchAuthors, searchCollections } from '@/app/actions/admin'
 import SortableList, { type SortableItem } from '@/components/admin/SortableList'
 import SearchSelect, { type SearchResult } from '@/components/admin/SearchSelect'
+import { ORNAMENT_IDS, OrnamentIcon } from '@/components/ui/ornaments'
 
 export default function CategoryManagerClient({ 
     initialCategory, 
@@ -231,18 +232,33 @@ export default function CategoryManagerClient({
                         </div>
                         <div>
                             <label className="mb-2 block text-sm font-medium text-zinc-400 flex items-center gap-2">
-                                Ornament ID
-                                <span title="Identifiant du fichier SVG statique. ex: ornament-1">
+                                Ornement
+                                <span title="Sélectionnez un fleuron typographique pour cette catégorie.">
                                     <Info className="text-zinc-500" />
                                 </span>
                             </label>
-                            <input
-                                type="text"
-                                value={ornamentId}
-                                onChange={(e) => setOrnamentId(e.target.value)}
-                                placeholder="ex: ornament-1"
-                                className="w-full rounded-lg border border-zinc-800 bg-zinc-950 px-4 py-2.5 text-sm text-zinc-100 outline-none transition-colors focus:border-purple-500/50 focus:ring-1 focus:ring-purple-500/50"
-                            />
+                            <div className="flex flex-wrap gap-2">
+                                {ORNAMENT_IDS.map((oid) => (
+                                    <button
+                                        key={oid}
+                                        type="button"
+                                        onClick={() => setOrnamentId(ornamentId === oid ? '' : oid)}
+                                        className={`flex h-14 w-14 items-center justify-center rounded-lg border-2 transition-all ${
+                                            ornamentId === oid
+                                                ? 'border-purple-500 bg-purple-500/10 text-purple-300 scale-110'
+                                                : 'border-zinc-800 bg-zinc-950 text-zinc-400 hover:border-zinc-600 hover:text-zinc-200'
+                                        }`}
+                                    >
+                                        <OrnamentIcon id={oid} className="h-8 w-8" />
+                                    </button>
+                                ))}
+                                {ORNAMENT_IDS.length === 0 && (
+                                    <p className="text-xs text-zinc-600">Aucun ornement disponible.</p>
+                                )}
+                            </div>
+                            {ornamentId && (
+                                <p className="mt-2 text-xs text-zinc-500 font-mono">ID: {ornamentId}</p>
+                            )}
                         </div>
                     </div>
                 </div>

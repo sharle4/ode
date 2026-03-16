@@ -71,3 +71,24 @@ alter table public.poem_categories enable row level security;
 create policy "Author categories viewable by everyone" on public.author_categories for select using (true);
 create policy "Collection categories viewable by everyone" on public.collection_categories for select using (true);
 create policy "Poem categories viewable by everyone" on public.poem_categories for select using (true);
+
+-- 9. Admin full access policies (USING + WITH CHECK required for INSERT authorization)
+CREATE POLICY "Admins can manage categories"
+  ON public.categories FOR ALL
+  USING ( (auth.jwt() -> 'app_metadata' ->> 'is_admin')::boolean = true )
+  WITH CHECK ( (auth.jwt() -> 'app_metadata' ->> 'is_admin')::boolean = true );
+
+CREATE POLICY "Admins can manage author_categories"
+  ON public.author_categories FOR ALL
+  USING ( (auth.jwt() -> 'app_metadata' ->> 'is_admin')::boolean = true )
+  WITH CHECK ( (auth.jwt() -> 'app_metadata' ->> 'is_admin')::boolean = true );
+
+CREATE POLICY "Admins can manage collection_categories"
+  ON public.collection_categories FOR ALL
+  USING ( (auth.jwt() -> 'app_metadata' ->> 'is_admin')::boolean = true )
+  WITH CHECK ( (auth.jwt() -> 'app_metadata' ->> 'is_admin')::boolean = true );
+
+CREATE POLICY "Admins can manage poem_categories"
+  ON public.poem_categories FOR ALL
+  USING ( (auth.jwt() -> 'app_metadata' ->> 'is_admin')::boolean = true )
+  WITH CHECK ( (auth.jwt() -> 'app_metadata' ->> 'is_admin')::boolean = true );
