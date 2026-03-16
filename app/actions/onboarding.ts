@@ -1,11 +1,9 @@
 "use server";
 
-import { createSafeActionClient } from "next-safe-action";
-import { z } from "zod";
 import { createClient } from "@/utils/supabase/server";
 import { revalidatePath } from "next/cache";
-
-const actionClient = createSafeActionClient();
+import { actionClient } from "@/lib/safe-action";
+import { z } from "zod";
 
 // Schema conditionally validates based on the action type
 const onboardingSchema = z.object({

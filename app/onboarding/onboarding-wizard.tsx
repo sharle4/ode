@@ -116,7 +116,7 @@ export default function OnboardingWizard({
         if (result?.data?.success) {
            router.replace("/");
         } else {
-           console.error("Action returned an error", result?.serverError || result?.validationErrors);
+           console.error("Action returned an error", JSON.stringify(result?.serverError || result?.validationErrors, null, 2));
            alert("Une erreur est survenue.");
         }
       } catch (err) {
