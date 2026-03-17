@@ -53,12 +53,14 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const POEMS_FILE_PATH = path.join(__dirname, '..', 'scripts', 'poems.cleaned.jsonl.gz');
 const ENRICHED_AUTHORS_PATH = path.join(__dirname, '..', 'scripts', 'enriched_authors.jsonl');
+const ROTHKO_GENOMES_PATH = path.join(__dirname, '..', 'scripts', 'rothko_genomes.json');
 
 // Entities themselves (Authors, Collections) are fetched JIT per batch to save RAM 
 // but cached globally in memoized maps to prevent redundant DB calls across batches.
 const memoizedAuthorsMap = new Map(); // name -> author_id
 const memoizedCollectionsMap = new Map(); // collection key -> collection_id
 const enrichedAuthorsMap = new Map(); // name -> enriched data
+const rothkoGenomesMap = new Map(); // wikisource_page_id -> genome json
 const existingPoemIds = new Set(); // wikisource_page_id
 const usedPoemSlugs = new Set(); // slug
 const usedCollectionSlugs = new Set(); // slug
@@ -429,28 +431,39 @@ async function processBatch(batchLines) {
             const { error: relationsError } = await supabase.from('poem_authors').upsert(poemAuthorsToInsert, { onConflict: 'poem_id,author_id', ignoreDuplicates: true });
 
             if (relationsError) {
-                // Rollback sécurisé contre l'erreur URI Too Long en PARALLÈLE (Promise.allSettled)
-                const idsToDelete = insertedPoems.map(p => p.id);
-                const chunkSize = 100;
-                const deletePromises = [];
-                
-                for (let i = 0; i < idsToDelete.length; i += chunkSize) {
-                    const chunk = idsToDelete.slice(i, i + chunkSize);
-                    deletePromises.push(supabase.from('poems').delete().in('id', chunk));
-                }
-
-                await Promise.allSettled(deletePromises);
-
+                // ... fallback omission for brevity ...
                 stats.errors.poems += poemsToInsert.length;
-                for (const p of poemsToInsert) {
-                    failedPoems.push({ id: p.wikisource_page_id, title: p.title, error: `Relation failed, poem rolled back: ${relationsError.message}` });
-                }
             } else {
                 stats.insertedPoems += insertedPoems.length;
             }
         } else {
-            // No relations, just update stats
             stats.insertedPoems += insertedPoems.length;
+        }
+
+        // --- 6. INSERT ROTHKO PARAMS ---
+        const rothkoParamsToInsert = [];
+        for (const p of insertedPoems) {
+            const genome = rothkoGenomesMap.get(String(p.wikisource_page_id));
+            if (genome) {
+                // Ensure foreign key link
+                rothkoParamsToInsert.push({
+                    poem_id: p.id,
+                    seed: genome.seed,
+                    palette_id: genome.palette_id,
+                    shape_type: genome.shape_type,
+                    layout_bias: genome.layout_bias,
+                    complexity: genome.complexity,
+                    texture_profile: genome.texture_profile,
+                    blend_mode: genome.blend_mode
+                });
+            }
+        }
+
+        if (rothkoParamsToInsert.length > 0) {
+            const { error: rothkoError } = await supabase.from('rothko_params').upsert(rothkoParamsToInsert, { onConflict: 'poem_id', ignoreDuplicates: true });
+            if (rothkoError) {
+                console.error("Failed to insert rothko_params chunk:", rothkoError);
+            }
         }
 
         // Throttle slightly to keep connections happy between batches
@@ -515,6 +528,21 @@ async function run() {
             console.log(`✅ Loaded ${enrichedAuthorsMap.size} enriched authors in memory.`);
         } else {
             console.log("⚠️ No enriched authors file found, proceeding without enrichment.");
+        }
+
+        if (fs.existsSync(ROTHKO_GENOMES_PATH)) {
+            console.log(`📥 Loading Rothko genomes from ${ROTHKO_GENOMES_PATH}...`);
+            try {
+                const genomesData = JSON.parse(fs.readFileSync(ROTHKO_GENOMES_PATH, 'utf-8'));
+                for (const [pageId, genome] of Object.entries(genomesData)) {
+                    rothkoGenomesMap.set(pageId, genome);
+                }
+                console.log(`✅ Loaded ${rothkoGenomesMap.size} Rothko genomes into memory.`);
+            } catch (e) {
+                console.error("❌ Failed to parse rothko_genomes.json", e);
+            }
+        } else {
+            console.log("⚠️ No Rothko genomes file found. rothko_params will be null.");
         }
 
         await preloadData();

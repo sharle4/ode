@@ -6,6 +6,7 @@ import Footer from "@/components/layout/Footer";
 import PoemReader from "@/components/poem/PoemReader";
 import PoemActionsWrapper from "@/components/poem/PoemActionsWrapper";
 import ReviewSection from "@/components/ui/ReviewSection";
+import { RothkoArtwork } from "@/components/poem/RothkoArtwork";
 import { Metadata } from "next";
 import Link from "next/link";
 import FadeIn from "@/components/ui/FadeIn";
@@ -65,17 +66,30 @@ export default async function PoemPage({ params }: PoemPageProps) {
     };
 
     return (
-        <div className="min-h-screen bg-cream">
+        <div className="min-h-screen bg-cream relative">
             <script
                 type="application/ld+json"
                 dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
             />
-            <Navbar />
+            
+            {/* Immersive Rothko Background (Fade to bottom) */}
+            {poem.rothko_params && (
+                <div className="absolute top-0 left-0 right-0 h-[80vh] w-full z-0 overflow-hidden pointer-events-none opacity-40 mix-blend-multiply dark:mix-blend-screen dark:opacity-30">
+                    <RothkoArtwork 
+                        params={poem.rothko_params} 
+                        className="w-full h-full object-cover scale-110 blur-xl md:blur-3xl transform-gpu" 
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-cream to-transparent dark:from-zinc-950" />
+                </div>
+            )}
 
-            <main className="pb-32">
-                {/* Header Immersif */}
-                <FadeIn delay={0.1}>
-                    <header className="pt-32 pb-16 md:pt-40 md:pb-24 px-4 sm:px-6">
+            <div className="relative z-10">
+                <Navbar />
+
+                <main className="pb-32">
+                    {/* Header Immersif */}
+                    <FadeIn delay={0.1}>
+                        <header className="pt-32 pb-16 md:pt-40 md:pb-24 px-4 sm:px-6">
                         <div className="max-w-4xl mx-auto text-center">
                             {/* Meta Categories */}
                             <div className="flex flex-wrap items-center justify-center gap-3 mb-6 md:mb-8 text-xs uppercase tracking-[0.15em] font-medium text-warm-gray">
@@ -136,11 +150,12 @@ export default async function PoemPage({ params }: PoemPageProps) {
 
             </main>
 
-            <Suspense fallback={null}>
-                <PoemActionsWrapper poemId={poem.id} />
-            </Suspense>
+                <Suspense fallback={null}>
+                    <PoemActionsWrapper poemId={poem.id} />
+                </Suspense>
 
-            <Footer />
+                <Footer />
+            </div>
         </div>
     );
 }

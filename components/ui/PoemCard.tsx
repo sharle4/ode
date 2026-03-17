@@ -5,6 +5,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { BookOpen, ListPlus } from "@phosphor-icons/react";
 import type { Poem } from "@/types";
 import StarReview from "./StarReview";
+import { RothkoArtwork } from "@/components/poem/RothkoArtwork";
 
 interface PoemCardProps {
   poem: any;
@@ -32,7 +33,7 @@ const PoemCard = React.memo(function PoemCard({ poem, index, layout = "flex" }: 
       onMouseLeave={() => setIsHovered(false)}
     >
       <motion.div
-        className={`relative aspect-[3/4] rounded-2xl overflow-hidden bg-zinc-900 bg-gradient-to-br ${poem.coverGradient || 'from-zinc-800 to-zinc-900'}`}
+        className={`relative aspect-[3/4] rounded-2xl overflow-hidden bg-zinc-900`}
         whileHover={{ scale: 1.03 }}
         transition={{
           type: "spring",
@@ -40,6 +41,13 @@ const PoemCard = React.memo(function PoemCard({ poem, index, layout = "flex" }: 
           damping: 20,
         }}
       >
+        {poem.rothko_params ? (
+          <div className="absolute inset-0 z-0">
+             <RothkoArtwork params={poem.rothko_params} className="w-full h-full object-cover" />
+          </div>
+        ) : (
+          <div className={`absolute inset-0 z-0 bg-gradient-to-br ${poem.coverGradient || 'from-zinc-800 to-zinc-900'}`} />
+        )}
         <div className="absolute inset-0 flex flex-col justify-end p-5 z-10">
           <div className="space-y-1.5">
             <p className="font-serif text-white/50 text-xs tracking-wide uppercase">

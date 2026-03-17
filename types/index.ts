@@ -13,6 +13,7 @@ export interface Poem {
   };
   average_review?: number;
   reviews_count?: number;
+  rothko_params?: import("@/types/generative").RothkoParams;
 }
 
 export interface BaseActivity {

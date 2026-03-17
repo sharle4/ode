@@ -53,14 +53,21 @@ export const getPoemBySlug = (slug: string) => executeCachedQuery(
             .select(`
                 id, title, slug, normalized_text, language, publication_year, average_review, reviews_count, content,
                 authors ( id, name, slug ),
-                collections ( id, title )
+                collections ( id, title ),
+                rothko_params ( seed, palette_id, shape_type, layout_bias, complexity, texture_profile, blend_mode )
             `)
             .eq('slug', slug)
             .maybeSingle()
             .throwOnError();
 
         if (poem && Array.isArray(poem.content)) {
-            return { ...poem, content: { stanzas: poem.content } };
+            poem.content = { stanzas: poem.content };
+        }
+
+        // Flatten rothko_params ONE-TO-ONE relationship to match the previous API
+        if (poem && poem.rothko_params) {
+            const rothko = Array.isArray(poem.rothko_params) ? poem.rothko_params[0] : poem.rothko_params;
+            poem.rothko_params = rothko as any; // Temporary fix for Supabase type inference on 1-to-1 relationships
         }
 
         return poem;
@@ -174,14 +181,21 @@ export const getTrendingPoems = (limit: number = 10) => executeCachedQuery(
             .from('poems')
             .select(`
                 *,
-                authors ( id, name, slug )
+                authors ( id, name, slug ),
+                rothko_params ( seed, palette_id, shape_type, layout_bias, complexity, texture_profile, blend_mode )
             `)
             .limit(limit)
             .order('reads_count', { ascending: false })
             .order('id', { ascending: false }) // Tie-breaker
             .throwOnError();
 
-        return poems;
+        return (poems || []).map(poem => {
+            if (poem.rothko_params) {
+                const rothko = Array.isArray(poem.rothko_params) ? poem.rothko_params[0] : poem.rothko_params;
+                return { ...poem, rothko_params: rothko as any };
+            }
+            return poem;
+        });
     }
 );
 
