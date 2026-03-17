@@ -20,7 +20,7 @@ interface RothkoArtworkProps {
 export function RothkoArtwork({ 
   params, 
   className = '', 
-  fallbackColor = 'var(--color-charcoal)' 
+  fallbackColor = 'var(--color-charcoal)'
 }: RothkoArtworkProps) {
   
   // 1. Zod Runtime Validation
@@ -107,11 +107,6 @@ export function RothkoArtwork({
       }}
     >
       <defs>
-        {/* Soft edge blur. Note `colorInterpolationFilters="sRGB"` prevents artifacting */}
-        <filter id={`rothko-blur-${data.seed}`} x="-50%" y="-50%" width="200%" height="200%" colorInterpolationFilters="sRGB">
-          <feGaussianBlur stdDeviation={30 + prng() * 20} result="blur" />
-        </filter>
-
         {/* Global Texture Layer. 
             numOctaves capped at 2 to preserve iPhone battery and reduce CPU thrashing. */}
         <filter id={`rothko-grain-${data.seed}`} x="0%" y="0%" width="100%" height="100%" colorInterpolationFilters="sRGB">
@@ -139,7 +134,7 @@ export function RothkoArtwork({
       <rect width="400" height="600" fill={bgColor} />
 
       {/* Shapes Rendering Layer */}
-      <g filter={`url(#rothko-blur-${data.seed})`}>
+      <g>
         {Array.from({ length: numShapes }).map((_, i) => {
           const pos = generateLayoutOverrides(data.layout_bias, i, numShapes);
           const rw = 250 + prng() * 100;
@@ -164,12 +159,12 @@ export function RothkoArtwork({
             return (
               <rect 
                 key={i} 
-                x={pos.cx - rw/2 - 50} 
+                x={pos.cx - rw/2 - 20} 
                 y={pos.cy - rh/2} 
-                width={rw + 100} 
-                height={rh * 0.6} 
+                width={rw + 40} 
+                height={rh * 0.5} 
                 fill={shapeColor} 
-                rx={10} 
+                rx={4} 
               />
             );
           }

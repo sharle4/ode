@@ -71,13 +71,13 @@ export default async function PoemPage({ params }: PoemPageProps) {
                 type="application/ld+json"
                 dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
             />
-            
+
             {/* Immersive Rothko Background (Fade to bottom) */}
             {poem.rothko_params && (
                 <div className="absolute top-0 left-0 right-0 h-[80vh] w-full z-0 overflow-hidden pointer-events-none opacity-40 mix-blend-multiply dark:mix-blend-screen dark:opacity-30">
-                    <RothkoArtwork 
-                        params={poem.rothko_params} 
-                        className="w-full h-full object-cover scale-110 blur-xl md:blur-3xl transform-gpu" 
+                    <RothkoArtwork
+                        params={poem.rothko_params}
+                        className="w-full h-full object-cover scale-110 transform-gpu"
                     />
                     <div className="absolute inset-0 bg-gradient-to-t from-cream to-transparent dark:from-zinc-950" />
                 </div>
@@ -90,65 +90,65 @@ export default async function PoemPage({ params }: PoemPageProps) {
                     {/* Header Immersif */}
                     <FadeIn delay={0.1}>
                         <header className="pt-32 pb-16 md:pt-40 md:pb-24 px-4 sm:px-6">
-                        <div className="max-w-4xl mx-auto text-center">
-                            {/* Meta Categories */}
-                            <div className="flex flex-wrap items-center justify-center gap-3 mb-6 md:mb-8 text-xs uppercase tracking-[0.15em] font-medium text-warm-gray">
-                                {poem.language && (
-                                    <span className="px-3 py-1 bg-paper border border-soft-border rounded-full">
-                                        {poem.language}
-                                    </span>
-                                )}
-                                {poem.publication_year && (
-                                    <span className="px-3 py-1 bg-paper border border-soft-border rounded-full">
-                                        {poem.publication_year}
-                                    </span>
-                                )}
+                            <div className="max-w-4xl mx-auto text-center">
+                                {/* Meta Categories */}
+                                <div className="flex flex-wrap items-center justify-center gap-3 mb-6 md:mb-8 text-xs uppercase tracking-[0.15em] font-medium text-warm-gray">
+                                    {poem.language && (
+                                        <span className="px-3 py-1 bg-paper border border-soft-border rounded-full">
+                                            {poem.language}
+                                        </span>
+                                    )}
+                                    {poem.publication_year && (
+                                        <span className="px-3 py-1 bg-paper border border-soft-border rounded-full">
+                                            {poem.publication_year}
+                                        </span>
+                                    )}
+                                </div>
+
+                                {/* Title */}
+                                <h1 className="font-serif text-5xl md:text-6xl lg:text-7xl xl:text-8xl tracking-tighter leading-[1.1] text-charcoal mb-8 text-balance mx-auto">
+                                    {poem.title}
+                                </h1>
+
+                                {/* Author details */}
+                                <div className="flex flex-col items-center justify-center gap-2">
+                                    <Link
+                                        href={`/author/${authorId}`}
+                                        className="text-lg md:text-xl text-warm-gray hover:text-charcoal transition-colors italic"
+                                    >
+                                        Par {authorName} {poem.publication_year ? `(${poem.publication_year})` : ""}
+                                    </Link>
+
+                                    {collectionTitle && (
+                                        <p className="text-sm text-warm-gray/60 font-serif">
+                                            Tiré du recueil <span className="italic">« {collectionTitle} »</span>
+                                        </p>
+                                    )}
+                                </div>
                             </div>
+                        </header>
+                    </FadeIn>
 
-                            {/* Title */}
-                            <h1 className="font-serif text-5xl md:text-6xl lg:text-7xl xl:text-8xl tracking-tighter leading-[1.1] text-charcoal mb-8 text-balance mx-auto">
-                                {poem.title}
-                            </h1>
-
-                            {/* Author details */}
-                            <div className="flex flex-col items-center justify-center gap-2">
-                                <Link
-                                    href={`/author/${authorId}`}
-                                    className="text-lg md:text-xl text-warm-gray hover:text-charcoal transition-colors italic"
-                                >
-                                    Par {authorName} {poem.publication_year ? `(${poem.publication_year})` : ""}
-                                </Link>
-
-                                {collectionTitle && (
-                                    <p className="text-sm text-warm-gray/60 font-serif">
-                                        Tiré du recueil <span className="italic">« {collectionTitle} »</span>
-                                    </p>
-                                )}
-                            </div>
+                    {/* Separator */}
+                    <FadeIn delay={0.3}>
+                        <div className="max-w-3xl mx-auto px-4 sm:px-6">
+                            <div className="h-px w-full bg-gradient-to-r from-transparent via-soft-border to-transparent" />
                         </div>
-                    </header>
-                </FadeIn>
+                    </FadeIn>
 
-                {/* Separator */}
-                <FadeIn delay={0.3}>
-                    <div className="max-w-3xl mx-auto px-4 sm:px-6">
-                        <div className="h-px w-full bg-gradient-to-r from-transparent via-soft-border to-transparent" />
-                    </div>
-                </FadeIn>
+                    {/* Corps du Poème */}
+                    <FadeIn delay={0.5}>
+                        <PoemReader content={poem.content} />
+                    </FadeIn>
 
-                {/* Corps du Poème */}
-                <FadeIn delay={0.5}>
-                    <PoemReader content={poem.content} />
-                </FadeIn>
+                    {/* Avis & Notes — placed after reading, not intrusive */}
+                    <ReviewSection
+                        averageReview={poem.average_review || 0}
+                        totalReviews={poem.reviews_count || 0}
+                        variant="minimal"
+                    />
 
-                {/* Avis & Notes — placed after reading, not intrusive */}
-                <ReviewSection
-                    averageReview={poem.average_review || 0}
-                    totalReviews={poem.reviews_count || 0}
-                    variant="minimal"
-                />
-
-            </main>
+                </main>
 
                 <Suspense fallback={null}>
                     <PoemActionsWrapper poemId={poem.id} />
