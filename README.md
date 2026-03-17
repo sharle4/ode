@@ -64,4 +64,5 @@ Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/bui
 - [ ] ajouter onboarding utilisateur (poète, poèmes, recueils, mouvements favoris + performances style (couleur, taille, journuit, police))
 - [ ] remplacer section à propos auteur par metadata (dates, lieux, période, ...)
 - [ ] ajouter bouton suggestion modification visiteur
-- [] ajouter différent style (inclus ddiférent style illustration poème (bauhaus))
+- [ ] ajouter différent style (inclus ddiférent style illustration poème (bauhaus))
+- [ ] ajouter skeleton loading

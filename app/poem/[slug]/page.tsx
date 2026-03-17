@@ -72,17 +72,6 @@ export default async function PoemPage({ params }: PoemPageProps) {
                 dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
             />
 
-            {/* Immersive Rothko Background (Fade to bottom) */}
-            {poem.rothko_params && (
-                <div className="absolute top-0 left-0 right-0 h-[80vh] w-full z-0 overflow-hidden pointer-events-none opacity-40 mix-blend-multiply dark:mix-blend-screen dark:opacity-30">
-                    <RothkoArtwork
-                        params={poem.rothko_params}
-                        className="w-full h-full object-cover scale-110 transform-gpu"
-                    />
-                    <div className="absolute inset-0 bg-gradient-to-t from-cream to-transparent dark:from-zinc-950" />
-                </div>
-            )}
-
             <div className="relative z-10">
                 <Navbar />
 
