@@ -454,7 +454,9 @@ async function processBatch(batchLines) {
                     layout_bias: genome.layout_bias,
                     complexity: genome.complexity,
                     texture_profile: genome.texture_profile,
-                    blend_mode: genome.blend_mode
+                    blend_mode: genome.blend_mode,
+                    density: genome.density,
+                    opacity_style: genome.opacity_style
                 });
             }
         }

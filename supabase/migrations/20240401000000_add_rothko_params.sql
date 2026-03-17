@@ -8,6 +8,8 @@ create table public.rothko_params (
     complexity int not null,
     texture_profile text not null,
     blend_mode text not null,
+    density text not null,
+    opacity_style text not null,
     created_at timestamptz default now() not null,
     updated_at timestamptz default now() not null
 );

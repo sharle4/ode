@@ -10,13 +10,19 @@ export const RothkoGenomeSchema = z.object({
     'golden_haze',
     'ocean_depths',
     'sunset_ash',
-    'forest_whisper'
+    'forest_whisper',
+    'twilight_ink',
+    'warm_earth',
+    'violet_dusk',
+    'arctic_mist'
   ]),
   shape_type: z.enum([
     'ellipse',
     'fluid_blob',
     'horizontal_band',
-    'rectangle'
+    'rectangle',
+    'stacked_fields',
+    'gradient_wash'
   ]),
   layout_bias: z.enum([
     'centered',
@@ -24,7 +30,9 @@ export const RothkoGenomeSchema = z.object({
     'weighted_top',
     'dispersed'
   ]),
-  complexity: z.number().min(1).max(5),
+  complexity: z.number().min(1).max(8),
+  density: z.enum(['sparse', 'layered', 'dense']).default('layered'),
+  opacity_style: z.enum(['opaque', 'translucent', 'glazed']).default('glazed'),
   texture_profile: z.enum([
     'smooth_silk',
     'fine_grain',

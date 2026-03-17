@@ -107,8 +107,7 @@ export function RothkoArtwork({
       }}
     >
       <defs>
-        {/* Global Texture Layer. 
-            numOctaves capped at 2 to preserve iPhone battery and reduce CPU thrashing. */}
+        {/* 1. Global Texture Layer */}
         <filter id={`rothko-grain-${data.seed}`} x="0%" y="0%" width="100%" height="100%" colorInterpolationFilters="sRGB">
           <feTurbulence 
             type="fractalNoise" 
@@ -117,7 +116,6 @@ export function RothkoArtwork({
             stitchTiles="stitch" 
             result="noise" 
           />
-          {/* Lower opacity of grain directly via matrix rather than CSS to limit repaints */}
           <feColorMatrix 
             type="matrix" 
             values="1 0 0 0 0  
@@ -128,55 +126,133 @@ export function RothkoArtwork({
             result="coloredNoise" 
           />
         </filter>
+
+        {/* 2. Edge Vibration Filter (Point A) 
+            Uses high frequency turbulence to displace only the edges of shapes. */}
+        <filter id={`rothko-vibration-${data.seed}`} x="-20%" y="-20%" width="140%" height="140%" colorInterpolationFilters="sRGB">
+          <feTurbulence 
+            type="fractalNoise" 
+            baseFrequency="0.04" 
+            numOctaves="3" 
+            seed={data.seed} 
+            result="vibrationNoise" 
+          />
+          <feDisplacementMap 
+            in="SourceGraphic" 
+            in2="vibrationNoise" 
+            scale={15} 
+            xChannelSelector="R" 
+            yChannelSelector="G" 
+          />
+        </filter>
+
+        {/* 3. Soft Glow / Feathering */}
+        <filter id={`rothko-glow-${data.seed}`} x="-50%" y="-50%" width="200%" height="200%" colorInterpolationFilters="sRGB">
+           <feGaussianBlur stdDeviation="6" result="blur" />
+           <feComposite in="SourceGraphic" in2="blur" operator="over" />
+        </filter>
       </defs>
 
-      {/* Main Canvas Background */}
+      {/* 1. Main Background Layer */}
       <rect width="400" height="600" fill={bgColor} />
 
-      {/* Shapes Rendering Layer */}
-      <g>
+      {/* 2. Background Depth Layers (Density dependent) 
+          Creates that "under-painting" feeling. */}
+      {data.density !== 'sparse' && (
+        <g opacity="0.3">
+          <rect 
+            width="400" 
+            height="300" 
+            fill={`color-mix(in srgb, ${getPaletteVar('shape-1')}, ${bgColor} 70%)`} 
+            filter={`url(#rothko-vibration-${data.seed})`}
+          />
+          <rect 
+            y="300" 
+            width="400" 
+            height="300" 
+            fill={`color-mix(in srgb, ${getPaletteVar('shape-2')}, ${bgColor} 70%)`} 
+            filter={`url(#rothko-vibration-${data.seed})`}
+          />
+        </g>
+      )}
+
+      {/* 3. Main Shapes Layer (Point A: Vibration applied here) */}
+      <g filter={`url(#rothko-vibration-${data.seed})`}>
         {Array.from({ length: numShapes }).map((_, i) => {
           const pos = generateLayoutOverrides(data.layout_bias, i, numShapes);
-          const rw = 250 + prng() * 100;
-          const rh = (600 / numShapes) * 0.8 + prng() * 50;
           
-          const shapeColor = getPaletteVar(`shape-${(i % 3) + 1}`);
+          // Width: Expanded to fill canvas (Point B / Logic)
+          const rw = 360 + prng() * 40; // 90-100% of 400
+          const rh = (600 / numShapes) * (data.shape_type === 'stacked_fields' ? 1.0 : 0.7) + prng() * 40;
+          
+          // Point D: Dynamic Intervals using color-mix
+          const colorA = getPaletteVar(`shape-${(i % 5) + 1}`);
+          const colorB = getPaletteVar(`shape-${((i + 1) % 5) + 1}`);
+          const mixPercentage = 20 + prng() * 60;
+          const shapeColor = `color-mix(in srgb, ${colorA}, ${colorB} ${mixPercentage}%)`;
+
+          // Opacity Style logic
+          const opacity = data.opacity_style === 'opaque' ? 1 : 
+                          data.opacity_style === 'translucent' ? 0.6 : 0.85;
+
+          const commonProps = {
+            fill: shapeColor,
+            opacity: opacity,
+            filter: `url(#rothko-glow-${data.seed})`
+          };
 
           if (data.shape_type === 'ellipse' || data.shape_type === 'fluid_blob') {
             return (
               <ellipse 
-                key={i} 
+                key={i}
+                {...commonProps}
                 cx={pos.cx} 
                 cy={pos.cy} 
                 rx={rw / 2} 
                 ry={rh / 2} 
-                fill={shapeColor} 
               />
             );
           }
 
-          if (data.shape_type === 'horizontal_band') {
+          if (data.shape_type === 'horizontal_band' || data.shape_type === 'stacked_fields') {
+            const yOffset = data.shape_type === 'stacked_fields' ? (600 / numShapes) * i : pos.cy - rh/2;
+            const height = data.shape_type === 'stacked_fields' ? (600 / numShapes) + 5 : rh;
+            
             return (
               <rect 
-                key={i} 
-                x={pos.cx - rw/2 - 20} 
-                y={pos.cy - rh/2} 
-                width={rw + 40} 
-                height={rh * 0.5} 
-                fill={shapeColor} 
-                rx={4} 
+                key={i}
+                {...commonProps}
+                x={200 - rw/2} 
+                y={yOffset} 
+                width={rw} 
+                height={height} 
+                rx={data.shape_type === 'stacked_fields' ? 0 : 4} 
               />
             );
+          }
+
+          if (data.shape_type === 'gradient_wash') {
+             return (
+               <rect 
+                 key={i}
+                 {...commonProps}
+                 x={0}
+                 y={pos.cy - rh}
+                 width={400}
+                 height={rh * 2}
+                 opacity={opacity * 0.5}
+               />
+             );
           }
 
           return (
             <rect 
-              key={i} 
+              key={i}
+              {...commonProps}
               x={pos.cx - rw/2} 
               y={pos.cy - rh/2} 
               width={rw} 
               height={rh} 
-              fill={shapeColor} 
             />
           );
         })}

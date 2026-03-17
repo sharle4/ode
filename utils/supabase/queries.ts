@@ -54,7 +54,7 @@ export const getPoemBySlug = (slug: string) => executeCachedQuery(
                 id, title, slug, normalized_text, language, publication_year, average_review, reviews_count, content,
                 authors ( id, name, slug ),
                 collections ( id, title ),
-                rothko_params ( seed, palette_id, shape_type, layout_bias, complexity, texture_profile, blend_mode )
+                rothko_params ( seed, palette_id, shape_type, layout_bias, complexity, texture_profile, blend_mode, density, opacity_style )
             `)
             .eq('slug', slug)
             .maybeSingle()
@@ -182,7 +182,7 @@ export const getTrendingPoems = (limit: number = 10) => executeCachedQuery(
             .select(`
                 *,
                 authors ( id, name, slug ),
-                rothko_params ( seed, palette_id, shape_type, layout_bias, complexity, texture_profile, blend_mode )
+                rothko_params ( seed, palette_id, shape_type, layout_bias, complexity, texture_profile, blend_mode, density, opacity_style )
             `)
             .limit(limit)
             .order('reads_count', { ascending: false })

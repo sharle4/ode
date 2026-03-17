@@ -32,41 +32,86 @@
   --rothko-crimson_fog-shape-1: #e2817d;
   --rothko-crimson_fog-shape-2: #c45b57;
   --rothko-crimson_fog-shape-3: #9b3a37;
+  --rothko-crimson_fog-shape-4: #802a28;
+  --rothko-crimson_fog-shape-5: #651f1d;
 
   --rothko-deep_void-bg: #ececf1;
   --rothko-deep_void-shape-1: #9292a0;
   --rothko-deep_void-shape-2: #5f5f6d;
   --rothko-deep_void-shape-3: #2d2d38;
+  --rothko-deep_void-shape-4: #1a1a24;
+  --rothko-deep_void-shape-5: #0f0f16;
 
   --rothko-morning_paper-bg: #fcfcf9;
   --rothko-morning_paper-shape-1: #e9e5d9;
-  --rothko-morning_paper-shape-2: #d6d0bw;
+  --rothko-morning_paper-shape-2: #d6d0be;
   --rothko-morning_paper-shape-3: #b0a996;
+  --rothko-morning_paper-shape-4: #98917e;
+  --rothko-morning_paper-shape-5: #7d7764;
 
   --rothko-melancholy-bg: #eaeff2;
   --rothko-melancholy-shape-1: #a1b5c4;
   --rothko-melancholy-shape-2: #6f8a9e;
   --rothko-melancholy-shape-3: #425e71;
+  --rothko-melancholy-shape-4: #2b4354;
+  --rothko-melancholy-shape-5: #1c303f;
 
   --rothko-golden_haze-bg: #fef8f0;
   --rothko-golden_haze-shape-1: #f3d4a6;
   --rothko-golden_haze-shape-2: #e0ac65;
   --rothko-golden_haze-shape-3: #bf813b;
+  --rothko-golden_haze-shape-4: #9e6427;
+  --rothko-golden_haze-shape-5: #7a4a19;
 
-  --rothko-ocean_depths-bg: #eajf4;
+  --rothko-ocean_depths-bg: #eaf4f4;
   --rothko-ocean_depths-shape-1: #89b4c4;
   --rothko-ocean_depths-shape-2: #4a8296;
   --rothko-ocean_depths-shape-3: #205364;
+  --rothko-ocean_depths-shape-4: #123e4d;
+  --rothko-ocean_depths-shape-5: #0a2d38;
 
   --rothko-sunset_ash-bg: #fbf5f4;
   --rothko-sunset_ash-shape-1: #deb9b6;
   --rothko-sunset_ash-shape-2: #b88682;
   --rothko-sunset_ash-shape-3: #8a5956;
+  --rothko-sunset_ash-shape-4: #6b413e;
+  --rothko-sunset_ash-shape-5: #4e2b29;
 
   --rothko-forest_whisper-bg: #eef1ec;
   --rothko-forest_whisper-shape-1: #9eb19a;
   --rothko-forest_whisper-shape-2: #6d8569;
   --rothko-forest_whisper-shape-3: #435b40;
+  --rothko-forest_whisper-shape-4: #2d422b;
+  --rothko-forest_whisper-shape-5: #1a2b19;
+
+  /* NEW PALETTES */
+  --rothko-twilight_ink-bg: #f0f0f5;
+  --rothko-twilight_ink-shape-1: #b5b5d1;
+  --rothko-twilight_ink-shape-2: #7a7aa3;
+  --rothko-twilight_ink-shape-3: #4a4a75;
+  --rothko-twilight_ink-shape-4: #2d2d4f;
+  --rothko-twilight_ink-shape-5: #18182e;
+
+  --rothko-warm_earth-bg: #f9f5f0;
+  --rothko-warm_earth-shape-1: #d6bfa8;
+  --rothko-warm_earth-shape-2: #b38f6b;
+  --rothko-warm_earth-shape-3: #8a633f;
+  --rothko-warm_earth-shape-4: #664628;
+  --rothko-warm_earth-shape-5: #452b14;
+
+  --rothko-violet_dusk-bg: #f5f0f6;
+  --rothko-violet_dusk-shape-1: #c5a8ce;
+  --rothko-violet_dusk-shape-2: #9e75a8;
+  --rothko-violet_dusk-shape-3: #754a80;
+  --rothko-violet_dusk-shape-4: #522c5c;
+  --rothko-violet_dusk-shape-5: #33173b;
+
+  --rothko-arctic_mist-bg: #f0f7f9;
+  --rothko-arctic_mist-shape-1: #bde0e8;
+  --rothko-arctic_mist-shape-2: #84c0cc;
+  --rothko-arctic_mist-shape-3: #5294a3;
+  --rothko-arctic_mist-shape-4: #316d7a;
+  --rothko-arctic_mist-shape-5: #1a4a54;
 }
 
 .dark {
@@ -86,41 +131,86 @@
   --rothko-crimson_fog-shape-1: #9b3a37;
   --rothko-crimson_fog-shape-2: #c45b57;
   --rothko-crimson_fog-shape-3: #e2817d;
+  --rothko-crimson_fog-shape-4: #cc5b58;
+  --rothko-crimson_fog-shape-5: #e87b79;
 
   --rothko-deep_void-bg: #121215;
   --rothko-deep_void-shape-1: #2d2d38;
   --rothko-deep_void-shape-2: #5f5f6d;
   --rothko-deep_void-shape-3: #9292a0;
+  --rothko-deep_void-shape-4: #9898a8;
+  --rothko-deep_void-shape-5: #bebecf;
 
   --rothko-morning_paper-bg: #1a1a18;
   --rothko-morning_paper-shape-1: #b0a996;
   --rothko-morning_paper-shape-2: #d6d0be;
   --rothko-morning_paper-shape-3: #e9e5d9;
+  --rothko-morning_paper-shape-4: #b3ac98;
+  --rothko-morning_paper-shape-5: #d4ccb8;
 
   --rothko-melancholy-bg: #111518;
   --rothko-melancholy-shape-1: #425e71;
   --rothko-melancholy-shape-2: #6f8a9e;
   --rothko-melancholy-shape-3: #a1b5c4;
+  --rothko-melancholy-shape-4: #7a9eb5;
+  --rothko-melancholy-shape-5: #a0bed4;
 
   --rothko-golden_haze-bg: #211c14;
   --rothko-golden_haze-shape-1: #bf813b;
   --rothko-golden_haze-shape-2: #e0ac65;
   --rothko-golden_haze-shape-3: #f3d4a6;
+  --rothko-golden_haze-shape-4: #d4a25c;
+  --rothko-golden_haze-shape-5: #f0c386;
 
   --rothko-ocean_depths-bg: #0f1618;
   --rothko-ocean_depths-shape-1: #205364;
   --rothko-ocean_depths-shape-2: #4a8296;
   --rothko-ocean_depths-shape-3: #89b4c4;
+  --rothko-ocean_depths-shape-4: #79aecd;
+  --rothko-ocean_depths-shape-5: #a3cae0;
 
   --rothko-sunset_ash-bg: #1e1514;
   --rothko-sunset_ash-shape-1: #8a5956;
   --rothko-sunset_ash-shape-2: #b88682;
   --rothko-sunset_ash-shape-3: #deb9b6;
+  --rothko-sunset_ash-shape-4: #b37874;
+  --rothko-sunset_ash-shape-5: #d69f9a;
 
   --rothko-forest_whisper-bg: #121611;
   --rothko-forest_whisper-shape-1: #435b40;
   --rothko-forest_whisper-shape-2: #6d8569;
   --rothko-forest_whisper-shape-3: #9eb19a;
+  --rothko-forest_whisper-shape-4: #789e72;
+  --rothko-forest_whisper-shape-5: #9fcc97;
+
+  /* NEW PALETTES DARK */
+  --rothko-twilight_ink-bg: #131317;
+  --rothko-twilight_ink-shape-1: #2c2c47;
+  --rothko-twilight_ink-shape-2: #48486e;
+  --rothko-twilight_ink-shape-3: #6a6a96;
+  --rothko-twilight_ink-shape-4: #8b8bb5;
+  --rothko-twilight_ink-shape-5: #b1b1d6;
+
+  --rothko-warm_earth-bg: #171513;
+  --rothko-warm_earth-shape-1: #3b2817;
+  --rothko-warm_earth-shape-2: #61442a;
+  --rothko-warm_earth-shape-3: #8a6544;
+  --rothko-warm_earth-shape-4: #ad8259;
+  --rothko-warm_earth-shape-5: #cfa278;
+
+  --rothko-violet_dusk-bg: #161217;
+  --rothko-violet_dusk-shape-1: #361f3d;
+  --rothko-violet_dusk-shape-2: #5c3566;
+  --rothko-violet_dusk-shape-3: #855091;
+  --rothko-violet_dusk-shape-4: #a86ab5;
+  --rothko-violet_dusk-shape-5: #cc91d9;
+
+  --rothko-arctic_mist-bg: #101618;
+  --rothko-arctic_mist-shape-1: #22414a;
+  --rothko-arctic_mist-shape-2: #3d6f7d;
+  --rothko-arctic_mist-shape-3: #5c9eaf;
+  --rothko-arctic_mist-shape-4: #7ec0d1;
+  --rothko-arctic_mist-shape-5: #a8dfed;
 }
 
 * {
