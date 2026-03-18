@@ -15,12 +15,17 @@ interface RothkoArtworkProps {
    * Fallback color to display in case the data contract is violated (e.g. malformed JSON in DB).
    */
   fallbackColor?: string;
+  /**
+   * Optional class name to apply to the inner shapes grouping, useful for targeted hover effects.
+   */
+  shapesClassName?: string;
 }
 
 export function RothkoArtwork({ 
   params, 
   className = '', 
-  fallbackColor = 'var(--color-charcoal)'
+  fallbackColor = 'var(--color-charcoal)',
+  shapesClassName = ''
 }: RothkoArtworkProps) {
   
   // 1. Zod Runtime Validation
@@ -159,7 +164,7 @@ export function RothkoArtwork({
       {/* 2. Background Depth Layers (Density dependent) 
           Creates that "under-painting" feeling. */}
       {data.density !== 'sparse' && (
-        <g opacity="0.3">
+        <g opacity="0.3" className={shapesClassName}>
           <rect 
             width="400" 
             height="300" 
@@ -178,7 +183,8 @@ export function RothkoArtwork({
 
       {/* 3. Main Shapes Layer (Point A: Vibration applied here) */}
       <g filter={`url(#rothko-vibration-${data.seed})`}>
-        {Array.from({ length: numShapes }).map((_, i) => {
+        <g className={shapesClassName}>
+          {Array.from({ length: numShapes }).map((_, i) => {
           const pos = generateLayoutOverrides(data.layout_bias, i, numShapes);
           
           // Width: Expanded to fill canvas (Point B / Logic)
@@ -256,6 +262,7 @@ export function RothkoArtwork({
             />
           );
         })}
+        </g>
       </g>
 
       {/* Global Grain Filter. Applied to one single DOM node globally. 
