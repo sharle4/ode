@@ -64,3 +64,16 @@ export interface Collection {
   average_review?: number;
   reviews_count?: number;
 }
+
+export type CategoryType = 'THEME' | 'MOVEMENT' | 'ERA';
+
+export interface Category {
+  id: string;
+  name: string;
+  description?: string;
+  slug?: string;
+  color?: string;
+  ornament_id?: string;
+  type: CategoryType;
+  sort_order: number;
+}

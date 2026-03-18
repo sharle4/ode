@@ -56,14 +56,14 @@ export default async function Home() {
 
         <section id="explore" className="pb-12 md:pb-24">
           <TrendingRow
-            title="Tendances mondiales"
+            title="Poèmes tendances"
             subtitle="Les poèmes les plus lus et parcourés cette semaine"
             poems={trendingPoems}
           />
 
           {featuredAuthors.length > 0 && (
             <AuthorRow
-              title="Auteurs à la une"
+              title="Auteurs à l'honneur"
               subtitle="Plumes intemporelles et vers inoubliables"
               authors={featuredAuthors}
             />

@@ -281,7 +281,8 @@ export const getCategories = () => executeCachedQuery(
     async (supabase) => {
         const { data } = await supabase
             .from('categories')
-            .select('id, name, description, slug, ornament_id, color')
+            .select('id, name, description, slug, ornament_id, color, type, sort_order')
+            .order('sort_order', { ascending: true })
             .order('name', { ascending: true })
             .throwOnError();
 

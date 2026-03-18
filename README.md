@@ -63,6 +63,9 @@ Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/bui
 - [ ] ajouter lien clicable pour date et lieu => lien vers frise et carte
 - [ ] ajouter onboarding utilisateur (poète, poèmes, recueils, mouvements favoris + performances style (couleur, taille, journuit, police))
 - [ ] remplacer section à propos auteur par metadata (dates, lieux, période, ...)
-- [ ] ajouter bouton suggestion modification visiteur
+- [ ] ajouter bouton suggestion
+ modification visiteur
+- [ ] appliquer settings onboarding utilisateur
 - [ ] ajouter différent style (inclus ddiférent style illustration poème (bauhaus))
 - [ ] ajouter skeleton loading
+- [ ] corriger bug stanzas (ligne seule avec "&#160;<br />" ou "<br />" pas reconnue comme saut de ligne)
