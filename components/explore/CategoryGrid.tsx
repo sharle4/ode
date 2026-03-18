@@ -31,12 +31,12 @@ export default function CategoryGrid({ categories, title }: CategoryGridProps) {
                             <Link
                                 key={cat.id}
                                 href={href}
-                                className="relative overflow-hidden rounded-xl aspect-[4/3] sm:aspect-square flex flex-col items-center p-4 shadow-sm hover:shadow-md transition-all duration-300 ease-out group hover:scale-105"
+                                className="relative overflow-hidden rounded-xl aspect-[4/3] sm:aspect-square flex flex-col items-start p-4 shadow-sm hover:shadow-md transition-all duration-300 ease-out group"
                                 style={cat.color ? { backgroundColor: cat.color } : undefined}
                             >
                                 {/* Background fallback gradient if no custom color */}
                                 {!cat.color && (
-                                    <div className={`absolute inset-0 bg-gradient-to-br transition-all duration-500 group-hover:scale-110 ${fallbackGradient} opacity-90 group-hover:opacity-100 group-hover:saturate-150`}></div>
+                                    <div className={`absolute inset-0 bg-gradient-to-br transition-all duration-500 ${fallbackGradient} opacity-90 group-hover:opacity-100 saturate-100 group-hover:saturate-[2.5] brightness-100 group-hover:brightness-110`}></div>
                                 )}
                                 <div className="absolute inset-0 bg-black/10 group-hover:bg-black/0 transition-colors"></div>
 
@@ -51,7 +51,7 @@ export default function CategoryGrid({ categories, title }: CategoryGridProps) {
                                     )}
                                 </div>
 
-                                <h3 className="relative z-10 w-full text-white font-serif text-lg md:text-xl font-medium drop-shadow-md text-center mt-auto pb-1">
+                                <h3 className="relative z-10 w-full text-white font-serif text-lg md:text-xl font-medium drop-shadow-md text-left mt-auto pb-1">
                                     {cat.name}
                                 </h3>
                             </Link>

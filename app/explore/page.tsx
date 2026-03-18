@@ -116,9 +116,7 @@ async function PopularCollectionsSection() {
                          poemCount: collection.poems_count || 0
                      };
                      return (
-                         <div key={collection.id || index} className="h-64 sm:h-72">
-                             <CollectionCard collection={cardCollection} index={index} />
-                         </div>
+                         <CollectionCard key={collection.id || index} collection={cardCollection} index={index} />
                      );
                 })}
             </div>

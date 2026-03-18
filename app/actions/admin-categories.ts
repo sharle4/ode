@@ -14,6 +14,8 @@ const categorySchema = z.object({
     ornament_id: z.string().nullable().optional(),
     color: z.string().nullable().optional(),
     slug: z.string().max(100).optional(),
+    type: z.enum(['THEME', 'MOVEMENT', 'ERA']).default('THEME'),
+    sort_order: z.coerce.number().int().default(0),
 });
 
 export const saveCategory = adminActionClient
@@ -31,6 +33,8 @@ export const saveCategory = adminActionClient
                     description: parsedInput.description,
                     ornament_id: parsedInput.ornament_id,
                     color: parsedInput.color,
+                    type: parsedInput.type,
+                    sort_order: parsedInput.sort_order,
                 })
                 .eq('id', parsedInput.id)
                 .select('slug')
@@ -48,6 +52,8 @@ export const saveCategory = adminActionClient
                     description: parsedInput.description,
                     ornament_id: parsedInput.ornament_id,
                     color: parsedInput.color,
+                    type: parsedInput.type,
+                    sort_order: parsedInput.sort_order,
                 })
                 .select('slug')
                 .single();
