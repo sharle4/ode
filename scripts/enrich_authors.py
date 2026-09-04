@@ -34,6 +34,8 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Set, Tuple
 
+import ssl
+
 # ---------------------------------------------------------------------------
 # Third-party imports (must be installed: pip install aiohttp aiofiles)
 # ---------------------------------------------------------------------------
@@ -45,6 +47,12 @@ except ImportError as _e:
         f"[FATAL] Missing dependency: {_e}.\n"
         "Please run:  pip install aiohttp aiofiles"
     )
+
+try:
+    import certifi
+    HAS_CERTIFI = True
+except ImportError:
+    HAS_CERTIFI = False
 
 # ===========================================================================
 # ── CONFIGURATION ──────────────────────────────────────────────────────────
@@ -1333,9 +1341,25 @@ def generate_report(
     logger.info("📄  Report written to %s", report_path)
 
 
-# ===========================================================================
-# ── ASYNC MAIN PIPELINE ─────────────────────────────────────────────────────
-# ===========================================================================
+def get_ssl_context() -> ssl.SSLContext:
+    """
+    Returns an SSL context configured with certifi's CA bundle to prevent
+    Windows root certificate expiration issues with aiohttp.
+    """
+    if os.environ.get("SSL_NO_VERIFY", "") == "1" or os.environ.get("PYTHONHTTPSVERIFY", "") == "0":
+        logger.warning("⚠️  SSL verification explicitly disabled via environment variable.")
+        return ssl._create_unverified_context()
+
+    if HAS_CERTIFI:
+        try:
+            return ssl.create_default_context(cafile=certifi.where())
+        except Exception as exc:
+            logger.warning("⚠️  Failed to load certifi CA bundle: %s", exc)
+
+    try:
+        return ssl.create_default_context()
+    except Exception:
+        return ssl._create_unverified_context()
 
 
 async def main() -> None:
@@ -1383,9 +1407,10 @@ async def main() -> None:
         "User-Agent": USER_AGENT,
         "Accept": "application/json",
     }
+    ssl_context = get_ssl_context()
     connector = aiohttp.TCPConnector(
         limit=MAX_CONCURRENT_REQUESTS + 2,  # a tiny buffer above semaphore
-        ssl=True,
+        ssl=ssl_context,
     )
 
     # ── Open output file and start all enrichment tasks ──
