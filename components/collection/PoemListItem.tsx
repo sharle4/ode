@@ -7,6 +7,7 @@ import { Heart } from "@phosphor-icons/react";
 interface PoemListItemProps {
     poem: {
         id: string;
+        slug?: string;
         title: string;
         likes: number;
     };
@@ -14,8 +15,10 @@ interface PoemListItemProps {
 }
 
 export default function PoemListItem({ poem, order }: PoemListItemProps) {
+    const poemTarget = poem.slug || poem.id;
+
     return (
-        <Link href={`/poem/${poem.id}`} className="group relative flex items-center gap-4 py-3 px-4 rounded-xl hover:bg-black/5 dark:hover:bg-white/5 transition-colors">
+        <Link href={`/poem/${poemTarget}`} className="group relative flex items-center gap-4 py-3 px-4 rounded-xl hover:bg-black/5 dark:hover:bg-white/5 transition-colors">
             {/* Numérotation */}
             <div className="w-6 sm:w-8 text-right font-sans text-warm-gray text-sm font-medium opacity-60 group-hover:opacity-100 group-hover:text-accent transition-colors">
                 {order}

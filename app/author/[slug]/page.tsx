@@ -1,4 +1,4 @@
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
 import AuthorHeader from "@/components/author/AuthorHeader";
@@ -32,6 +32,11 @@ export default async function AuthorPage({ params }: { params: Promise<{ slug: s
 
     if (!authorData) {
         notFound();
+    }
+
+    // Canonical redirect if accessed via UUID but author has a slug
+    if (authorData.slug && authorData.slug !== authorSlug) {
+        redirect(`/author/${authorData.slug}`);
     }
 
     // Extract year from date string safely

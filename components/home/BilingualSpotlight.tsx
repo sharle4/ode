@@ -32,7 +32,7 @@ const BilingualSpotlight = React.memo(function BilingualSpotlight({ poem, review
 
   // Collection info from poem join
   const collectionTitle = poem.collections?.[0]?.title || poem.collections?.title || null;
-  const collectionSlug = poem.collections?.[0]?.id ? `collection/${poem.collections[0].id}` : null;
+  const collectionSlug = poem.collections?.[0]?.slug || (poem.collections as any)?.slug || (poem.collections?.[0]?.id ? poem.collections[0].id : null);
 
   // Default review distribution if none provided
   const reviews = reviewDistribution && reviewDistribution.length > 0
@@ -122,7 +122,7 @@ const BilingualSpotlight = React.memo(function BilingualSpotlight({ poem, review
                   <div>
                     <p className="text-[11px] text-cream/40 uppercase tracking-wider mb-1">Recueil</p>
                     {collectionSlug ? (
-                      <Link href={`/${collectionSlug}`}>
+                      <Link href={`/collection/${collectionSlug}`}>
                         <p className="text-sm text-cream/80 font-serif hover:text-accent transition-colors cursor-pointer">
                           {collectionTitle}
                         </p>

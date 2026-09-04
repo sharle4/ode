@@ -1,5 +1,5 @@
 import { Suspense } from "react";
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import { getPoemBySlug } from "@/utils/supabase/queries";
 import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
@@ -42,15 +42,24 @@ export default async function PoemPage({ params }: PoemPageProps) {
         notFound();
     }
 
-    const authorName = Array.isArray(poem.authors)
-        ? poem.authors.map((a: any) => a.name).join(', ')
-        : (poem.authors as any)?.name || "Auteur inconnu";
-    const authorId = Array.isArray(poem.authors)
-        ? poem.authors[0]?.id
-        : (poem.authors as any)?.id || '#';
+    // Canonical redirect if accessed via UUID but poem has a slug
+    if (poem.slug && poem.slug !== resolvedParams.slug) {
+        redirect(`/poem/${poem.slug}`);
+    }
+
+    const authorsList = Array.isArray(poem.authors)
+        ? poem.authors
+        : poem.authors
+        ? [poem.authors]
+        : [];
+    const authorName = authorsList.map((a: any) => a.name).join(', ') || "Auteur inconnu";
+
     const collectionTitle = Array.isArray(poem.collections)
         ? poem.collections[0]?.title
         : (poem.collections as any)?.title;
+    const collectionSlug = Array.isArray(poem.collections)
+        ? poem.collections[0]?.slug
+        : (poem.collections as any)?.slug;
 
     const jsonLd: WithContext<CreativeWork> = {
         '@context': 'https://schema.org',
@@ -101,16 +110,46 @@ export default async function PoemPage({ params }: PoemPageProps) {
 
                                 {/* Author details */}
                                 <div className="flex flex-col items-center justify-center gap-2">
-                                    <Link
-                                        href={`/author/${authorId}`}
-                                        className="text-lg md:text-xl text-warm-gray hover:text-charcoal transition-colors italic"
-                                    >
-                                        Par {authorName} {poem.publication_year ? `(${poem.publication_year})` : ""}
-                                    </Link>
+                                    <div className="text-lg md:text-xl text-warm-gray italic">
+                                        Par{" "}
+                                        {authorsList.length > 0 ? (
+                                            authorsList.map((author: any, idx: number) => {
+                                                const authorTarget = author.slug || author.id;
+                                                return (
+                                                    <span key={author.id || idx}>
+                                                        {authorTarget ? (
+                                                            <Link
+                                                                href={`/author/${authorTarget}`}
+                                                                className="hover:text-charcoal transition-colors"
+                                                            >
+                                                                {author.name}
+                                                            </Link>
+                                                        ) : (
+                                                            <span>{author.name}</span>
+                                                        )}
+                                                        {idx < authorsList.length - 1 && ", "}
+                                                    </span>
+                                                );
+                                            })
+                                        ) : (
+                                            <span>{authorName}</span>
+                                        )}
+                                        {poem.publication_year ? ` (${poem.publication_year})` : ""}
+                                    </div>
 
                                     {collectionTitle && (
                                         <p className="text-sm text-warm-gray/60 font-serif">
-                                            Tiré du recueil <span className="italic">« {collectionTitle} »</span>
+                                            Tiré du recueil{" "}
+                                            {collectionSlug ? (
+                                                <Link
+                                                    href={`/collection/${collectionSlug}`}
+                                                    className="italic hover:text-charcoal transition-colors"
+                                                >
+                                                    « {collectionTitle} »
+                                                </Link>
+                                            ) : (
+                                                <span className="italic">« {collectionTitle} »</span>
+                                            )}
                                         </p>
                                     )}
                                 </div>

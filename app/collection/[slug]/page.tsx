@@ -1,4 +1,4 @@
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
 import CollectionHeader from "@/components/collection/CollectionHeader";
@@ -30,6 +30,11 @@ export default async function CollectionPage({ params }: { params: Promise<{ slu
 
     if (!collectionData) {
         notFound();
+    }
+
+    // Canonical redirect if accessed via UUID but collection has a slug
+    if (collectionData.slug && collectionData.slug !== collectionSlug) {
+        redirect(`/collection/${collectionData.slug}`);
     }
 
     // Get author name from the collection's authors join
@@ -81,6 +86,7 @@ export default async function CollectionPage({ params }: { params: Promise<{ slu
                                                         key={poem.id}
                                                         poem={{
                                                             id: poem.id,
+                                                            slug: poem.slug,
                                                             title: poem.title,
                                                             likes: poem.reads_count || 0,
                                                         }}

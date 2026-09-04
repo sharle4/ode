@@ -48,15 +48,16 @@ export const getPoemBySlug = (slug: string) => executeCachedQuery(
         errorMessage: 'Database Error fetching poem by slug:'
     },
     async (supabase) => {
+        const isId = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(slug);
         const { data: poem } = await supabase
             .from('poems')
             .select(`
                 id, title, slug, normalized_text, language, publication_year, average_review, reviews_count, content,
                 authors ( id, name, slug ),
-                collections ( id, title ),
+                collections ( id, title, slug ),
                 rothko_params ( seed, palette_id, shape_type, layout_bias, complexity, texture_profile, blend_mode, density, opacity_style )
             `)
-            .eq('slug', slug)
+            .eq(isId ? 'id' : 'slug', slug)
             .maybeSingle()
             .throwOnError();
 
@@ -156,7 +157,7 @@ export const getDailyPoem = () => executeCachedQuery(
 
         const { data: poem } = await supabase
             .from('poems')
-            .select('*, authors ( id, name, slug )')
+            .select('*, authors ( id, name, slug ), collections ( id, title, slug )')
             .eq('id', dailyPoem.poem_id)
             .maybeSingle()
             .throwOnError();
@@ -325,10 +326,11 @@ export const getAuthorWithWorks = (slug: string) => executeCachedQuery(
     },
     async (supabase) => {
         // 1. Fetch the author
+        const isId = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(slug);
         const { data: author } = await supabase
             .from('authors')
             .select('*')
-            .eq('slug', slug)
+            .eq(isId ? 'id' : 'slug', slug)
             .maybeSingle()
             .throwOnError();
 
@@ -370,10 +372,11 @@ export const getCollectionWithSections = (slug: string) => executeCachedQuery(
     },
     async (supabase) => {
         // 1. Fetch the collection with its authors
+        const isId = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(slug);
         const { data: collection } = await supabase
             .from('collections')
             .select('id, title, slug, publication_year, summary, cover_url, poems_count, average_review, reviews_count, authors ( id, name, slug )')
-            .eq('slug', slug)
+            .eq(isId ? 'id' : 'slug', slug)
             .maybeSingle()
             .throwOnError();
 
