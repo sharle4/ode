@@ -78,7 +78,7 @@ const NavbarClient = React.memo(function NavbarClient({ userProfile }: { userPro
             <OdeLogoStatic width="100%" height="auto" />
           </a>
 
-          <div className="hidden md:flex flex-1 max-w-md mx-8">
+          <div className="hidden md:flex flex-1 max-w-lg mx-6">
             <Suspense fallback={
               <div className="relative w-full">
                 <div className="w-full rounded-full bg-paper/50 border border-soft-border animate-pulse h-[46px]"></div>
@@ -88,22 +88,21 @@ const NavbarClient = React.memo(function NavbarClient({ userProfile }: { userPro
             </Suspense>
           </div>
 
-          <div className="hidden md:flex items-center gap-1">
-            {navLinks.map((link) => (
-              <a
-                key={link.label}
-                href={link.href}
-                className="flex items-center gap-2 rounded-full px-4 py-2 text-sm text-charcoal/80 transition-colors duration-200 hover:bg-charcoal/5 hover:text-charcoal"
-              >
-                <link.icon size={18} weight="regular" />
-                {link.label}
-              </a>
-            ))}
+          <div className="hidden md:flex items-center gap-1.5">
+            <a
+              href="/explore"
+              className="p-2 rounded-full text-charcoal/80 hover:bg-charcoal/5 hover:text-charcoal transition-colors relative flex items-center justify-center w-9 h-9"
+              aria-label="Explorer le catalogue"
+              title="Explorer"
+            >
+              <Compass size={19} weight="regular" />
+            </a>
 
             <button
                 onClick={handleThemeToggle}
-                className="ml-1 p-2 rounded-full text-charcoal/80 hover:bg-charcoal/5 hover:text-charcoal transition-colors relative flex items-center justify-center w-9 h-9"
-                aria-label="Toggle theme"
+                className="p-2 rounded-full text-charcoal/80 hover:bg-charcoal/5 hover:text-charcoal transition-colors relative flex items-center justify-center w-9 h-9"
+                aria-label="Changer de thème"
+                title="Changer de thème"
             >
                 {/* 
                   Using pure CSS (hidden/block) for the icons ensures no hydration mismatch

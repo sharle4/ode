@@ -76,7 +76,7 @@ const PoemCard = React.memo(function PoemCard({ poem, index, layout = "flex" }: 
           {poem.title}
         </h3>
         
-        <p className="text-warm-gray text-xs md:text-[13px] font-sans tracking-wide uppercase mt-0.5 line-clamp-1 group-hover:text-charcoal transition-colors duration-500">
+        <p className="text-warm-gray text-xs md:text-[13px] font-sans tracking-wide uppercase mt-0.5 line-clamp-1">
           {authorName}
         </p>
       </div>

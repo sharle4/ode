@@ -57,46 +57,47 @@ export default function ExploreSearchResults({ query, results }: ExploreSearchRe
 
     return (
         <div className="w-full flex flex-col gap-8">
-            {/* Header & Onglets de filtrage */}
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-soft-border pb-4">
-                <div className="flex items-baseline gap-2">
-                    <h2 className="font-serif text-2xl sm:text-3xl text-charcoal">
-                        Résultats pour <span className="italic text-accent">«&nbsp;{query}&nbsp;»</span>
+            {/* Header & Onglets de filtrage sur une seule ligne */}
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-soft-border pb-5">
+                {/* Titre épuré */}
+                <div className="min-w-0 flex-1 pr-0 md:pr-6">
+                    <h2 className="font-serif text-2xl sm:text-3xl text-charcoal leading-snug">
+                        Résultats pour <span className="italic text-accent break-words">«&nbsp;{query}&nbsp;»</span>
                     </h2>
-                    <span className="text-sm font-sans text-warm-gray">
-                        ({totalCount} résultat{totalCount > 1 ? "s" : ""})
-                    </span>
                 </div>
 
-                <div className="flex items-center gap-2 overflow-x-auto pb-1 sm:pb-0 scrollbar-none">
-                    {tabs.map((tab) => {
-                        const Icon = tab.icon;
-                        const isActive = activeTab === tab.key;
-                        return (
-                            <button
-                                key={tab.key}
-                                type="button"
-                                onClick={() => setActiveTab(tab.key)}
-                                className={`flex items-center gap-1.5 px-4 py-2 rounded-full text-xs font-medium transition-all flex-shrink-0 cursor-pointer ${
-                                    isActive
-                                        ? "bg-charcoal text-cream shadow-sm"
-                                        : "bg-paper text-charcoal/70 hover:text-charcoal hover:bg-paper/80 border border-soft-border"
-                                }`}
-                            >
-                                <Icon size={14} weight={isActive ? "bold" : "regular"} />
-                                <span>{tab.label}</span>
-                                <span
-                                    className={`ml-1 px-1.5 py-0.5 rounded-full text-[10px] font-semibold ${
+                {/* Segmented Control des Onglets */}
+                <div className="flex-shrink-0 self-start md:self-center max-w-full overflow-x-auto no-scrollbar py-0.5">
+                    <div className="p-1 rounded-full bg-paper border border-soft-border inline-flex items-center gap-1">
+                        {tabs.map((tab) => {
+                            const Icon = tab.icon;
+                            const isActive = activeTab === tab.key;
+                            return (
+                                <button
+                                    key={tab.key}
+                                    type="button"
+                                    onClick={() => setActiveTab(tab.key)}
+                                    className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-medium transition-all flex-shrink-0 whitespace-nowrap cursor-pointer select-none ${
                                         isActive
-                                            ? "bg-cream/20 text-cream"
-                                            : "bg-charcoal/10 text-warm-gray"
+                                            ? "bg-charcoal text-cream shadow-sm"
+                                            : "text-charcoal/70 hover:text-charcoal hover:bg-charcoal/5"
                                     }`}
                                 >
-                                    {tab.count}
-                                </span>
-                            </button>
-                        );
-                    })}
+                                    <Icon size={14} weight={isActive ? "fill" : "regular"} />
+                                    <span>{tab.label}</span>
+                                    <span
+                                        className={`ml-0.5 px-1.5 py-0.5 rounded-full text-[10px] font-medium transition-colors ${
+                                            isActive
+                                                ? "bg-cream/20 text-cream"
+                                                : "bg-charcoal/10 text-warm-gray"
+                                        }`}
+                                    >
+                                        {tab.count}
+                                    </span>
+                                </button>
+                            );
+                        })}
+                    </div>
                 </div>
             </div>
 

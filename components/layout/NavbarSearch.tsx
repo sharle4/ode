@@ -347,10 +347,8 @@ export default function NavbarSearch({ variant = "desktop", onNavigate }: Navbar
                                                     type="button"
                                                     onClick={() => handleNavigate(`/author/${author.slug}`)}
                                                     onMouseEnter={() => setSelectedIndex(itemIndex)}
-                                                    className={`w-full flex items-center gap-3 px-3 py-2 rounded-xl text-left transition-all ${
-                                                        isSelected
-                                                            ? "bg-accent/15 text-accent font-medium"
-                                                            : "hover:bg-charcoal/5"
+                                                    className={`w-full flex items-center gap-3 px-3 py-2 rounded-xl text-left transition-colors cursor-pointer ${
+                                                        isSelected ? "bg-accent/10" : "hover:bg-charcoal/5"
                                                     }`}
                                                 >
                                                     <div className="w-9 h-9 rounded-full overflow-hidden flex-shrink-0 bg-charcoal/10 flex items-center justify-center font-serif text-xs font-medium text-charcoal">
@@ -367,7 +365,7 @@ export default function NavbarSearch({ variant = "desktop", onNavigate }: Navbar
                                                         )}
                                                     </div>
                                                     <div className="flex flex-col min-w-0 flex-1">
-                                                        <span className="text-sm font-medium truncate">
+                                                        <span className={`text-sm font-medium truncate ${isSelected ? "text-accent" : "text-charcoal"}`}>
                                                             {author.name}
                                                         </span>
                                                         <span className="text-xs text-warm-gray truncate">
@@ -406,14 +404,12 @@ export default function NavbarSearch({ variant = "desktop", onNavigate }: Navbar
                                                     type="button"
                                                     onClick={() => handleNavigate(`/poem/${poem.slug || poem.id}`)}
                                                     onMouseEnter={() => setSelectedIndex(itemIndex)}
-                                                    className={`w-full flex items-center justify-between gap-3 px-3 py-2 rounded-xl text-left transition-all ${
-                                                        isSelected
-                                                            ? "bg-accent/15 text-accent font-medium"
-                                                            : "hover:bg-charcoal/5"
+                                                    className={`w-full flex items-center justify-between gap-3 px-3 py-2 rounded-xl text-left transition-colors cursor-pointer ${
+                                                        isSelected ? "bg-accent/10" : "hover:bg-charcoal/5"
                                                     }`}
                                                 >
                                                     <div className="flex flex-col min-w-0 flex-1">
-                                                        <span className="text-sm font-serif font-medium truncate">
+                                                        <span className={`text-sm font-serif font-medium truncate ${isSelected ? "text-accent" : "text-charcoal"}`}>
                                                             {poem.title}
                                                         </span>
                                                         <span className="text-xs text-warm-gray truncate">
@@ -455,14 +451,12 @@ export default function NavbarSearch({ variant = "desktop", onNavigate }: Navbar
                                                     type="button"
                                                     onClick={() => handleNavigate(`/collection/${col.slug}`)}
                                                     onMouseEnter={() => setSelectedIndex(itemIndex)}
-                                                    className={`w-full flex items-center justify-between gap-3 px-3 py-2 rounded-xl text-left transition-all ${
-                                                        isSelected
-                                                            ? "bg-accent/15 text-accent font-medium"
-                                                            : "hover:bg-charcoal/5"
+                                                    className={`w-full flex items-center justify-between gap-3 px-3 py-2 rounded-xl text-left transition-colors cursor-pointer ${
+                                                        isSelected ? "bg-accent/10" : "hover:bg-charcoal/5"
                                                     }`}
                                                 >
                                                     <div className="flex flex-col min-w-0 flex-1">
-                                                        <span className="text-sm font-medium truncate">
+                                                        <span className={`text-sm font-medium truncate ${isSelected ? "text-accent" : "text-charcoal"}`}>
                                                             {col.title}
                                                         </span>
                                                         <span className="text-xs text-warm-gray truncate">
