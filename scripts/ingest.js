@@ -274,7 +274,7 @@ async function processBatch(batchLines) {
         const collectionTitle = p.collection_title || p.metadata?.source_collection;
         if (!collectionTitle) continue;
 
-        let pageId = p.collection_structure?.page_id || null;
+        let pageId = p.collection_page_id || p.collection_structure?.page_id || null;
         const key = pageId ? `page_${pageId}` : `title_${collectionTitle}`;
 
         if (!memoizedCollectionsMap.has(key)) {
@@ -305,7 +305,7 @@ async function processBatch(batchLines) {
             const collectionTitle = p.collection_title || p.metadata?.source_collection;
             if (!collectionTitle) continue;
 
-            let pageId = p.collection_structure?.page_id || null;
+            let pageId = p.collection_page_id || p.collection_structure?.page_id || null;
             const key = pageId ? `page_${pageId}` : `title_${collectionTitle}`;
 
             if (!memoizedCollectionsMap.has(key) && !missingCollectionsMap.has(key)) {
@@ -347,7 +347,7 @@ async function processBatch(batchLines) {
         let authorId = memoizedAuthorsMap.get(authorName) || memoizedAuthorsMap.get(UNKNOWN_AUTHOR);
 
         const collectionTitle = p.collection_title || p.metadata?.source_collection;
-        let pageId = p.collection_structure?.page_id || null;
+        let pageId = p.collection_page_id || p.collection_structure?.page_id || null;
         const key = pageId ? `page_${pageId}` : `title_${collectionTitle}`;
 
         if (collectionTitle && memoizedCollectionsMap.has(key)) {
@@ -384,7 +384,7 @@ async function processBatch(batchLines) {
         const slug = generateUniquePoemSlug(actualAuthorName, p.title);
 
         const collectionTitle = p.collection_title || p.metadata?.source_collection;
-        let pageId = p.collection_structure?.page_id || null;
+        let pageId = p.collection_page_id || p.collection_structure?.page_id || null;
         const key = pageId ? `page_${pageId}` : `title_${collectionTitle}`;
         const collectionId = memoizedCollectionsMap.get(key) || null;
 
