@@ -280,8 +280,8 @@ export default function NavbarSearch({ variant = "desktop", onNavigate }: Navbar
                     }
                     className={`w-full rounded-full outline-none transition-all duration-300 shadow-sm border-2 ${
                         isMobile
-                            ? "bg-zinc-900 border-zinc-800 text-white placeholder:text-zinc-500 py-3 pl-12 pr-12 focus:border-accent/50 focus:bg-zinc-900 focus:ring-4 focus:ring-accent/10 text-base"
-                            : "bg-paper dark:bg-zinc-900 border-soft-border dark:border-zinc-800 py-2.5 pl-12 pr-14 text-sm md:text-base text-charcoal dark:text-white placeholder:text-warm-gray/60 dark:placeholder:text-zinc-500 focus:bg-paper dark:focus:bg-zinc-900 focus:border-accent/40 focus:ring-4 focus:ring-accent/10"
+                            ? "bg-paper border-soft-border text-charcoal placeholder:text-warm-gray/60 py-3 pl-12 pr-12 focus:border-accent/50 focus:ring-4 focus:ring-accent/10 text-base"
+                            : "bg-paper border-soft-border py-2.5 pl-12 pr-14 text-sm md:text-base text-charcoal placeholder:text-warm-gray/60 focus:bg-paper focus:border-accent/40 focus:ring-4 focus:ring-accent/10"
                     }`}
                 />
 
@@ -298,11 +298,7 @@ export default function NavbarSearch({ variant = "desktop", onNavigate }: Navbar
                         <button
                             type="button"
                             onClick={handleClear}
-                            className={`p-1 rounded-full transition-colors ${
-                                isMobile
-                                    ? "text-zinc-400 hover:text-white"
-                                    : "text-warm-gray hover:text-charcoal dark:hover:text-white"
-                            }`}
+                            className="p-1 rounded-full transition-colors text-warm-gray hover:text-charcoal"
                             aria-label="Effacer la recherche"
                         >
                             <X size={15} weight="bold" />
@@ -310,7 +306,7 @@ export default function NavbarSearch({ variant = "desktop", onNavigate }: Navbar
                     )}
 
                     {!isMobile && !searchTerm && !isLoading && (
-                        <kbd className="hidden lg:inline-flex items-center gap-0.5 px-2 py-0.5 text-[11px] font-sans font-medium text-warm-gray/70 bg-charcoal/5 dark:bg-white/5 rounded-md border border-soft-border/80 dark:border-zinc-800 select-none">
+                        <kbd className="hidden lg:inline-flex items-center gap-0.5 px-2 py-0.5 text-[11px] font-sans font-medium text-warm-gray/70 bg-charcoal/5 rounded-md border border-soft-border select-none">
                             <span className="text-xs">⌘</span>K
                         </kbd>
                     )}
@@ -327,17 +323,15 @@ export default function NavbarSearch({ variant = "desktop", onNavigate }: Navbar
                         animate={{ opacity: 1, y: 0, scale: 1 }}
                         exit={{ opacity: 0, y: 4, scale: 0.98 }}
                         transition={{ duration: 0.15, ease: "easeOut" }}
-                        className={`absolute top-full mt-2 left-0 right-0 z-50 overflow-hidden rounded-2xl border shadow-2xl backdrop-blur-xl ${
-                            isMobile
-                                ? "bg-zinc-950/98 border-zinc-800 text-white max-h-[70vh]"
-                                : "bg-paper/95 dark:bg-zinc-900/95 border-soft-border dark:border-zinc-800 text-charcoal dark:text-zinc-100 max-h-[480px]"
-                        } flex flex-col`}
+                        className={`absolute top-full mt-2 left-0 right-0 z-50 overflow-hidden rounded-2xl border border-soft-border shadow-2xl backdrop-blur-xl bg-paper/98 text-charcoal flex flex-col ${
+                            isMobile ? "max-h-[70vh]" : "max-h-[480px]"
+                        }`}
                     >
-                        <div className="overflow-y-auto divide-y divide-soft-border/50 dark:divide-zinc-800/60 p-2">
+                        <div className="overflow-y-auto divide-y divide-soft-border/50 p-2">
                             {/* Auteurs */}
                             {results?.authors && results.authors.length > 0 && (
                                 <div className="py-2 first:pt-1">
-                                    <div className="px-3 py-1.5 text-xs font-serif tracking-wider uppercase text-warm-gray dark:text-zinc-400 flex items-center gap-1.5">
+                                    <div className="px-3 py-1.5 text-xs font-serif tracking-wider uppercase text-warm-gray flex items-center gap-1.5">
                                         <User size={13} weight="bold" />
                                         <span>Auteurs</span>
                                     </div>
@@ -355,11 +349,11 @@ export default function NavbarSearch({ variant = "desktop", onNavigate }: Navbar
                                                     onMouseEnter={() => setSelectedIndex(itemIndex)}
                                                     className={`w-full flex items-center gap-3 px-3 py-2 rounded-xl text-left transition-all ${
                                                         isSelected
-                                                            ? "bg-accent/10 text-accent dark:bg-accent/20 dark:text-white"
-                                                            : "hover:bg-charcoal/5 dark:hover:bg-white/5"
+                                                            ? "bg-accent/15 text-accent font-medium"
+                                                            : "hover:bg-charcoal/5"
                                                     }`}
                                                 >
-                                                    <div className="w-9 h-9 rounded-full overflow-hidden flex-shrink-0 bg-charcoal/10 dark:bg-white/10 flex items-center justify-center font-serif text-xs font-medium">
+                                                    <div className="w-9 h-9 rounded-full overflow-hidden flex-shrink-0 bg-charcoal/10 flex items-center justify-center font-serif text-xs font-medium text-charcoal">
                                                         {author.image_url ? (
                                                             <Image
                                                                 src={author.image_url}
@@ -376,7 +370,7 @@ export default function NavbarSearch({ variant = "desktop", onNavigate }: Navbar
                                                         <span className="text-sm font-medium truncate">
                                                             {author.name}
                                                         </span>
-                                                        <span className="text-xs text-warm-gray dark:text-zinc-400 truncate">
+                                                        <span className="text-xs text-warm-gray truncate">
                                                             {author.date_of_birth && author.date_of_death
                                                                 ? `${author.date_of_birth.slice(0, 4)} – ${author.date_of_death.slice(0, 4)}`
                                                                 : author.nationality || "Auteur"}
@@ -392,7 +386,7 @@ export default function NavbarSearch({ variant = "desktop", onNavigate }: Navbar
                             {/* Poèmes */}
                             {results?.poems && results.poems.length > 0 && (
                                 <div className="py-2 first:pt-1">
-                                    <div className="px-3 py-1.5 text-xs font-serif tracking-wider uppercase text-warm-gray dark:text-zinc-400 flex items-center gap-1.5">
+                                    <div className="px-3 py-1.5 text-xs font-serif tracking-wider uppercase text-warm-gray flex items-center gap-1.5">
                                         <Feather size={13} weight="bold" />
                                         <span>Poèmes</span>
                                     </div>
@@ -414,20 +408,20 @@ export default function NavbarSearch({ variant = "desktop", onNavigate }: Navbar
                                                     onMouseEnter={() => setSelectedIndex(itemIndex)}
                                                     className={`w-full flex items-center justify-between gap-3 px-3 py-2 rounded-xl text-left transition-all ${
                                                         isSelected
-                                                            ? "bg-accent/10 text-accent dark:bg-accent/20 dark:text-white"
-                                                            : "hover:bg-charcoal/5 dark:hover:bg-white/5"
+                                                            ? "bg-accent/15 text-accent font-medium"
+                                                            : "hover:bg-charcoal/5"
                                                     }`}
                                                 >
                                                     <div className="flex flex-col min-w-0 flex-1">
                                                         <span className="text-sm font-serif font-medium truncate">
                                                             {poem.title}
                                                         </span>
-                                                        <span className="text-xs text-warm-gray dark:text-zinc-400 truncate">
+                                                        <span className="text-xs text-warm-gray truncate">
                                                             {authorName}
                                                         </span>
                                                     </div>
                                                     {poem.publication_year && (
-                                                        <span className="text-xs text-warm-gray/70 dark:text-zinc-500 font-sans flex-shrink-0">
+                                                        <span className="text-xs text-warm-gray font-sans flex-shrink-0">
                                                             {poem.publication_year}
                                                         </span>
                                                     )}
@@ -441,7 +435,7 @@ export default function NavbarSearch({ variant = "desktop", onNavigate }: Navbar
                             {/* Recueils */}
                             {results?.collections && results.collections.length > 0 && (
                                 <div className="py-2">
-                                    <div className="px-3 py-1.5 text-xs font-serif tracking-wider uppercase text-warm-gray dark:text-zinc-400 flex items-center gap-1.5">
+                                    <div className="px-3 py-1.5 text-xs font-serif tracking-wider uppercase text-warm-gray flex items-center gap-1.5">
                                         <BookOpen size={13} weight="bold" />
                                         <span>Recueils</span>
                                     </div>
@@ -463,15 +457,15 @@ export default function NavbarSearch({ variant = "desktop", onNavigate }: Navbar
                                                     onMouseEnter={() => setSelectedIndex(itemIndex)}
                                                     className={`w-full flex items-center justify-between gap-3 px-3 py-2 rounded-xl text-left transition-all ${
                                                         isSelected
-                                                            ? "bg-accent/10 text-accent dark:bg-accent/20 dark:text-white"
-                                                            : "hover:bg-charcoal/5 dark:hover:bg-white/5"
+                                                            ? "bg-accent/15 text-accent font-medium"
+                                                            : "hover:bg-charcoal/5"
                                                     }`}
                                                 >
                                                     <div className="flex flex-col min-w-0 flex-1">
                                                         <span className="text-sm font-medium truncate">
                                                             {col.title}
                                                         </span>
-                                                        <span className="text-xs text-warm-gray dark:text-zinc-400 truncate">
+                                                        <span className="text-xs text-warm-gray truncate">
                                                             {authorName ? `${authorName} · ` : ""}
                                                             {col.poems_count || 0} poèmes
                                                         </span>
@@ -486,11 +480,11 @@ export default function NavbarSearch({ variant = "desktop", onNavigate }: Navbar
                             {/* Aucun résultat */}
                             {isEmpty && (
                                 <div className="py-8 px-4 text-center">
-                                    <Sparkle size={24} weight="regular" className="mx-auto text-warm-gray/60 mb-2" />
-                                    <p className="text-sm text-charcoal/80 dark:text-zinc-300 font-serif">
+                                    <Sparkle size={24} weight="regular" className="mx-auto text-warm-gray mb-2" />
+                                    <p className="text-sm text-charcoal font-serif">
                                         Aucun résultat pour « {searchTerm.trim()} »
                                     </p>
-                                    <p className="text-xs text-warm-gray dark:text-zinc-500 mt-1">
+                                    <p className="text-xs text-warm-gray mt-1">
                                         Essayez un nom d&apos;auteur ou un vers emblématique.
                                     </p>
                                 </div>
@@ -499,7 +493,7 @@ export default function NavbarSearch({ variant = "desktop", onNavigate }: Navbar
 
                         {/* Pied de dropdown : Voir tous les résultats */}
                         {hasResults && (
-                            <div className="p-2 border-t border-soft-border/60 dark:border-zinc-800 bg-paper/60 dark:bg-zinc-900/60">
+                            <div className="p-2 border-t border-soft-border/60 bg-paper/60">
                                 {(() => {
                                     const allIndex = flatItems.findIndex((fi) => fi.type === "all");
                                     const isSelected = selectedIndex === allIndex;
@@ -511,7 +505,7 @@ export default function NavbarSearch({ variant = "desktop", onNavigate }: Navbar
                                             className={`w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-sm font-medium transition-all ${
                                                 isSelected
                                                     ? "bg-accent text-white"
-                                                    : "text-accent dark:text-accent-light hover:bg-accent/10"
+                                                    : "text-accent hover:bg-accent/10"
                                             }`}
                                         >
                                             <span className="truncate">

@@ -5,7 +5,6 @@ import Footer from "@/components/layout/Footer";
 import PoemCard from "@/components/ui/PoemCard";
 import CategoryGrid from "@/components/explore/CategoryGrid";
 import CollectionCard from "@/components/author/CollectionCard";
-import ExploreSearchHeader from "@/components/explore/ExploreSearchHeader";
 import ExploreSearchResults from "@/components/explore/ExploreSearchResults";
 import {
     getTrendingPoems,
@@ -64,7 +63,7 @@ async function TrendingPoemsSection() {
     if (!trendingPoems?.length) return null;
     return (
         <div className="w-full">
-            <h2 className="font-serif text-2xl text-charcoal dark:text-white mb-6 border-b border-soft-border dark:border-zinc-800 pb-2">Poèmes tendances</h2>
+            <h2 className="font-serif text-2xl text-charcoal mb-6 border-b border-soft-border pb-2">Poèmes tendances</h2>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
                 {trendingPoems.slice(0, 8).map((poem: any, i: number) => (
                     <PoemCard key={poem.id} poem={poem} index={i} layout="grid" />
@@ -79,7 +78,7 @@ async function FeaturedAuthorsSection() {
     if (!featuredAuthors?.length) return null;
     return (
         <div className="w-full">
-            <h2 className="font-serif text-2xl text-charcoal dark:text-white mb-6 border-b border-soft-border dark:border-zinc-800 pb-2">Auteurs à l&apos;honneur</h2>
+            <h2 className="font-serif text-2xl text-charcoal mb-6 border-b border-soft-border pb-2">Auteurs à l&apos;honneur</h2>
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 md:gap-8">
                 {featuredAuthors.map((author: any, idx: number) => (
                     <Link href={`/author/${author.slug}`} key={author.id || idx} className="flex flex-col items-center group cursor-pointer text-center">
@@ -93,12 +92,12 @@ async function FeaturedAuthorsSection() {
                                     className="w-full h-full object-cover grayscale opacity-90 group-hover:grayscale-0 group-hover:opacity-100 transition-all duration-500"
                                 />
                             ) : (
-                                <div className="w-full h-full bg-zinc-300 dark:bg-zinc-800 flex items-center justify-center">
-                                    <span className="text-2xl font-serif text-white">{getInitials(author.name)}</span>
+                                <div className="w-full h-full bg-charcoal/10 flex items-center justify-center font-serif text-2xl text-charcoal">
+                                    {getInitials(author.name)}
                                 </div>
                             )}
                         </div>
-                        <span className="font-serif text-charcoal dark:text-white group-hover:text-accent transition-colors">
+                        <span className="font-serif text-charcoal group-hover:text-accent transition-colors">
                             {author.name}
                         </span>
                     </Link>
@@ -113,7 +112,7 @@ async function PopularCollectionsSection() {
     if (!featuredCollections?.length) return null;
     return (
         <div className="w-full">
-            <h2 className="font-serif text-2xl text-charcoal dark:text-white mb-6 border-b border-soft-border dark:border-zinc-800 pb-2">Recueils populaires</h2>
+            <h2 className="font-serif text-2xl text-charcoal mb-6 border-b border-soft-border pb-2">Recueils populaires</h2>
             <div className="grid grid-cols-1 sm:grid-cols-3 lg:grid-cols-4 gap-6">
                 {featuredCollections.slice(0, 4).map((collection: any, index: number) => {
                      const cardCollection = {
@@ -139,68 +138,61 @@ export default async function ExplorePage({ searchParams }: ExplorePageProps) {
     const resolvedParams = await searchParams;
     const searchQuery = (resolvedParams.q || "").trim();
 
-    // Si une requête de recherche est fournie, interroger le catalogue
+    // Si une recherche est effectuée, interroger le catalogue
     const searchResults = searchQuery
         ? await searchCatalog(searchQuery, { limit: 24, includeVerses: true })
         : null;
 
     return (
-        <div className="min-h-[100dvh] bg-cream dark:bg-zinc-950 flex flex-col">
+        <div className="min-h-[100dvh] bg-cream flex flex-col">
             <Navbar />
 
             <main className="flex-grow pt-24 md:pt-32 pb-16">
                 <div className="max-w-5xl mx-auto w-full px-4 sm:px-6 lg:px-8">
 
-                    {/* Titre Principal */}
-                    <FadeIn delay={0.1}>
-                        <h1 className="font-serif text-4xl sm:text-5xl md:text-6xl text-charcoal dark:text-white text-center leading-tight mb-4">
-                            Explorer
-                        </h1>
-                        <p className="text-center text-warm-gray dark:text-zinc-400 text-sm md:text-base max-w-xl mx-auto mb-8 font-sans">
-                            Parcourez plus de 30&nbsp;000 poèmes, auteurs illustres et recueils intemporels.
-                        </p>
-                    </FadeIn>
-
-                    {/* Barre de Recherche intégrée à la page */}
-                    <FadeIn delay={0.15}>
-                        <ExploreSearchHeader initialQuery={searchQuery} />
-                    </FadeIn>
-
                     {searchQuery && searchResults ? (
-                        /* Mode Résultats de Recherche */
-                        <FadeIn delay={0.2}>
+                        /* Mode Résultats de Recherche : direct, épuré et ciblé */
+                        <FadeIn delay={0.1}>
                             <ExploreSearchResults
                                 query={searchQuery}
                                 results={searchResults}
                             />
                         </FadeIn>
                     ) : (
-                        /* Mode Découverte avec Streaming Suspense */
-                        <div className="flex flex-col gap-12 mt-6">
-                            <FadeIn delay={0.2}>
-                                <Suspense fallback={<SectionSkeleton />}>
-                                    <CategorySections />
-                                </Suspense>
+                        /* Mode Découverte pure sans recherche */
+                        <>
+                            <FadeIn delay={0.1}>
+                                <h1 className="font-serif text-4xl sm:text-5xl md:text-6xl text-charcoal text-center leading-tight mb-8">
+                                    Explorer
+                                </h1>
                             </FadeIn>
 
-                            <FadeIn delay={0.3}>
-                                <Suspense fallback={<SectionSkeleton />}>
-                                    <TrendingPoemsSection />
-                                </Suspense>
-                            </FadeIn>
+                            <div className="flex flex-col gap-12 mt-4">
+                                <FadeIn delay={0.2}>
+                                    <Suspense fallback={<SectionSkeleton />}>
+                                        <CategorySections />
+                                    </Suspense>
+                                </FadeIn>
 
-                            <FadeIn delay={0.4}>
-                                <Suspense fallback={<SectionSkeleton />}>
-                                    <FeaturedAuthorsSection />
-                                </Suspense>
-                            </FadeIn>
+                                <FadeIn delay={0.3}>
+                                    <Suspense fallback={<SectionSkeleton />}>
+                                        <TrendingPoemsSection />
+                                    </Suspense>
+                                </FadeIn>
 
-                            <FadeIn delay={0.5}>
-                                <Suspense fallback={<SectionSkeleton />}>
-                                    <PopularCollectionsSection />
-                                </Suspense>
-                            </FadeIn>
-                        </div>
+                                <FadeIn delay={0.4}>
+                                    <Suspense fallback={<SectionSkeleton />}>
+                                        <FeaturedAuthorsSection />
+                                    </Suspense>
+                                </FadeIn>
+
+                                <FadeIn delay={0.5}>
+                                    <Suspense fallback={<SectionSkeleton />}>
+                                        <PopularCollectionsSection />
+                                    </Suspense>
+                                </FadeIn>
+                            </div>
+                        </>
                     )}
                 </div>
             </main>
