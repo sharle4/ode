@@ -626,3 +626,160 @@ export const getPoemReviewDistribution = (poemId: string) => executeCachedQuery(
     }
 );
 
+// ── SEARCH CATALOG ──
+
+export interface SearchOptions {
+    limit?: number;
+    includeVerses?: boolean;
+}
+
+export const searchCatalog = async (
+    rawQuery: string,
+    options: SearchOptions = {}
+): Promise<{
+    poems: any[];
+    authors: any[];
+    collections: any[];
+    categories: any[];
+    total: number;
+}> => {
+    const query = (rawQuery || '').trim();
+    if (!query) {
+        return { poems: [], authors: [], collections: [], categories: [], total: 0 };
+    }
+
+    const { limit = 20, includeVerses = true } = options;
+
+    return executeCachedQuery(
+        {
+            keyParts: [`search-${query.toLowerCase()}-${limit}`],
+            tags: ['search'],
+            revalidate: 300, // 5 minutes cache
+            errorMessage: 'Database Error searching catalog:'
+        },
+        async (supabase) => {
+            // 1. Search in parallel: authors, title matches for poems, collections, and categories
+            const [authorsRes, poemsByTitleRes, collectionsRes, categoriesRes] = await Promise.all([
+                supabase
+                    .from('authors')
+                    .select('id, name, slug, image_url, date_of_birth, date_of_death, nationality, movement')
+                    .ilike('name', `%${query}%`)
+                    .limit(10),
+                supabase
+                    .from('poems')
+                    .select(`
+                        id, title, slug, publication_year, average_review, reviews_count, reads_count,
+                        authors:poem_authors(authors(id, name, slug)),
+                        collections(id, title, slug),
+                        rothko_params(seed, palette_id, shape_type, layout_bias, complexity, texture_profile, blend_mode, density, opacity_style)
+                    `)
+                    .ilike('title', `%${query}%`)
+                    .order('reads_count', { ascending: false })
+                    .limit(limit),
+                supabase
+                    .from('collections')
+                    .select(`
+                        id, title, slug, publication_year, poems_count, cover_url,
+                        authors:collection_authors(authors(id, name, slug))
+                    `)
+                    .ilike('title', `%${query}%`)
+                    .limit(10),
+                supabase
+                    .from('categories')
+                    .select('id, name, slug, type, color, ornament_id, description')
+                    .or(`name.ilike.%${query}%,description.ilike.%${query}%`)
+                    .limit(8)
+            ]);
+
+            const authors = authorsRes.data || [];
+            const collections = (collectionsRes.data || []).map((col: any) => ({
+                ...col,
+                authors: (col.authors || []).map((a: any) => a.authors).filter(Boolean)
+            }));
+            const categories = categoriesRes.data || [];
+
+            // Flatten poems
+            const poemMap = new Map<string, any>();
+            (poemsByTitleRes.data || []).forEach((p: any) => {
+                const formatted = {
+                    ...p,
+                    authors: (p.authors || []).map((a: any) => a.authors).filter(Boolean),
+                    rothko_params: Array.isArray(p.rothko_params) ? p.rothko_params[0] : p.rothko_params
+                };
+                poemMap.set(p.id, formatted);
+            });
+
+            // 2. If matching authors were found, enrich with famous poems by those authors
+            if (authors.length > 0 && poemMap.size < limit) {
+                const authorIds = authors.map((a: any) => a.id);
+                const { data: authorPoemLinks } = await supabase
+                    .from('poem_authors')
+                    .select('poem_id')
+                    .in('author_id', authorIds)
+                    .limit(limit);
+
+                const missingPoemIds = (authorPoemLinks || [])
+                    .map((l: any) => l.poem_id)
+                    .filter((id: string) => !poemMap.has(id));
+
+                if (missingPoemIds.length > 0) {
+                    const { data: authorPoems } = await supabase
+                        .from('poems')
+                        .select(`
+                            id, title, slug, publication_year, average_review, reviews_count, reads_count,
+                            authors:poem_authors(authors(id, name, slug)),
+                            collections(id, title, slug),
+                            rothko_params(seed, palette_id, shape_type, layout_bias, complexity, texture_profile, blend_mode, density, opacity_style)
+                        `)
+                        .in('id', missingPoemIds.slice(0, limit - poemMap.size))
+                        .order('reads_count', { ascending: false });
+
+                    (authorPoems || []).forEach((p: any) => {
+                        poemMap.set(p.id, {
+                            ...p,
+                            authors: (p.authors || []).map((a: any) => a.authors).filter(Boolean),
+                            rothko_params: Array.isArray(p.rothko_params) ? p.rothko_params[0] : p.rothko_params
+                        });
+                    });
+                }
+            }
+
+            // 3. If we have few poem matches and query is >= 3 chars, search poem normalized_text (verses)
+            if (includeVerses && poemMap.size < 6 && query.length >= 3) {
+                const { data: versePoems } = await supabase
+                    .from('poems')
+                    .select(`
+                        id, title, slug, publication_year, average_review, reviews_count, reads_count,
+                        authors:poem_authors(authors(id, name, slug)),
+                        collections(id, title, slug),
+                        rothko_params(seed, palette_id, shape_type, layout_bias, complexity, texture_profile, blend_mode, density, opacity_style)
+                    `)
+                    .ilike('normalized_text', `%${query}%`)
+                    .limit(limit - poemMap.size);
+
+                (versePoems || []).forEach((p: any) => {
+                    if (!poemMap.has(p.id)) {
+                        poemMap.set(p.id, {
+                            ...p,
+                            authors: (p.authors || []).map((a: any) => a.authors).filter(Boolean),
+                            rothko_params: Array.isArray(p.rothko_params) ? p.rothko_params[0] : p.rothko_params,
+                            matchType: 'verse'
+                        });
+                    }
+                });
+            }
+
+            const poems = Array.from(poemMap.values());
+            const total = poems.length + authors.length + collections.length + categories.length;
+
+            return {
+                poems,
+                authors,
+                collections,
+                categories,
+                total
+            };
+        }
+    );
+};
+

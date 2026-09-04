@@ -77,3 +77,23 @@ export interface Category {
   type: CategoryType;
   sort_order: number;
 }
+
+export interface Author {
+  id: string;
+  name: string;
+  slug: string;
+  image_url?: string;
+  date_of_birth?: string;
+  date_of_death?: string;
+  biography?: string;
+  movement?: string[];
+  nationality?: string;
+}
+
+export interface SearchResults {
+  poems: any[];
+  authors: Author[];
+  collections: any[];
+  categories: Category[];
+  total: number;
+}

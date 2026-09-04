@@ -154,7 +154,7 @@ const NavbarClient = React.memo(function NavbarClient({ userProfile }: { userPro
                 <Suspense fallback={
                   <div className="relative w-full h-[46px] rounded-full bg-zinc-900 animate-pulse"></div>
                 }>
-                  <NavbarSearch variant="mobile" />
+                  <NavbarSearch variant="mobile" onNavigate={() => setMobileMenuOpen(false)} />
                 </Suspense>
               </div>
 
