@@ -86,9 +86,9 @@ const NavbarClient = React.memo(function NavbarClient({
         }}
       >
         <nav className="mx-auto flex max-w-5xl items-center justify-between px-4 sm:px-6 lg:px-8 py-4">
-          <a href="/" className="flex-shrink-0 w-[90px] md:w-[110px] text-charcoal" aria-label="ode homepage">
+          <Link href="/" className="flex-shrink-0 w-[90px] md:w-[110px] text-charcoal" aria-label="ode homepage">
             <OdeLogoStatic width="100%" height="auto" />
-          </a>
+          </Link>
 
           <div className="hidden md:flex flex-1 max-w-lg mx-6">
             <Suspense fallback={

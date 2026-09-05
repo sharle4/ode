@@ -2,6 +2,7 @@ import { redirect } from "next/navigation";
 import { createClient } from "@/utils/supabase/server";
 import AuthSidePanel from "@/components/auth/AuthSidePanel";
 import SignupForm from "@/components/auth/SignupForm";
+import Link from "next/link";
 
 import type { Metadata } from "next";
 
@@ -27,9 +28,9 @@ export default async function SignupPage() {
             <div className="flex flex-col justify-center px-6 sm:px-12 lg:px-16 py-12 pb-32 md:pb-12 bg-cream">
                 {/* Mobile logo */}
                 <div className="md:hidden mb-10">
-                    <a href="/" className="font-serif text-3xl tracking-tight text-charcoal">
+                    <Link href="/" className="font-serif text-3xl tracking-tight text-charcoal">
                         ode.
-                    </a>
+                    </Link>
                 </div>
 
                 <SignupForm />

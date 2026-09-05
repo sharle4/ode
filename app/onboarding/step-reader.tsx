@@ -38,7 +38,7 @@ export default function StepReader({
 
     // Typography & Font Size mapping (matching global Tailwind rules we should add)
     // We use inline styles here for the absolute fastest preview without relying on tailwind compilation
-    let fontFamily = typography === 'serif' ? 'var(--font-playfair), serif' : 'var(--font-geist-sans), sans-serif';
+    const fontFamily = typography === 'serif' ? 'var(--font-playfair), serif' : 'var(--font-geist-sans), sans-serif';
     let sizeClass = 'text-base';
     
     switch(fontSize) {
