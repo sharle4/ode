@@ -4,8 +4,8 @@ import React from "react";
 import { motion } from "framer-motion";
 import Image from "next/image";
 
-import { ShareNetwork } from "@phosphor-icons/react";
 import AuthorLikeButton from "./AuthorLikeButton";
+import ShareButton from "@/components/ui/ShareButton";
 
 interface AuthorHeaderProps {
     author: {
@@ -86,18 +86,7 @@ export default function AuthorHeader({ author }: AuthorHeaderProps) {
                             />
                         )}
 
-                        <button
-                            onClick={() => {
-                                if (typeof window !== "undefined") {
-                                    navigator.clipboard.writeText(window.location.href);
-                                    alert("Lien de l'auteur copié dans le presse-papiers !");
-                                }
-                            }}
-                            className="flex items-center justify-center w-11 h-11 rounded-full bg-black/30 border border-white/20 text-white hover:bg-black/40 hover:border-white/40 backdrop-blur-md transition-all duration-200"
-                            aria-label="Partager cet auteur"
-                        >
-                            <ShareNetwork size={20} />
-                        </button>
+                        <ShareButton variant="glass" ariaLabel="Partager cet auteur" />
 
                         {author.signature_url && (
                             <div className="hidden lg:block pl-2">

@@ -149,22 +149,29 @@ export default function PoemActions({ poemId, initialIsLiked = false }: PoemActi
                     </motion.button>
 
                     {/* Infobulle standard au hover (masquée si showShareTooltip est vrai) */}
-                    <div className={`absolute -top-11 left-1/2 -translate-x-1/2 px-2.5 py-1.5 bg-paper border border-soft-border text-charcoal text-[10px] uppercase tracking-widest rounded shadow-md transition-opacity whitespace-nowrap pointer-events-none flex flex-col items-center ${showShareTooltip ? 'opacity-0' : 'opacity-0 group-hover:opacity-100'}`}>
-                        Parcategoryer
-                        <div className="absolute -bottom-[5px] w-2 h-2 bg-paper border-b border-r border-soft-border rotate-45" />
+                    <div
+                        className={`absolute bottom-full mb-2.5 left-1/2 -translate-x-1/2 px-2.5 py-1.5 bg-paper border border-soft-border text-charcoal text-[10px] uppercase tracking-widest rounded shadow-md transition-opacity whitespace-nowrap pointer-events-none flex items-center justify-center z-20 ${
+                            showShareTooltip ? "opacity-0" : "opacity-0 group-hover:opacity-100"
+                        }`}
+                    >
+                        Partager
+                        <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-2 h-2 bg-paper border-b border-r border-soft-border rotate-45" />
                     </div>
 
                     <AnimatePresence>
                         {showShareTooltip && (
-                            <motion.div
-                                initial={{ opacity: 0, y: 10, x: "-50%" }}
-                                animate={{ opacity: 1, y: 0, x: "-50%" }}
-                                exit={{ opacity: 0, y: 5, x: "-50%" }}
-                                className="absolute -top-12 left-1/2 px-3 py-1.5 bg-accent text-white text-[10px] uppercase tracking-widest rounded whitespace-nowrap shadow-md pointer-events-none flex flex-col items-center"
-                            >
-                                Lien copié !
-                                <div className="absolute -bottom-[4px] w-2 h-2 bg-accent rotate-45" />
-                            </motion.div>
+                            <div className="absolute bottom-full mb-2.5 left-1/2 -translate-x-1/2 pointer-events-none z-30">
+                                <motion.div
+                                    initial={{ opacity: 0, scale: 0.9, y: 3 }}
+                                    animate={{ opacity: 1, scale: 1, y: 0 }}
+                                    exit={{ opacity: 0, scale: 0.9, y: 3 }}
+                                    transition={{ duration: 0.18, ease: "easeOut" }}
+                                    className="relative px-2.5 py-1.5 bg-accent text-white text-[10px] uppercase tracking-widest rounded whitespace-nowrap shadow-md flex items-center justify-center font-medium"
+                                >
+                                    Lien copié !
+                                    <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-2 h-2 bg-accent rotate-45" />
+                                </motion.div>
+                            </div>
                         )}
                     </AnimatePresence>
                 </div>

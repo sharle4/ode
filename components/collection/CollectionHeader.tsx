@@ -6,6 +6,7 @@ import { BookOpen, Heart, ShareNetwork } from "@phosphor-icons/react";
 import Link from "next/link";
 
 import CollectionLikeButton from "./CollectionLikeButton";
+import ShareButton from "@/components/ui/ShareButton";
 
 interface CollectionHeaderProps {
     collection: {
@@ -95,18 +96,7 @@ export default function CollectionHeader({ collection }: CollectionHeaderProps) 
                             initialIsLiked={collection.initialIsLiked}
                             initialLikesCount={collection.likesCount}
                         />
-                        <button 
-                            onClick={() => {
-                                if (typeof window !== "undefined") {
-                                    navigator.clipboard.writeText(window.location.href);
-                                    alert("Lien du recueil copié dans le presse-papiers !");
-                                }
-                            }}
-                            className="w-11 h-11 flex items-center justify-center rounded-full border border-soft-border text-charcoal hover:bg-black/5 dark:hover:bg-white/5 transition-colors" 
-                            aria-label="Partager"
-                        >
-                            <ShareNetwork size={20} />
-                        </button>
+                        <ShareButton ariaLabel="Partager ce recueil" />
                     </div>
                 </motion.div>
 
