@@ -89,19 +89,6 @@ export default async function PoemPage({ params }: PoemPageProps) {
                     <FadeIn delay={0.1}>
                         <header className="pt-32 pb-16 md:pt-40 md:pb-24 px-4 sm:px-6">
                             <div className="max-w-4xl mx-auto text-center">
-                                {/* Meta Categories */}
-                                <div className="flex flex-wrap items-center justify-center gap-3 mb-6 md:mb-8 text-xs uppercase tracking-[0.15em] font-medium text-warm-gray">
-                                    {poem.language && (
-                                        <span className="px-3 py-1 bg-paper border border-soft-border rounded-full">
-                                            {poem.language}
-                                        </span>
-                                    )}
-                                    {poem.publication_year && (
-                                        <span className="px-3 py-1 bg-paper border border-soft-border rounded-full">
-                                            {poem.publication_year}
-                                        </span>
-                                    )}
-                                </div>
 
                                 {/* Title */}
                                 <h1 className="font-serif text-5xl md:text-6xl lg:text-7xl xl:text-8xl tracking-tighter leading-[1.1] text-charcoal mb-8 text-balance mx-auto">
