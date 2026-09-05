@@ -505,7 +505,7 @@ export const getCategoryWithContent = (slug: string) => executeCachedQuery(
 
 export const getUserProfileByUsername = (username: string) => executeCachedQuery(
     {
-        keyParts: [CACHE_TAGS.profile(username)],
+        keyParts: [CACHE_TAGS.profile(username), 'v3'],
         tags: [CACHE_TAGS.profile(username)],
         revalidate: 300,
         errorMessage: 'Database Error fetching user profile:'
@@ -533,12 +533,30 @@ export const getUserProfileByUsername = (username: string) => executeCachedQuery
         // 3. Fetch top poems
         const { data: topPoemLinks } = await supabase
             .from('user_top_poems')
-            .select('position, poems ( id, title, slug, average_review, authors ( id, name, slug ) )')
+            .select(`
+                position,
+                poems (
+                    id, title, slug, publication_year, average_review, reviews_count, reads_count, likes_count,
+                    authors ( id, name, slug ),
+                    rothko_params ( seed, palette_id, shape_type, layout_bias, complexity, texture_profile, blend_mode, density, opacity_style )
+                )
+            `)
             .eq('user_id', user.id)
             .order('position', { ascending: true })
             .throwOnError();
 
-        const topPoems = (topPoemLinks || []).map((link: any) => ({ ...link.poems, position: link.position })).filter((p: any) => p.id);
+        const topPoems = (topPoemLinks || [])
+            .map((link: any) => {
+                const poem = link.poems;
+                if (!poem) return null;
+                const rothko = Array.isArray(poem.rothko_params) ? poem.rothko_params[0] : poem.rothko_params;
+                return {
+                    ...poem,
+                    position: link.position,
+                    rothko_params: rothko,
+                };
+            })
+            .filter(Boolean);
 
         // 4. Fetch top authors
         const { data: topAuthorLinks } = await supabase

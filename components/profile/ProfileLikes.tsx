@@ -14,7 +14,7 @@ import {
     ArrowRight,
     Trash
 } from "@phosphor-icons/react";
-import { RothkoArtwork } from "@/components/poem/RothkoArtwork";
+import PoemCard from "@/components/ui/PoemCard";
 import { getCoverGradient, getInitials } from "@/utils/gradient";
 import { toggleLike, toggleCollectionLike, toggleAuthorLike } from "@/app/actions/poetry";
 import { useAction } from "next-safe-action/hooks";
@@ -298,90 +298,33 @@ export default function ProfileLikes({
                                     Aucun poème ne correspond à votre recherche.
                                 </p>
                             ) : (
-                                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                                <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-6">
                                     <AnimatePresence>
-                                        {(activeCategory === "all" ? filteredPoems.slice(0, 6) : filteredPoems).map(
-                                            (poem, idx) => {
-                                                const authorName =
-                                                    poem.authors?.map((a) => a.name).join(", ") ||
-                                                    "Auteur inconnu";
-                                                const coverGradient = getCoverGradient(poem.slug);
-
-                                                return (
-                                                    <motion.div
-                                                        key={poem.id}
-                                                        layout
-                                                        initial={{ opacity: 0, scale: 0.96 }}
-                                                        animate={{ opacity: 1, scale: 1 }}
-                                                        exit={{ opacity: 0, scale: 0.9 }}
-                                                        transition={{ duration: 0.25, delay: idx * 0.03 }}
-                                                        className="group relative flex flex-col bg-paper dark:bg-zinc-900 border border-soft-border rounded-2xl overflow-hidden shadow-sm hover:shadow-md transition-all duration-300"
-                                                    >
-                                                        {/* Artwork / Canvas Header */}
-                                                        <div className="relative aspect-[16/9] w-full overflow-hidden bg-soft-border/30">
-                                                            {poem.rothko_params ? (
-                                                                <RothkoArtwork
-                                                                    params={poem.rothko_params}
-                                                                    className="w-full h-full object-cover"
-                                                                />
-                                                            ) : (
-                                                                <div
-                                                                    className={`w-full h-full bg-gradient-to-br ${coverGradient}`}
-                                                                />
-                                                            )}
-                                                            <div className="absolute inset-0 bg-black/10 group-hover:bg-transparent transition-colors" />
-
-                                                            {/* Direct unlike button for owner */}
-                                                            {isOwner && (
-                                                                <button
-                                                                    onClick={(e) => {
-                                                                        e.preventDefault();
-                                                                        e.stopPropagation();
-                                                                        handleUnlikePoem(poem);
-                                                                    }}
-                                                                    className="absolute top-2.5 right-2.5 w-8 h-8 rounded-full bg-black/50 hover:bg-rose-600 text-white flex items-center justify-center backdrop-blur-md opacity-0 group-hover:opacity-100 transition-all duration-200 z-20 shadow"
-                                                                    title="Retirer des favoris"
-                                                                >
-                                                                    <Trash size={14} />
-                                                                </button>
-                                                            )}
-
-                                                            <div className="absolute bottom-2.5 right-3 px-2 py-0.5 rounded-full bg-black/40 backdrop-blur-sm text-white text-[10px] font-mono">
-                                                                <Heart size={12} weight="fill" className="inline mr-1 text-accent" />
-                                                                {poem.likes_count || 1}
-                                                            </div>
-                                                        </div>
-
-                                                        {/* Poem Details */}
-                                                        <div className="p-4 flex flex-col flex-grow justify-between gap-3">
-                                                            <div>
-                                                                <Link
-                                                                    href={`/poem/${poem.slug || poem.id}`}
-                                                                    className="font-serif text-lg text-charcoal dark:text-cream group-hover:text-accent transition-colors line-clamp-1 font-medium"
-                                                                >
-                                                                    {poem.title}
-                                                                </Link>
-                                                                <p className="text-xs uppercase tracking-wider text-warm-gray line-clamp-1 mt-0.5">
-                                                                    {authorName}
-                                                                </p>
-                                                            </div>
-
-                                                            {poem.collections?.title && (
-                                                                <div className="pt-2 border-t border-soft-border/50 text-[11px] text-warm-gray font-serif italic line-clamp-1">
-                                                                    Recueil : {poem.collections.title}
-                                                                </div>
-                                                            )}
-                                                        </div>
-
-                                                        {/* Full card clickable link */}
-                                                        <Link
-                                                            href={`/poem/${poem.slug || poem.id}`}
-                                                            className="absolute inset-0 z-10"
-                                                            aria-label={poem.title}
-                                                        />
-                                                    </motion.div>
-                                                );
-                                            }
+                                        {(activeCategory === "all" ? filteredPoems.slice(0, 4) : filteredPoems).map(
+                                            (poem, idx) => (
+                                                <PoemCard
+                                                    key={poem.id}
+                                                    poem={poem}
+                                                    index={idx}
+                                                    layout="grid"
+                                                    action={
+                                                        isOwner ? (
+                                                            <button
+                                                                onClick={(e) => {
+                                                                    e.preventDefault();
+                                                                    e.stopPropagation();
+                                                                    handleUnlikePoem(poem);
+                                                                }}
+                                                                className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-black/60 hover:bg-rose-600 text-white flex items-center justify-center backdrop-blur-md opacity-0 group-hover:opacity-100 transition-all duration-200 shadow"
+                                                                title="Retirer des favoris"
+                                                                aria-label="Retirer des favoris"
+                                                            >
+                                                                <Trash size={13} />
+                                                            </button>
+                                                        ) : undefined
+                                                    }
+                                                />
+                                            )
                                         )}
                                     </AnimatePresence>
                                 </div>
@@ -403,7 +346,7 @@ export default function ProfileLikes({
                                             ({filteredCollections.length})
                                         </span>
                                     </div>
-                                    {activeCategory === "all" && filteredCollections.length > 3 && (
+                                    {activeCategory === "all" && filteredCollections.length > 4 && (
                                         <button
                                             onClick={() => setActiveCategory("collections")}
                                             className="text-xs uppercase tracking-widest text-accent hover:underline flex items-center gap-1 font-medium"
@@ -439,25 +382,26 @@ export default function ProfileLikes({
                                                     animate={{ opacity: 1, scale: 1 }}
                                                     exit={{ opacity: 0, scale: 0.9 }}
                                                     transition={{ duration: 0.25, delay: idx * 0.03 }}
-                                                    className="group relative flex flex-col cursor-pointer"
+                                                    className="group relative flex flex-col cursor-pointer select-none rounded-r-xl rounded-l-sm"
                                                 >
                                                     {/* Couverture Livre 2/3 */}
                                                     <div
-                                                        className={`relative w-full aspect-[2/3] rounded-r-lg rounded-l-sm shadow-md group-hover:shadow-xl transition-all duration-300 md:group-hover:-translate-y-1.5 overflow-hidden bg-gradient-to-br ${coverColor}`}
+                                                        className={`relative w-full aspect-[2/3] rounded-r-xl rounded-l-sm shadow-md group-hover:shadow-xl transition-all duration-300 md:group-hover:-translate-y-1.5 overflow-hidden bg-gradient-to-br ${coverColor}`}
                                                     >
                                                         {/* Reliure */}
-                                                        <div className="absolute left-0 top-0 bottom-0 w-3 bg-black/25 z-10 border-r border-white/10 shadow-[inset_-2px_0_4px_rgba(0,0,0,0.15)]" />
+                                                        <div className="absolute left-0 top-0 bottom-0 w-3.5 sm:w-4 bg-black/25 z-10 border-r border-white/10 shadow-[inset_-2px_0_4px_rgba(0,0,0,0.2)]" />
 
-                                                        <div className="absolute inset-0 flex flex-col justify-between p-3.5 z-20">
-                                                            <span className="text-[10px] tracking-widest uppercase text-white/80 font-sans text-center mt-1 line-clamp-1">
+                                                        {/* Contenu centré de la couverture avec typographie agrandie et équilibrée */}
+                                                        <div className="absolute inset-0 flex flex-col justify-between items-center p-4 sm:p-5 text-center z-20">
+                                                            <span className="text-xs sm:text-[13px] tracking-widest uppercase text-white/90 font-sans font-medium line-clamp-2 px-2 pt-1 drop-shadow-sm">
                                                                 {authorName}
                                                             </span>
 
-                                                            <h4 className="font-serif text-white text-base sm:text-lg text-center leading-tight drop-shadow line-clamp-3">
+                                                            <h4 className="font-serif text-white text-lg sm:text-xl md:text-2xl text-center leading-snug drop-shadow-md font-medium px-2 line-clamp-4">
                                                                 {col.title}
                                                             </h4>
 
-                                                            <span className="text-[10px] tracking-widest text-white/70 text-center mb-1 font-mono">
+                                                            <span className="text-xs sm:text-sm tracking-widest text-white/80 font-mono pb-1 drop-shadow-sm">
                                                                 {col.publication_year || ""}
                                                             </span>
                                                         </div>
@@ -470,31 +414,18 @@ export default function ProfileLikes({
                                                                     e.stopPropagation();
                                                                     handleUnlikeCollection(col);
                                                                 }}
-                                                                className="absolute top-2 right-2 w-7 h-7 rounded-full bg-black/60 hover:bg-rose-600 text-white flex items-center justify-center backdrop-blur-sm opacity-0 group-hover:opacity-100 transition-all duration-200 z-30 shadow"
+                                                                className="absolute top-2.5 right-2.5 w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-black/60 hover:bg-rose-600 text-white flex items-center justify-center backdrop-blur-sm opacity-0 group-hover:opacity-100 transition-all duration-200 z-30 shadow"
                                                                 title="Retirer des favoris"
+                                                                aria-label="Retirer des favoris"
                                                             >
-                                                                <Trash size={12} />
+                                                                <Trash size={13} />
                                                             </button>
                                                         )}
                                                     </div>
 
-                                                    <div className="mt-3 flex flex-col px-1">
-                                                        <span className="font-serif text-sm text-charcoal dark:text-cream group-hover:text-accent transition-colors line-clamp-1 font-medium">
-                                                            {col.title}
-                                                        </span>
-                                                        <div className="flex justify-between items-center text-[11px] text-warm-gray mt-0.5">
-                                                            <span className="line-clamp-1">{authorName}</span>
-                                                            {col.poems_count ? (
-                                                                <span className="font-mono text-[10px] uppercase">
-                                                                    {col.poems_count}p.
-                                                                </span>
-                                                            ) : null}
-                                                        </div>
-                                                    </div>
-
                                                     <Link
                                                         href={`/collection/${col.slug}`}
-                                                        className="absolute inset-0 z-10"
+                                                        className="absolute inset-0 z-20 rounded-r-xl rounded-l-sm outline-none"
                                                         aria-label={col.title}
                                                     />
                                                 </motion.div>

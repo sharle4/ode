@@ -3,15 +3,17 @@
 import React, { useRef } from "react";
 import { motion, useInView } from "framer-motion";
 import { RothkoArtwork } from "@/components/poem/RothkoArtwork";
+import { getCoverGradient } from "@/utils/gradient";
 import Link from "next/link";
 
 interface PoemCardProps {
   poem: any;
   index: number;
   layout?: "flex" | "grid";
+  action?: React.ReactNode;
 }
 
-const PoemCard = React.memo(function PoemCard({ poem, index, layout = "flex" }: PoemCardProps) {
+const PoemCard = React.memo(function PoemCard({ poem, index, layout = "flex", action }: PoemCardProps) {
   const containerClass = `group relative cursor-pointer select-none flex flex-col gap-3.5 rounded-2xl focus-within:ring-2 focus-within:ring-accent focus-within:ring-offset-2 ring-offset-cream outline-none ${
     layout === "flex" ? "flex-shrink-0 w-[200px] md:w-[240px]" : "w-full"
   }`;
@@ -19,13 +21,24 @@ const PoemCard = React.memo(function PoemCard({ poem, index, layout = "flex" }: 
   const ref = useRef(null);
   const isInView = useInView(ref, { once: true, margin: "200px" });
 
-  const authorName = poem.authors?.length
-    ? poem.authors.map((a: any) => a.name).join(', ')
-    : poem.author?.name || "Auteur inconnu";
+  let authorName = "Auteur inconnu";
+  if (Array.isArray(poem.authors) && poem.authors.length > 0) {
+    authorName = poem.authors
+      .map((a: any) => (typeof a === "string" ? a : a?.name || a?.authors?.name || ""))
+      .filter(Boolean)
+      .join(", ") || "Auteur inconnu";
+  } else if (poem.author?.name) {
+    authorName = poem.author.name;
+  } else if (typeof poem.authors === "object" && poem.authors?.name) {
+    authorName = poem.authors.name;
+  } else if (typeof poem.author === "string") {
+    authorName = poem.author;
+  }
     
   // Support both direct slug or slug inside a nested generic structure if any.
   // We prefer poem.slug, fallback to poem.id
   const href = `/poem/${poem.slug || poem.id}`;
+  const fallbackGradient = poem.coverGradient || (poem.slug ? getCoverGradient(poem.slug) : "from-zinc-200 to-zinc-300 dark:from-zinc-800 dark:to-zinc-900");
 
   return (
     <motion.article
@@ -58,7 +71,7 @@ const PoemCard = React.memo(function PoemCard({ poem, index, layout = "flex" }: 
                 />
               </div>
             ) : (
-              <div className={`absolute inset-0 z-0 bg-gradient-to-br transition-all duration-700 group-hover:saturate-[1.3] group-hover:brightness-110 ${poem.coverGradient || 'from-zinc-200 to-zinc-300 dark:from-zinc-800 dark:to-zinc-900'}`} />
+              <div className={`absolute inset-0 z-0 bg-gradient-to-br transition-all duration-700 group-hover:saturate-[1.3] group-hover:brightness-110 ${fallbackGradient}`} />
             )
           ) : null}
         </div>
@@ -68,6 +81,13 @@ const PoemCard = React.memo(function PoemCard({ poem, index, layout = "flex" }: 
 
         {/* Subtle inner border for elegance */}
         <div className="absolute inset-0 rounded-xl ring-1 ring-inset ring-black/5 dark:ring-white/10 z-10 pointer-events-none" />
+
+        {/* Optional action button (e.g. unlike / remove) */}
+        {action && (
+          <div className="absolute top-2.5 right-2.5 z-30 pointer-events-auto">
+            {action}
+          </div>
+        )}
       </div>
 
       {/* Typography Section (Outside the image, on the background) */}
