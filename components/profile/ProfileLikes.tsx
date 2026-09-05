@@ -11,13 +11,10 @@ import {
     MagnifyingGlass,
     X,
     Sparkle,
-    ArrowRight,
-    Trash
+    ArrowRight
 } from "@phosphor-icons/react";
 import PoemCard from "@/components/ui/PoemCard";
 import { getCoverGradient, getInitials } from "@/utils/gradient";
-import { toggleLike, toggleCollectionLike, toggleAuthorLike } from "@/app/actions/poetry";
-import { useAction } from "next-safe-action/hooks";
 
 interface LikedPoem {
     id: string;
@@ -86,38 +83,6 @@ export default function ProfileLikes({
 
     const [activeCategory, setActiveCategory] = useState<LikeCategory>("all");
     const [searchQuery, setSearchQuery] = useState("");
-
-    const { executeAsync: executePoemLike } = useAction(toggleLike);
-    const { executeAsync: executeCollectionLike } = useAction(toggleCollectionLike);
-    const { executeAsync: executeAuthorLike } = useAction(toggleAuthorLike);
-
-    // Unlike handlers with optimistic removal
-    const handleUnlikePoem = async (poem: LikedPoem) => {
-        setLikedPoems((prev) => prev.filter((p) => p.id !== poem.id));
-        try {
-            await executePoemLike({ poemId: poem.id, slug: poem.slug, targetState: false });
-        } catch (error) {
-            console.error("Erreur unlike poème:", error);
-        }
-    };
-
-    const handleUnlikeCollection = async (col: LikedCollection) => {
-        setLikedCollections((prev) => prev.filter((c) => c.id !== col.id));
-        try {
-            await executeCollectionLike({ collectionId: col.id, slug: col.slug, targetState: false });
-        } catch (error) {
-            console.error("Erreur unlike recueil:", error);
-        }
-    };
-
-    const handleUnlikeAuthor = async (author: LikedAuthor) => {
-        setLikedAuthors((prev) => prev.filter((a) => a.id !== author.id));
-        try {
-            await executeAuthorLike({ authorId: author.id, slug: author.slug, targetState: false });
-        } catch (error) {
-            console.error("Erreur unlike auteur:", error);
-        }
-    };
 
     // Filter by search query
     const filteredPoems = useMemo(() => {
@@ -307,22 +272,6 @@ export default function ProfileLikes({
                                                     poem={poem}
                                                     index={idx}
                                                     layout="grid"
-                                                    action={
-                                                        isOwner ? (
-                                                            <button
-                                                                onClick={(e) => {
-                                                                    e.preventDefault();
-                                                                    e.stopPropagation();
-                                                                    handleUnlikePoem(poem);
-                                                                }}
-                                                                className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-black/60 hover:bg-rose-600 text-white flex items-center justify-center backdrop-blur-md opacity-0 group-hover:opacity-100 transition-all duration-200 shadow"
-                                                                title="Retirer des favoris"
-                                                                aria-label="Retirer des favoris"
-                                                            >
-                                                                <Trash size={13} />
-                                                            </button>
-                                                        ) : undefined
-                                                    }
                                                 />
                                             )
                                         )}
@@ -405,22 +354,6 @@ export default function ProfileLikes({
                                                                 {col.publication_year || ""}
                                                             </span>
                                                         </div>
-
-                                                        {/* Unlike Button */}
-                                                        {isOwner && (
-                                                            <button
-                                                                onClick={(e) => {
-                                                                    e.preventDefault();
-                                                                    e.stopPropagation();
-                                                                    handleUnlikeCollection(col);
-                                                                }}
-                                                                className="absolute top-2.5 right-2.5 w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-black/60 hover:bg-rose-600 text-white flex items-center justify-center backdrop-blur-sm opacity-0 group-hover:opacity-100 transition-all duration-200 z-30 shadow"
-                                                                title="Retirer des favoris"
-                                                                aria-label="Retirer des favoris"
-                                                            >
-                                                                <Trash size={13} />
-                                                            </button>
-                                                        )}
                                                     </div>
 
                                                     <Link
@@ -503,21 +436,6 @@ export default function ProfileLikes({
                                                                 </div>
                                                             )}
                                                         </div>
-
-                                                        {/* Unlike Button */}
-                                                        {isOwner && (
-                                                            <button
-                                                                onClick={(e) => {
-                                                                    e.preventDefault();
-                                                                    e.stopPropagation();
-                                                                    handleUnlikeAuthor(author);
-                                                                }}
-                                                                className="absolute -top-1 -right-1 w-7 h-7 rounded-full bg-black/60 hover:bg-rose-600 text-white flex items-center justify-center backdrop-blur-sm opacity-0 group-hover:opacity-100 transition-all duration-200 z-30 shadow"
-                                                                title="Retirer des favoris"
-                                                            >
-                                                                <Trash size={12} />
-                                                            </button>
-                                                        )}
                                                     </div>
 
                                                     {/* Info */}
