@@ -195,10 +195,10 @@ export default function PoemActions({ poemId, initialIsLiked = false }: PoemActi
                                 animate={{ opacity: 1, scale: 1, y: 0 }}
                                 exit={{ opacity: 0, scale: 0.9, y: 6 }}
                                 transition={{ duration: 0.18, ease: "easeOut" }}
-                                className="relative px-3.5 py-1.5 bg-charcoal text-white text-xs font-medium rounded-full shadow-xl whitespace-nowrap flex items-center justify-center font-sans"
+                                className="relative px-3.5 py-1.5 bg-paper dark:bg-zinc-900 border border-soft-border text-charcoal text-xs font-medium rounded-full shadow-xl whitespace-nowrap flex items-center justify-center font-sans"
                             >
                                 {likeNotice}
-                                <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-2 h-2 bg-charcoal rotate-45" />
+                                <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-2 h-2 bg-paper dark:bg-zinc-900 border-b border-r border-soft-border rotate-45" />
                             </motion.div>
                         </div>
                     )}

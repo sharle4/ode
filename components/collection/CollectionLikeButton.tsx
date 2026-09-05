@@ -119,10 +119,10 @@ export default function CollectionLikeButton({
                         animate={{ opacity: 1, y: 0, scale: 1 }}
                         exit={{ opacity: 0, y: 4, scale: 0.95 }}
                         transition={{ duration: 0.15 }}
-                        className="absolute -top-9 left-1/2 -translate-x-1/2 px-2.5 py-1 bg-charcoal text-white text-[10px] uppercase tracking-wider rounded shadow-md pointer-events-none whitespace-nowrap z-30"
+                        className="absolute bottom-full mb-2.5 left-1/2 -translate-x-1/2 px-2.5 py-1.5 bg-paper dark:bg-zinc-900 border border-soft-border text-charcoal text-[10px] uppercase tracking-widest rounded shadow-md pointer-events-none whitespace-nowrap flex items-center justify-center z-30"
                     >
                         {isLiked ? "Coup de cœur !" : "Aimer ce recueil"}
-                        <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-2 h-2 bg-charcoal rotate-45" />
+                        <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-2 h-2 bg-paper dark:bg-zinc-900 border-b border-r border-soft-border rotate-45" />
                     </motion.div>
                 )}
             </AnimatePresence>
