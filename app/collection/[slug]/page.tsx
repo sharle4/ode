@@ -17,7 +17,7 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
     const collectionTitle = collection?.title || resolvedParams.slug.split('-').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
 
     return {
-        title: `${collectionTitle} - Recueil de poésie | ode`,
+        title: `${collectionTitle} - ode`,
         description: collection?.summary
             ? collection.summary.substring(0, 160) + '...'
             : `Lisez les poèmes du recueil ${collectionTitle} sur ode.`,

@@ -16,7 +16,7 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
     const categoryName = category?.name || resolvedParams.slug.split('-').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
 
     return {
-        title: `${categoryName} | ode`,
+        title: `${categoryName} - ode`,
         description: category?.description || `Explorez la catégorie ${categoryName} sur ode.`,
     };
 }

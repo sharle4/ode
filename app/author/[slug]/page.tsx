@@ -14,14 +14,14 @@ import { createClient } from "@/utils/supabase/server";
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
     const resolvedParams = await params;
     const author = await getAuthorWithWorks(resolvedParams.slug);
-    
+
     const authorName = author?.name || resolvedParams.slug.split('-').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
     const description = author?.biography
         ? author.biography.substring(0, 160) + '...'
         : `Explorez l'œuvre poétique de ${authorName} sur ode.`;
 
     return {
-        title: `${authorName} - Poèmes et Biographie | ode`,
+        title: `${authorName} - ode`,
         description,
     };
 }

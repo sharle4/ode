@@ -19,7 +19,7 @@ export async function generateMetadata({ params }: ProfilePageProps): Promise<Me
     const decodedUsername = decodeURIComponent(resolvedParams.username);
 
     return {
-        title: `${decodedUsername} - Profil ode`,
+        title: `${decodedUsername} - ode`,
         description: `Découvrez les poèmes favoris et l'activité de ${decodedUsername} sur ode, la communauté de poésie.`,
     };
 }
@@ -47,14 +47,14 @@ export default async function ProfilePage({ params }: ProfilePageProps) {
     const reviewDistribution = userProfile.reviewDistribution;
     const avatarUrl = userProfile.avatar_url;
     const description = userProfile.description;
-    
+
     // Safe timezone formatting to prevent hydration mismatch
-    const formattedDate = userProfile.created_at 
-        ? new Intl.DateTimeFormat('fr-FR', { 
-            month: 'long', 
-            year: 'numeric', 
-            timeZone: 'Europe/Paris' 
-          }).format(new Date(userProfile.created_at))
+    const formattedDate = userProfile.created_at
+        ? new Intl.DateTimeFormat('fr-FR', {
+            month: 'long',
+            year: 'numeric',
+            timeZone: 'Europe/Paris'
+        }).format(new Date(userProfile.created_at))
         : null;
 
     return (
@@ -101,7 +101,7 @@ export default async function ProfilePage({ params }: ProfilePageProps) {
                             {/* Edit / Follow Button */}
                             <div className="mt-4 md:mt-0">
                                 {isOwner ? (
-                                    <Link 
+                                    <Link
                                         href="/settings"
                                         className="inline-flex items-center px-6 py-2 rounded-full border border-soft-border text-charcoal hover:bg-soft-border/50 transition-colors font-medium text-sm"
                                     >

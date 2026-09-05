@@ -3,7 +3,7 @@ import { createClient } from "@/utils/supabase/server";
 import OnboardingWizard from "./onboarding-wizard";
 
 export const metadata = {
-  title: "Bienvenue sur ode — Personnalisez votre expérience",
+  title: "Bienvenue - ode",
   description: "Configurez vos auteurs favoris et vos préférences de lecture.",
 };
 

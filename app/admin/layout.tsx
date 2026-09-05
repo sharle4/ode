@@ -3,7 +3,7 @@ import Link from 'next/link'
 import { House, PenNib, UsersThree, Books, Sun, Tag } from '@phosphor-icons/react/dist/ssr'
 
 export const metadata: Metadata = {
-    title: 'Admin — ode.',
+    title: 'Admin — ode',
     robots: 'noindex, nofollow',
 }
 

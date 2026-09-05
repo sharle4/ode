@@ -23,7 +23,7 @@ const playfair = Playfair_Display({
 });
 
 export const metadata: Metadata = {
-  title: "ode -- La plus grande communauté de poésie",
+  title: "ode",
   description:
     "Explorez la plus grande base de données de poèmes au monde. Notez, découvrez et discutez de poèmes de toutes les époques avec une communauté de lecteurs passionnés.",
 };
@@ -39,7 +39,7 @@ export default function RootLayout({
         {/* Zero-FOUC script: Reads localStorage unconditionally before first paint */}
         <script
           dangerouslySetInnerHTML={{
-             __html: `
+            __html: `
               try {
                 var localTypo = localStorage.getItem("ode_typography");
                 var localFontSize = localStorage.getItem("ode_font_size");
