@@ -11,7 +11,8 @@ import {
     User,
     BookOpen,
     Feather,
-    Sparkle
+    Sparkle,
+    Tag
 } from "@phosphor-icons/react";
 import Link from "next/link";
 import Image from "next/image";
@@ -101,8 +102,7 @@ export default function NavbarSearch({ variant = "desktop", onNavigate }: Navbar
                 const data: SearchResults = await res.json();
                 setResults(data);
                 setIsOpen(true);
-                // Pre-select top result for instant Enter redirection
-                setSelectedIndex(data.total > 0 ? 0 : -1);
+                setSelectedIndex(-1);
             }
         } catch (error) {
             console.error("Search fetch failed:", error);
@@ -233,19 +233,17 @@ export default function NavbarSearch({ variant = "desktop", onNavigate }: Navbar
         if (e.key === "ArrowDown") {
             e.preventDefault();
             if (flatItems.length > 0) {
-                setSelectedIndex((prev) => (prev + 1) % flatItems.length);
+                setSelectedIndex((prev) => (prev < 0 ? 0 : (prev + 1) % flatItems.length));
             }
         } else if (e.key === "ArrowUp") {
             e.preventDefault();
             if (flatItems.length > 0) {
-                setSelectedIndex((prev) => (prev - 1 + flatItems.length) % flatItems.length);
+                setSelectedIndex((prev) => (prev <= 0 ? flatItems.length - 1 : prev - 1));
             }
         } else if (e.key === "Enter") {
             e.preventDefault();
             if (selectedIndex >= 0 && selectedIndex < flatItems.length) {
                 handleNavigate(flatItems[selectedIndex].href);
-            } else if (flatItems.length > 0) {
-                handleNavigate(flatItems[0].href);
             } else if (searchTerm.trim()) {
                 handleNavigate(`/explore?q=${encodeURIComponent(searchTerm.trim())}`);
             }
@@ -268,8 +266,6 @@ export default function NavbarSearch({ variant = "desktop", onNavigate }: Navbar
         e.preventDefault();
         if (selectedIndex >= 0 && selectedIndex < flatItems.length) {
             handleNavigate(flatItems[selectedIndex].href);
-        } else if (flatItems.length > 0) {
-            handleNavigate(flatItems[0].href);
         } else if (searchTerm.trim()) {
             handleNavigate(`/explore?q=${encodeURIComponent(searchTerm.trim())}`);
         }
@@ -295,7 +291,7 @@ export default function NavbarSearch({ variant = "desktop", onNavigate }: Navbar
                                 key={author.id}
                                 type="button"
                                 onClick={() => handleNavigate(`/author/${author.slug}`)}
-                                onMouseEnter={() => setSelectedIndex(itemIndex)}
+                                onMouseMove={() => setSelectedIndex(itemIndex)}
                                 className={`w-full flex items-center justify-between gap-3 px-3 py-2 rounded-xl text-left transition-colors cursor-pointer ${
                                     isSelected ? "bg-accent/10" : "hover:bg-charcoal/5"
                                 }`}
@@ -366,7 +362,7 @@ export default function NavbarSearch({ variant = "desktop", onNavigate }: Navbar
                                 key={poem.id}
                                 type="button"
                                 onClick={() => handleNavigate(`/poem/${poem.slug || poem.id}`)}
-                                onMouseEnter={() => setSelectedIndex(itemIndex)}
+                                onMouseMove={() => setSelectedIndex(itemIndex)}
                                 className={`w-full flex items-center justify-between gap-3 px-3 py-2 rounded-xl text-left transition-colors cursor-pointer ${
                                     isSelected ? "bg-accent/10" : "hover:bg-charcoal/5"
                                 }`}
@@ -496,6 +492,7 @@ export default function NavbarSearch({ variant = "desktop", onNavigate }: Navbar
                     <motion.div
                         id="navbar-search-results"
                         role="listbox"
+                        onMouseLeave={() => setSelectedIndex(-1)}
                         initial={{ opacity: 0, y: 8, scale: 0.98 }}
                         animate={{ opacity: 1, y: 0, scale: 1 }}
                         exit={{ opacity: 0, y: 4, scale: 0.98 }}
@@ -539,18 +536,56 @@ export default function NavbarSearch({ variant = "desktop", onNavigate }: Navbar
                                                     key={col.id}
                                                     type="button"
                                                     onClick={() => handleNavigate(`/collection/${col.slug}`)}
-                                                    onMouseEnter={() => setSelectedIndex(itemIndex)}
+                                                    onMouseMove={() => setSelectedIndex(itemIndex)}
                                                     className={`w-full flex items-center justify-between gap-3 px-3 py-2 rounded-xl text-left transition-colors cursor-pointer ${
                                                         isSelected ? "bg-accent/10" : "hover:bg-charcoal/5"
                                                     }`}
                                                 >
                                                     <div className="flex flex-col min-w-0 flex-1">
-                                                        <span className={`text-sm font-medium truncate ${isSelected ? "text-accent" : "text-charcoal"}`}>
+                                                        <span className={`text-sm font-medium truncate ${isSelected ? "text-accent font-semibold" : "text-charcoal"}`}>
                                                             {col.title}
                                                         </span>
                                                         <span className="text-xs text-warm-gray truncate">
                                                             {authorName ? `${authorName} · ` : ""}
                                                             {col.poems_count || 0} poèmes
+                                                        </span>
+                                                    </div>
+                                                </button>
+                                            );
+                                        })}
+                                    </div>
+                                </div>
+                            )}
+
+                            {/* Thèmes & Mouvements */}
+                            {results?.categories && results.categories.length > 0 && (
+                                <div className="py-2">
+                                    <div className="px-3 py-1.5 text-xs font-serif tracking-wider uppercase text-warm-gray flex items-center gap-1.5">
+                                        <Tag size={13} weight="bold" />
+                                        <span>Thèmes & Mouvements</span>
+                                    </div>
+                                    <div className="flex flex-col gap-0.5 mt-1">
+                                        {results.categories.slice(0, 2).map((cat) => {
+                                            const itemIndex = flatItems.findIndex(
+                                                (fi) => fi.id === `cat-${cat.id}`
+                                            );
+                                            const isSelected = selectedIndex === itemIndex;
+                                            return (
+                                                <button
+                                                    key={cat.id}
+                                                    type="button"
+                                                    onClick={() => handleNavigate(`/category/${cat.slug}`)}
+                                                    onMouseMove={() => setSelectedIndex(itemIndex)}
+                                                    className={`w-full flex items-center justify-between gap-3 px-3 py-2 rounded-xl text-left transition-colors cursor-pointer ${
+                                                        isSelected ? "bg-accent/10" : "hover:bg-charcoal/5"
+                                                    }`}
+                                                >
+                                                    <div className="flex flex-col min-w-0 flex-1">
+                                                        <span className={`text-sm font-medium truncate ${isSelected ? "text-accent font-semibold" : "text-charcoal"}`}>
+                                                            {cat.name}
+                                                        </span>
+                                                        <span className="text-xs text-warm-gray truncate">
+                                                            {cat.type === "THEME" ? "Thème" : cat.type === "MOVEMENT" ? "Mouvement" : "Époque"}
                                                         </span>
                                                     </div>
                                                 </button>
@@ -584,7 +619,7 @@ export default function NavbarSearch({ variant = "desktop", onNavigate }: Navbar
                                         <button
                                             type="button"
                                             onClick={() => handleNavigate(`/explore?q=${encodeURIComponent(searchTerm.trim())}`)}
-                                            onMouseEnter={() => setSelectedIndex(allIndex)}
+                                            onMouseMove={() => setSelectedIndex(allIndex)}
                                             className={`w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-sm font-medium transition-all ${
                                                 isSelected
                                                     ? "bg-accent text-white"
