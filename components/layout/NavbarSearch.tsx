@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, useRef, useCallback } from "react";
+import React, { useState, useEffect, useRef, useCallback, useTransition } from "react";
 import { useRouter, useSearchParams, usePathname } from "next/navigation";
 import { useDebouncedCallback } from "use-debounce";
 import {
@@ -49,8 +49,22 @@ export default function NavbarSearch({ variant = "desktop", onNavigate }: Navbar
     const [selectedIndex, setSelectedIndex] = useState<number>(-1);
     const [isFocused, setIsFocused] = useState(false);
 
+    // Optimistic UI state during navigation transitions
+    const [isNavigating, startTransition] = useTransition();
+    const submittedQueryRef = useRef<string | null>(null);
+
     // Synchroniser avec l'URL uniquement si l'utilisateur n'a pas le focus dans l'input
+    // et qu'aucune navigation optimiste n'est en cours
     useEffect(() => {
+        if (submittedQueryRef.current !== null) {
+            if (urlQuery.trim().toLowerCase() === submittedQueryRef.current.trim().toLowerCase()) {
+                submittedQueryRef.current = null;
+            } else {
+                // Toujours en attente du rendu de la nouvelle route : conserver l'UI optimiste
+                return;
+            }
+        }
+
         if (!isFocused && pathname === "/explore") {
             setSearchTerm(urlQuery);
         }
@@ -221,7 +235,25 @@ export default function NavbarSearch({ variant = "desktop", onNavigate }: Navbar
         setSelectedIndex(-1);
         inputRef.current?.blur();
         if (onNavigate) onNavigate();
-        router.push(href);
+
+        if (href.startsWith("/explore")) {
+            try {
+                const url = new URL(href, "http://localhost");
+                const q = url.searchParams.get("q") || "";
+                submittedQueryRef.current = q;
+                setSearchTerm(q);
+            } catch {
+                submittedQueryRef.current = searchTerm.trim();
+            }
+        } else {
+            submittedQueryRef.current = null;
+            setSearchTerm("");
+            setResults(null);
+        }
+
+        startTransition(() => {
+            router.push(href);
+        });
     };
 
     const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
@@ -459,7 +491,7 @@ export default function NavbarSearch({ variant = "desktop", onNavigate }: Navbar
                 />
 
                 <div className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center gap-1.5">
-                    {isLoading && (
+                    {(isLoading || isNavigating) && (
                         <Spinner
                             size={16}
                             weight="bold"
@@ -467,7 +499,7 @@ export default function NavbarSearch({ variant = "desktop", onNavigate }: Navbar
                         />
                     )}
 
-                    {searchTerm && !isLoading && (
+                    {searchTerm && !isLoading && !isNavigating && (
                         <button
                             type="button"
                             onClick={handleClear}
@@ -478,7 +510,7 @@ export default function NavbarSearch({ variant = "desktop", onNavigate }: Navbar
                         </button>
                     )}
 
-                    {!isMobile && !searchTerm && !isLoading && (
+                    {!isMobile && !searchTerm && !isLoading && !isNavigating && (
                         <kbd className="hidden lg:inline-flex items-center gap-0.5 px-2 py-0.5 text-[11px] font-sans font-medium text-warm-gray/70 bg-charcoal/5 rounded-md border border-soft-border select-none">
                             <span className="text-xs">⌘</span>K
                         </kbd>
