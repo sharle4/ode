@@ -28,7 +28,7 @@ export const metadata: Metadata = {
     "Explorez la plus grande base de données de poèmes au monde. Notez, découvrez et discutez de poèmes de toutes les époques avec une communauté de lecteurs passionnés.",
   icons: {
     icon: [
-      { url: "/favicon.svg", type: "image/svg+xml" },
+      { url: "/favicon.svg", type: "image/svg+xml", sizes: "any" },
       { url: "/favicon.ico", sizes: "any" },
     ],
     apple: [
