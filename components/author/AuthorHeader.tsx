@@ -4,9 +4,6 @@ import React from "react";
 import { motion } from "framer-motion";
 import Image from "next/image";
 
-import AuthorLikeButton from "./AuthorLikeButton";
-import ShareButton from "@/components/ui/ShareButton";
-
 interface AuthorHeaderProps {
     author: {
         id?: string;
@@ -14,11 +11,8 @@ interface AuthorHeaderProps {
         slug?: string;
         date_of_birth?: string | null;
         date_of_death?: string | null;
-        biography?: string | null;
         image_url?: string | null;
         signature_url?: string | null;
-        initialIsLiked?: boolean;
-        likesCount?: number;
     };
 }
 
@@ -34,7 +28,7 @@ export default function AuthorHeader({ author }: AuthorHeaderProps) {
     const dateRange = birthYear ? `${birthYear} - ${deathYear || 'Présent'}` : '';
 
     return (
-        <section className="relative w-full h-[60vh] min-h-[400px] flex justify-center overflow-hidden">
+        <section className="relative w-full h-[55vh] min-h-[380px] flex justify-center overflow-hidden">
             {/* Image de Fond (Cover) */}
             <div className="absolute inset-0 z-0">
                 {author.image_url ? (
@@ -70,48 +64,23 @@ export default function AuthorHeader({ author }: AuthorHeaderProps) {
                         </h1>
                     </motion.div>
 
-                    {/* Actions & Signature */}
-                    <motion.div
-                        initial={{ opacity: 0, x: 20 }}
-                        animate={{ opacity: 1, x: 0 }}
-                        transition={{ duration: 0.8, delay: 0.3, ease: "easeOut" }}
-                        className="flex items-center gap-3 pb-2 flex-wrap"
-                    >
-                        {author.id && author.slug && (
-                            <AuthorLikeButton
-                                authorId={author.id}
-                                slug={author.slug}
-                                initialIsLiked={author.initialIsLiked}
-                                initialLikesCount={author.likesCount}
+                    {/* Signature d'époque si disponible */}
+                    {author.signature_url && (
+                        <motion.div
+                            initial={{ opacity: 0, x: 20 }}
+                            animate={{ opacity: 1, x: 0 }}
+                            transition={{ duration: 0.8, delay: 0.3, ease: "easeOut" }}
+                            className="hidden md:block pb-2"
+                        >
+                            <img
+                                src={author.signature_url}
+                                alt={`Signature de ${author.name}`}
+                                className="h-14 lg:h-18 filter invert drop-shadow-[0_2px_10px_rgba(0,0,0,0.5)] opacity-80 mix-blend-screen"
+                                loading="lazy"
                             />
-                        )}
-
-                        <ShareButton variant="glass" ariaLabel="Partager cet auteur" />
-
-                        {author.signature_url && (
-                            <div className="hidden lg:block pl-2">
-                                <img
-                                    src={author.signature_url}
-                                    alt={`Signature de ${author.name}`}
-                                    className="h-14 lg:h-18 filter invert drop-shadow-[0_2px_10px_rgba(0,0,0,0.5)] opacity-80 mix-blend-screen"
-                                    loading="lazy"
-                                />
-                            </div>
-                        )}
-                    </motion.div>
+                        </motion.div>
+                    )}
                 </div>
-
-                {author.biography && (
-                    <motion.div
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        transition={{ duration: 0.8, delay: 0.2 }}
-                    >
-                        <p className="text-base sm:text-lg text-white/90 font-serif leading-relaxed drop-shadow-md line-clamp-3">
-                            {author.biography}
-                        </p>
-                    </motion.div>
-                )}
             </div>
         </section>
     );

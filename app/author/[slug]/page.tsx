@@ -2,6 +2,7 @@ import { notFound, redirect } from "next/navigation";
 import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
 import AuthorHeader from "@/components/author/AuthorHeader";
+import AuthorBioSidebar from "@/components/author/AuthorBioSidebar";
 import CollectionCard from "@/components/author/CollectionCard";
 import PoemCard from "@/components/ui/PoemCard";
 import { getAuthorWithWorks } from "@/utils/supabase/queries";
@@ -89,11 +90,8 @@ export default async function AuthorPage({ params }: { params: Promise<{ slug: s
                     slug: authorData.slug,
                     date_of_birth: authorData.date_of_birth,
                     date_of_death: authorData.date_of_death,
-                    biography: authorData.biography,
                     image_url: authorData.image_url,
                     signature_url: authorData.signature_url,
-                    initialIsLiked: isLiked,
-                    likesCount: authorData.likes_count || 0,
                 }} />
 
                 <div className="max-w-5xl mx-auto px-4 sm:px-6 py-16 md:py-24 grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-12">
@@ -150,22 +148,36 @@ export default async function AuthorPage({ params }: { params: Promise<{ slug: s
 
                     </div>
 
-                    {/* Colonne Latérale (À propos) */}
-                    <aside className="lg:col-span-4 flex flex-col gap-12 min-w-0 overflow-hidden">
-
-                        {/* SECTION: À propos */}
-                        {authorData.biography && (
-                            <FadeIn delay={0.6}>
-                                <h2 className="font-serif text-xl text-charcoal mb-6">À propos</h2>
-                                <div className="bg-paper p-6 md:p-8 rounded-2xl border border-soft-border">
-                                    <p className="text-charcoal/80 font-serif leading-relaxed text-sm mb-6 drop-cap">
-                                        {authorData.biography}
-                                    </p>
-                                </div>
-                            </FadeIn>
-                        )}
-
-                    </aside>
+                    {/* Colonne Latérale (Biographie, Repères & Actions) */}
+                    <div className="lg:col-span-4 min-w-0">
+                        <FadeIn delay={0.3}>
+                            <AuthorBioSidebar
+                                author={{
+                                    id: authorData.id,
+                                    name: authorData.name,
+                                    slug: authorData.slug,
+                                    biography: authorData.biography,
+                                    date_of_birth: authorData.date_of_birth,
+                                    date_of_death: authorData.date_of_death,
+                                    birth_place: authorData.birth_place,
+                                    death_place: authorData.death_place,
+                                    birth_place_detailed: authorData.birth_place_detailed,
+                                    death_place_detailed: authorData.death_place_detailed,
+                                    nationality: authorData.nationality,
+                                    language: authorData.language,
+                                    native_name: authorData.native_name,
+                                    movement: authorData.movement,
+                                    influenced_by: authorData.influenced_by,
+                                    signature_url: authorData.signature_url,
+                                    image_url: authorData.image_url,
+                                    likes_count: authorData.likes_count || 0,
+                                    poems_count: authorData.poems?.length || 0,
+                                    collections_count: authorData.collections?.length || 0,
+                                }}
+                                isLiked={isLiked}
+                            />
+                        </FadeIn>
+                    </div>
                 </div>
             </main>
 

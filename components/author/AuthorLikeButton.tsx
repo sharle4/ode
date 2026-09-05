@@ -14,6 +14,7 @@ interface AuthorLikeButtonProps {
     initialIsLiked?: boolean;
     initialLikesCount?: number;
     showCount?: boolean;
+    variant?: "default" | "glass";
     className?: string;
 }
 
@@ -23,6 +24,7 @@ export default function AuthorLikeButton({
     initialIsLiked = false,
     initialLikesCount = 0,
     showCount = true,
+    variant = "default",
     className = "",
 }: AuthorLikeButtonProps) {
     const router = useRouter();
@@ -73,6 +75,15 @@ export default function AuthorLikeButton({
         debouncedToggle(newState);
     };
 
+    const isGlass = variant === "glass";
+    const buttonClasses = isGlass
+        ? isLiked
+            ? "bg-accent/20 border-accent/60 text-white shadow-accent/20 backdrop-blur-md shadow-md border"
+            : "bg-black/30 border-white/20 text-white/90 hover:bg-black/40 hover:border-white/40 backdrop-blur-md shadow-md border"
+        : isLiked
+            ? "bg-accent/10 border-accent/40 text-accent shadow-sm border"
+            : "border-soft-border text-charcoal hover:bg-black/5 dark:hover:bg-white/5 hover:border-charcoal/30 border";
+
     return (
         <div className={`relative inline-flex items-center ${className}`}>
             <motion.button
@@ -82,11 +93,7 @@ export default function AuthorLikeButton({
                 whileHover={{ scale: 1.05 }}
                 onMouseEnter={() => setShowTooltip(true)}
                 onMouseLeave={() => setShowTooltip(false)}
-                className={`flex items-center justify-center gap-2 h-11 px-4 rounded-full backdrop-blur-md transition-all duration-200 select-none shadow-md border ${
-                    isLiked
-                        ? "bg-accent/20 border-accent/60 text-white shadow-accent/20"
-                        : "bg-black/30 border-white/20 text-white/90 hover:bg-black/40 hover:border-white/40"
-                }`}
+                className={`flex items-center justify-center gap-2 h-11 px-4 rounded-full transition-all duration-200 select-none ${buttonClasses}`}
                 aria-label={isLiked ? "Retirer des favoris" : "Ajouter aux favoris"}
             >
                 <motion.div
@@ -100,7 +107,7 @@ export default function AuthorLikeButton({
                     <Heart
                         size={20}
                         weight={isLiked ? "fill" : "regular"}
-                        className={isLiked ? "text-accent fill-accent" : "text-white"}
+                        className={isLiked ? "text-accent fill-accent" : (isGlass ? "text-white" : "text-charcoal")}
                     />
                 </motion.div>
 
@@ -109,7 +116,9 @@ export default function AuthorLikeButton({
                 </span>
 
                 {showCount && likesCount > 0 && (
-                    <span className="text-[11px] font-sans font-medium px-1.5 py-0.5 rounded-full bg-white/15 text-white">
+                    <span className={`text-[11px] font-sans font-medium px-1.5 py-0.5 rounded-full ${
+                        isGlass ? "bg-white/15 text-white" : "bg-black/5 dark:bg-white/10 text-warm-gray"
+                    }`}>
                         {likesCount}
                     </span>
                 )}
