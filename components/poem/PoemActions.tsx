@@ -44,12 +44,17 @@ export default function PoemActions({ poemId, initialIsLiked = false }: PoemActi
         const result = await executeLike({ poemId, slug, targetState: liked });
         if (result?.serverError || result?.validationErrors) {
             console.error("Erreur serveur lors du like:", result);
-            alert("Une erreur est survenue lors de l'enregistrement de votre like. Veuillez réessayer.");
-            // L'état optimistic revient automatiquement à isLiked en cas d'erreur
+            if (result?.serverError?.includes("connecté")) {
+                alert("Vous devez être connecté pour aimer ce poème.");
+                window.location.href = "/login";
+            } else {
+                alert("Une erreur est survenue lors de l'enregistrement de votre like. Veuillez réessayer.");
+            }
+            setIsLiked(!liked);
         } else {
             setIsLiked(liked);
         }
-    }, 500);
+    }, 400);
 
     const handleShare = () => {
         navigator.clipboard.writeText(window.location.href);

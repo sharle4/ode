@@ -86,7 +86,76 @@ export const toggleLike = authActionClient
             if (error) return { failure: 'Impossible de retirer votre like.' }
         }
 
-        return { success: true }
+        revalidateTag(CACHE_TAGS.poem(slug), undefined as never)
+        const { data: currentUser } = await supabase.from('users').select('username').eq('id', user.id).maybeSingle()
+        if (currentUser?.username) {
+            revalidateTag(CACHE_TAGS.profile(currentUser.username), undefined as never)
+        }
+
+        const { data: poemData } = await supabase.from('poems').select('likes_count').eq('id', poemId).maybeSingle()
+        return { success: true, isLiked: targetState, likesCount: poemData?.likes_count ?? 0 }
+    })
+
+export const toggleCollectionLike = authActionClient
+    .schema(z.object({
+        collectionId: z.string().uuid(),
+        slug: z.string().min(1),
+        targetState: z.boolean()
+    }))
+    .action(async ({ parsedInput: { collectionId, slug, targetState }, ctx: { supabase, user } }) => {
+        if (targetState) {
+            const { error } = await supabase.from('collection_likes')
+                .upsert({ user_id: user.id, collection_id: collectionId }, { onConflict: 'user_id,collection_id' })
+
+            if (error) return { failure: 'Impossible de liker ce recueil.' }
+        } else {
+            const { error } = await supabase.from('collection_likes')
+                .delete()
+                .eq('user_id', user.id)
+                .eq('collection_id', collectionId)
+
+            if (error) return { failure: 'Impossible de retirer votre like.' }
+        }
+
+        revalidateTag(CACHE_TAGS.collection(slug), undefined as never)
+        const { data: currentUser } = await supabase.from('users').select('username').eq('id', user.id).maybeSingle()
+        if (currentUser?.username) {
+            revalidateTag(CACHE_TAGS.profile(currentUser.username), undefined as never)
+        }
+
+        const { data: colData } = await supabase.from('collections').select('likes_count').eq('id', collectionId).maybeSingle()
+        return { success: true, isLiked: targetState, likesCount: colData?.likes_count ?? 0 }
+    })
+
+export const toggleAuthorLike = authActionClient
+    .schema(z.object({
+        authorId: z.string().uuid(),
+        slug: z.string().min(1),
+        targetState: z.boolean()
+    }))
+    .action(async ({ parsedInput: { authorId, slug, targetState }, ctx: { supabase, user } }) => {
+        if (targetState) {
+            const { error } = await supabase.from('author_likes')
+                .upsert({ user_id: user.id, author_id: authorId }, { onConflict: 'user_id,author_id' })
+
+            if (error) return { failure: 'Impossible de liker cet auteur.' }
+        } else {
+            const { error } = await supabase.from('author_likes')
+                .delete()
+                .eq('user_id', user.id)
+                .eq('author_id', authorId)
+
+            if (error) return { failure: 'Impossible de retirer votre like.' }
+        }
+
+        revalidateTag(CACHE_TAGS.author(slug), undefined as never)
+        const { data: currentUser } = await supabase.from('users').select('username').eq('id', user.id).maybeSingle()
+        if (currentUser?.username) {
+            revalidateTag(CACHE_TAGS.profile(currentUser.username), undefined as never)
+        }
+
+        const { data: authorData } = await supabase.from('authors').select('likes_count').eq('id', authorId).maybeSingle()
+        return { success: true, isLiked: targetState, likesCount: authorData?.likes_count ?? 0 }
     })
 
 export const highlightPoem = authActionClient

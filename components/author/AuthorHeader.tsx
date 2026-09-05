@@ -4,14 +4,21 @@ import React from "react";
 import { motion } from "framer-motion";
 import Image from "next/image";
 
+import { ShareNetwork } from "@phosphor-icons/react";
+import AuthorLikeButton from "./AuthorLikeButton";
+
 interface AuthorHeaderProps {
     author: {
+        id?: string;
         name: string;
+        slug?: string;
         date_of_birth?: string | null;
         date_of_death?: string | null;
         biography?: string | null;
         image_url?: string | null;
         signature_url?: string | null;
+        initialIsLiked?: boolean;
+        likesCount?: number;
     };
 }
 
@@ -63,21 +70,46 @@ export default function AuthorHeader({ author }: AuthorHeaderProps) {
                         </h1>
                     </motion.div>
 
-                    {author.signature_url && (
-                        <motion.div
-                            initial={{ opacity: 0, x: 20 }}
-                            animate={{ opacity: 1, x: 0 }}
-                            transition={{ duration: 0.8, delay: 0.4, ease: "easeOut" }}
-                            className="hidden md:block pb-2"
-                        >
-                            <img
-                                src={author.signature_url}
-                                alt={`Signature de ${author.name}`}
-                                className="h-16 lg:h-24 filter invert drop-shadow-[0_2px_10px_rgba(0,0,0,0.5)] opacity-80 mix-blend-screen"
-                                loading="lazy"
+                    {/* Actions & Signature */}
+                    <motion.div
+                        initial={{ opacity: 0, x: 20 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        transition={{ duration: 0.8, delay: 0.3, ease: "easeOut" }}
+                        className="flex items-center gap-3 pb-2 flex-wrap"
+                    >
+                        {author.id && author.slug && (
+                            <AuthorLikeButton
+                                authorId={author.id}
+                                slug={author.slug}
+                                initialIsLiked={author.initialIsLiked}
+                                initialLikesCount={author.likesCount}
                             />
-                        </motion.div>
-                    )}
+                        )}
+
+                        <button
+                            onClick={() => {
+                                if (typeof window !== "undefined") {
+                                    navigator.clipboard.writeText(window.location.href);
+                                    alert("Lien de l'auteur copié dans le presse-papiers !");
+                                }
+                            }}
+                            className="flex items-center justify-center w-11 h-11 rounded-full bg-black/30 border border-white/20 text-white hover:bg-black/40 hover:border-white/40 backdrop-blur-md transition-all duration-200"
+                            aria-label="Partager cet auteur"
+                        >
+                            <ShareNetwork size={20} />
+                        </button>
+
+                        {author.signature_url && (
+                            <div className="hidden lg:block pl-2">
+                                <img
+                                    src={author.signature_url}
+                                    alt={`Signature de ${author.name}`}
+                                    className="h-14 lg:h-18 filter invert drop-shadow-[0_2px_10px_rgba(0,0,0,0.5)] opacity-80 mix-blend-screen"
+                                    loading="lazy"
+                                />
+                            </div>
+                        )}
+                    </motion.div>
                 </div>
 
                 {author.biography && (

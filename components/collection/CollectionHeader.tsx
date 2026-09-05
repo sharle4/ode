@@ -5,9 +5,13 @@ import { motion } from "framer-motion";
 import { BookOpen, Heart, ShareNetwork } from "@phosphor-icons/react";
 import Link from "next/link";
 
+import CollectionLikeButton from "./CollectionLikeButton";
+
 interface CollectionHeaderProps {
     collection: {
+        id: string;
         title: string;
+        slug: string;
         authorName: string;
         authorSlug: string;
         year: number;
@@ -16,6 +20,8 @@ interface CollectionHeaderProps {
         description: string;
         averageReview?: number;
         reviewsCount?: number;
+        initialIsLiked?: boolean;
+        likesCount?: number;
     };
 }
 
@@ -83,10 +89,22 @@ export default function CollectionHeader({ collection }: CollectionHeaderProps) 
                             <BookOpen size={18} weight="fill" />
                             Commencer
                         </button>
-                        <button className="w-12 h-12 flex items-center justify-center rounded-full border border-soft-border text-charcoal hover:bg-black/5 dark:hover:bg-white/5 transition-colors" aria-label="Ajouter aux favoris">
-                            <Heart size={20} />
-                        </button>
-                        <button className="w-12 h-12 flex items-center justify-center rounded-full border border-soft-border text-charcoal hover:bg-black/5 dark:hover:bg-white/5 transition-colors" aria-label="Parcategoryer">
+                        <CollectionLikeButton
+                            collectionId={collection.id}
+                            slug={collection.slug}
+                            initialIsLiked={collection.initialIsLiked}
+                            initialLikesCount={collection.likesCount}
+                        />
+                        <button 
+                            onClick={() => {
+                                if (typeof window !== "undefined") {
+                                    navigator.clipboard.writeText(window.location.href);
+                                    alert("Lien du recueil copié dans le presse-papiers !");
+                                }
+                            }}
+                            className="w-11 h-11 flex items-center justify-center rounded-full border border-soft-border text-charcoal hover:bg-black/5 dark:hover:bg-white/5 transition-colors" 
+                            aria-label="Partager"
+                        >
                             <ShareNetwork size={20} />
                         </button>
                     </div>

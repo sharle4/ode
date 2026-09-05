@@ -8,6 +8,7 @@ import FadeIn from "@/components/ui/FadeIn";
 import { Metadata } from "next";
 import { getCollectionWithSections } from "@/utils/supabase/queries";
 import { getCoverGradient } from "@/utils/gradient";
+import { createClient } from "@/utils/supabase/server";
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
     const resolvedParams = await params;
@@ -37,6 +38,22 @@ export default async function CollectionPage({ params }: { params: Promise<{ slu
         redirect(`/collection/${collectionData.slug}`);
     }
 
+    // Check user like state
+    const supabase = await createClient();
+    const { data: userData } = await supabase.auth.getUser();
+    let isLiked = false;
+
+    if (userData?.user) {
+        const { data: likeData } = await supabase
+            .from('collection_likes')
+            .select('user_id')
+            .eq('user_id', userData.user.id)
+            .eq('collection_id', collectionData.id)
+            .maybeSingle();
+
+        if (likeData) isLiked = true;
+    }
+
     // Get author name from the collection's authors join
     const authorName = Array.isArray(collectionData.authors)
         ? collectionData.authors.map((a: any) => a.name).join(', ')
@@ -54,7 +71,9 @@ export default async function CollectionPage({ params }: { params: Promise<{ slu
             <main className="flex-grow">
                 {/* 1. Header du Recueil */}
                 <CollectionHeader collection={{
+                    id: collectionData.id,
                     title: collectionData.title,
+                    slug: collectionData.slug,
                     authorName,
                     authorSlug,
                     year: collectionData.publication_year || 0,
@@ -63,6 +82,8 @@ export default async function CollectionPage({ params }: { params: Promise<{ slu
                     description: collectionData.summary || '',
                     averageReview: collectionData.average_review || 0,
                     reviewsCount: collectionData.reviews_count || 0,
+                    initialIsLiked: isLiked,
+                    likesCount: collectionData.likes_count || 0,
                 }} />
 
                 {/* 2. Table des Matières */}

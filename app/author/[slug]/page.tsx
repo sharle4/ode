@@ -8,6 +8,7 @@ import { getAuthorWithWorks } from "@/utils/supabase/queries";
 import { Metadata } from "next";
 import Link from "next/link";
 import FadeIn from "@/components/ui/FadeIn";
+import { createClient } from "@/utils/supabase/server";
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
     const resolvedParams = await params;
@@ -39,6 +40,22 @@ export default async function AuthorPage({ params }: { params: Promise<{ slug: s
         redirect(`/author/${authorData.slug}`);
     }
 
+    // Check user like state
+    const supabase = await createClient();
+    const { data: userData } = await supabase.auth.getUser();
+    let isLiked = false;
+
+    if (userData?.user) {
+        const { data: likeData } = await supabase
+            .from('author_likes')
+            .select('user_id')
+            .eq('user_id', userData.user.id)
+            .eq('author_id', authorData.id)
+            .maybeSingle();
+
+        if (likeData) isLiked = true;
+    }
+
     // Extract year from date string safely
     function extractYear(dateStr: string | null | undefined): string {
         if (!dateStr) return '';
@@ -67,12 +84,16 @@ export default async function AuthorPage({ params }: { params: Promise<{ slug: s
             <main className="flex-grow">
                 {/* 1. Hero Header */}
                 <AuthorHeader author={{
+                    id: authorData.id,
                     name: authorData.name,
+                    slug: authorData.slug,
                     date_of_birth: authorData.date_of_birth,
                     date_of_death: authorData.date_of_death,
                     biography: authorData.biography,
                     image_url: authorData.image_url,
                     signature_url: authorData.signature_url,
+                    initialIsLiked: isLiked,
+                    likesCount: authorData.likes_count || 0,
                 }} />
 
                 <div className="max-w-5xl mx-auto px-4 sm:px-6 py-16 md:py-24 grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-12">

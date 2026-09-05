@@ -87,10 +87,11 @@ export default async function ProfilePage({ params }: ProfilePageProps) {
                                 )}
 
                                 {/* Stats Bar */}
-                                <div className="flex flex-wrap items-center gap-6 md:gap-10 w-full justify-center md:justify-start">
+                                <div className="flex flex-wrap items-center gap-6 md:gap-8 w-full justify-center md:justify-start">
                                     <StatBlock value={stats.reads} label="Poèmes lus" />
                                     <StatBlock value={stats.reviews} label="Avis" />
                                     <StatBlock value={stats.lists} label="Listes" />
+                                    <StatBlock value={userProfile.likesCount?.total || 0} label="Likes" />
                                     <div className="hidden md:block w-px h-8 bg-soft-border"></div>
                                     <StatBlock value={stats.followers} label="Abonnés" />
                                     <StatBlock value={stats.following} label="Abonnements" />
@@ -122,6 +123,11 @@ export default async function ProfilePage({ params }: ProfilePageProps) {
                             recentReviews={recentReviews}
                             badges={badges}
                             reviewDistribution={reviewDistribution}
+                            isOwner={isOwner}
+                            likedPoems={userProfile.likedPoems}
+                            likedCollections={userProfile.likedCollections}
+                            likedAuthors={userProfile.likedAuthors}
+                            likesCount={userProfile.likesCount}
                         />
                     </FadeIn>
                 </div>

@@ -5,6 +5,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useSearchParams, useRouter, usePathname } from "next/navigation";
 import PoemCard from "@/components/ui/PoemCard";
 import ProfileHome from "@/components/profile/ProfileHome";
+import ProfileLikes from "@/components/profile/ProfileLikes";
 
 interface ProfileTabsProps {
     username: string;
@@ -13,6 +14,11 @@ interface ProfileTabsProps {
     recentReviews?: any[];
     badges?: any[];
     reviewDistribution?: { stars: number; count: number }[];
+    isOwner?: boolean;
+    likedPoems?: any[];
+    likedCollections?: any[];
+    likedAuthors?: any[];
+    likesCount?: { poems: number; collections: number; authors: number; total: number };
 }
 
 const TABS = [
@@ -32,6 +38,11 @@ export default function ProfileTabs({
     recentReviews = [],
     badges = [],
     reviewDistribution = [],
+    isOwner = false,
+    likedPoems = [],
+    likedCollections = [],
+    likedAuthors = [],
+    likesCount,
 }: ProfileTabsProps) {
     const searchParams = useSearchParams();
     const router = useRouter();
@@ -160,9 +171,14 @@ export default function ProfileTabs({
                             animate={{ opacity: 1, y: 0 }}
                             exit={{ opacity: 0, y: -10 }}
                             transition={{ duration: 0.2 }}
-                            className="text-center py-20 text-warm-gray italic font-serif"
                         >
-                            Tous les poèmes aimés par {username}.
+                            <ProfileLikes
+                                username={username}
+                                isOwner={isOwner}
+                                initialLikedPoems={likedPoems}
+                                initialLikedCollections={likedCollections}
+                                initialLikedAuthors={likedAuthors}
+                            />
                         </motion.div>
                     )}
 
