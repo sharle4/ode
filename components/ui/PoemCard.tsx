@@ -96,9 +96,18 @@ const PoemCard = React.memo(function PoemCard({ poem, index, layout = "flex", ac
           {poem.title}
         </h3>
         
-        <p className="text-warm-gray text-xs md:text-[13px] font-sans tracking-wide uppercase mt-0.5 line-clamp-1">
-          {authorName}
+        <p className="text-warm-gray text-xs md:text-[13px] font-sans tracking-wide uppercase mt-0.5 line-clamp-1 flex items-center gap-1.5 flex-wrap">
+          <span>{authorName}</span>
+          {poem.publication_year && (
+            <span className="font-normal opacity-75">· {poem.publication_year}</span>
+          )}
         </p>
+
+        {typeof poem.snippet === "string" && poem.snippet && (
+          <p className="text-accent/90 text-xs italic font-serif mt-0.5 line-clamp-2">
+            « {poem.snippet} »
+          </p>
+        )}
       </div>
     </motion.article>
   );

@@ -25,7 +25,7 @@ interface NavbarSearchProps {
 }
 
 type NavigableItem =
-    | { type: "poem"; id: string; title: string; subtitle: string; href: string }
+    | { type: "poem"; id: string; title: string; subtitle: string; href: string; snippet?: string | null; year?: number | null; matchType?: string }
     | { type: "author"; id: string; title: string; subtitle: string; href: string; image_url?: string }
     | { type: "collection"; id: string; title: string; subtitle: string; href: string }
     | { type: "category"; id: string; title: string; subtitle: string; href: string; color?: string }
@@ -90,6 +90,7 @@ export default function NavbarSearch({ variant = "desktop", onNavigate }: Navbar
             setResults(null);
             setIsLoading(false);
             setIsOpen(false);
+            setSelectedIndex(-1);
             return;
         }
 
@@ -100,7 +101,8 @@ export default function NavbarSearch({ variant = "desktop", onNavigate }: Navbar
                 const data: SearchResults = await res.json();
                 setResults(data);
                 setIsOpen(true);
-                setSelectedIndex(-1);
+                // Pre-select top result for instant Enter redirection
+                setSelectedIndex(data.total > 0 ? 0 : -1);
             }
         } catch (error) {
             console.error("Search fetch failed:", error);
@@ -119,14 +121,26 @@ export default function NavbarSearch({ variant = "desktop", onNavigate }: Navbar
             setResults(null);
             setIsOpen(false);
             setIsLoading(false);
+            setSelectedIndex(-1);
         }
     };
+
+    // Determine whether Authors should precede Poems or vice-versa
+    const topPoem = results?.poems?.[0];
+    const isMultiWord = searchTerm.trim().split(/\s+/).length > 1;
+    const hasPoemSpecificIntent = Boolean(topPoem && (
+        topPoem.matchType === 'author_title' ||
+        topPoem.matchType === 'verse' ||
+        topPoem.matchType === 'cross_author' ||
+        isMultiWord
+    ));
+    const showAuthorsFirst = !hasPoemSpecificIntent && (results?.authors?.length || 0) > 0;
 
     // Construction de la liste aplatie pour la navigation au clavier
     const flatItems: NavigableItem[] = [];
 
-    if (results) {
-        (results.authors || []).slice(0, 3).forEach((a) => {
+    const pushAuthors = () => {
+        (results?.authors || []).slice(0, 3).forEach((a) => {
             flatItems.push({
                 type: "author",
                 id: `author-${a.id}`,
@@ -138,8 +152,10 @@ export default function NavbarSearch({ variant = "desktop", onNavigate }: Navbar
                 image_url: a.image_url,
             });
         });
+    };
 
-        (results.poems || []).slice(0, 4).forEach((p) => {
+    const pushPoems = () => {
+        (results?.poems || []).slice(0, 5).forEach((p) => {
             const authorName = p.authors?.length
                 ? p.authors.map((a: any) => a.name).join(", ")
                 : "Auteur inconnu";
@@ -149,8 +165,21 @@ export default function NavbarSearch({ variant = "desktop", onNavigate }: Navbar
                 title: p.title,
                 subtitle: `${authorName}${p.publication_year ? ` · ${p.publication_year}` : ""}`,
                 href: `/poem/${p.slug || p.id}`,
+                snippet: p.snippet,
+                year: p.publication_year,
+                matchType: p.matchType,
             });
         });
+    };
+
+    if (results) {
+        if (showAuthorsFirst) {
+            pushAuthors();
+            pushPoems();
+        } else {
+            pushPoems();
+            pushAuthors();
+        }
 
         (results.collections || []).slice(0, 2).forEach((c) => {
             const authorName = c.authors?.length
@@ -215,6 +244,8 @@ export default function NavbarSearch({ variant = "desktop", onNavigate }: Navbar
             e.preventDefault();
             if (selectedIndex >= 0 && selectedIndex < flatItems.length) {
                 handleNavigate(flatItems[selectedIndex].href);
+            } else if (flatItems.length > 0) {
+                handleNavigate(flatItems[0].href);
             } else if (searchTerm.trim()) {
                 handleNavigate(`/explore?q=${encodeURIComponent(searchTerm.trim())}`);
             }
@@ -237,6 +268,8 @@ export default function NavbarSearch({ variant = "desktop", onNavigate }: Navbar
         e.preventDefault();
         if (selectedIndex >= 0 && selectedIndex < flatItems.length) {
             handleNavigate(flatItems[selectedIndex].href);
+        } else if (flatItems.length > 0) {
+            handleNavigate(flatItems[0].href);
         } else if (searchTerm.trim()) {
             handleNavigate(`/explore?q=${encodeURIComponent(searchTerm.trim())}`);
         }
@@ -244,6 +277,150 @@ export default function NavbarSearch({ variant = "desktop", onNavigate }: Navbar
 
     const hasResults = results && results.total > 0;
     const isEmpty = results && results.total === 0 && !isLoading;
+
+    const renderAuthorsSection = () => {
+        if (!results?.authors || results.authors.length === 0) return null;
+        return (
+            <div key="section-authors" className="py-2 first:pt-1">
+                <div className="px-3 py-1.5 text-xs font-serif tracking-wider uppercase text-warm-gray flex items-center gap-1.5">
+                    <User size={13} weight="bold" />
+                    <span>Auteurs</span>
+                </div>
+                <div className="flex flex-col gap-0.5 mt-1">
+                    {results.authors.slice(0, 3).map((author) => {
+                        const itemIndex = flatItems.findIndex((fi) => fi.id === `author-${author.id}`);
+                        const isSelected = selectedIndex === itemIndex;
+                        return (
+                            <button
+                                key={author.id}
+                                type="button"
+                                onClick={() => handleNavigate(`/author/${author.slug}`)}
+                                onMouseEnter={() => setSelectedIndex(itemIndex)}
+                                className={`w-full flex items-center justify-between gap-3 px-3 py-2 rounded-xl text-left transition-colors cursor-pointer ${
+                                    isSelected ? "bg-accent/10" : "hover:bg-charcoal/5"
+                                }`}
+                            >
+                                <div className="flex items-center gap-3 min-w-0 flex-1">
+                                    <div className="w-9 h-9 rounded-full overflow-hidden flex-shrink-0 bg-charcoal/10 flex items-center justify-center font-serif text-xs font-medium text-charcoal">
+                                        {author.image_url ? (
+                                            <Image
+                                                src={author.image_url}
+                                                alt={author.name}
+                                                width={36}
+                                                height={36}
+                                                className="w-full h-full object-cover"
+                                            />
+                                        ) : (
+                                            <span>{getInitials(author.name)}</span>
+                                        )}
+                                    </div>
+                                    <div className="flex flex-col min-w-0 flex-1">
+                                        <span className={`text-sm font-medium truncate ${isSelected ? "text-accent font-semibold" : "text-charcoal"}`}>
+                                            {author.name}
+                                        </span>
+                                        <span className="text-xs text-warm-gray truncate">
+                                            {author.date_of_birth && author.date_of_death
+                                                ? `${author.date_of_birth.slice(0, 4)} – ${author.date_of_death.slice(0, 4)}`
+                                                : author.nationality || "Auteur"}
+                                        </span>
+                                    </div>
+                                </div>
+                                {isSelected && (
+                                    <span className="hidden sm:inline-flex items-center gap-1 px-2 py-0.5 rounded text-[11px] font-sans font-medium text-accent bg-accent/15 flex-shrink-0">
+                                        Entrée ↵
+                                    </span>
+                                )}
+                            </button>
+                        );
+                    })}
+                </div>
+            </div>
+        );
+    };
+
+    const renderPoemsSection = () => {
+        if (!results?.poems || results.poems.length === 0) return null;
+        return (
+            <div key="section-poems" className="py-2 first:pt-1">
+                <div className="px-3 py-1.5 text-xs font-serif tracking-wider uppercase text-warm-gray flex items-center justify-between">
+                    <div className="flex items-center gap-1.5">
+                        <Feather size={13} weight="bold" />
+                        <span>Poèmes</span>
+                    </div>
+                    {results.poems[0]?.matchType === 'author_title' && (
+                        <span className="text-[10px] text-accent font-sans font-medium tracking-normal">
+                            Accord titre & auteur
+                        </span>
+                    )}
+                </div>
+                <div className="flex flex-col gap-0.5 mt-1">
+                    {results.poems.slice(0, 5).map((poem) => {
+                        const itemIndex = flatItems.findIndex((fi) => fi.id === `poem-${poem.id}`);
+                        const isSelected = selectedIndex === itemIndex;
+                        const authorName = poem.authors?.length
+                            ? poem.authors.map((a: any) => a.name).join(", ")
+                            : "Auteur inconnu";
+
+                        return (
+                            <button
+                                key={poem.id}
+                                type="button"
+                                onClick={() => handleNavigate(`/poem/${poem.slug || poem.id}`)}
+                                onMouseEnter={() => setSelectedIndex(itemIndex)}
+                                className={`w-full flex items-center justify-between gap-3 px-3 py-2 rounded-xl text-left transition-colors cursor-pointer ${
+                                    isSelected ? "bg-accent/10" : "hover:bg-charcoal/5"
+                                }`}
+                            >
+                                <div className="flex flex-col min-w-0 flex-1">
+                                    <div className="flex items-center gap-2">
+                                        <span className={`text-sm font-serif font-medium truncate ${isSelected ? "text-accent font-semibold" : "text-charcoal"}`}>
+                                            {poem.title}
+                                        </span>
+                                        {poem.matchType === 'verse' && (
+                                            <span className="px-1.5 py-0.2 rounded text-[10px] font-sans font-medium bg-accent/15 text-accent">
+                                                Vers
+                                            </span>
+                                        )}
+                                        {poem.matchType === 'author_title' && (
+                                            <span className="px-1.5 py-0.2 rounded text-[10px] font-sans font-medium bg-charcoal/10 text-charcoal/80">
+                                                Titre & Auteur
+                                            </span>
+                                        )}
+                                    </div>
+                                    <div className="flex items-center gap-1.5 text-xs text-warm-gray truncate">
+                                        <span className="truncate">{authorName}</span>
+                                        {poem.publication_year && (
+                                            <>
+                                                <span>·</span>
+                                                <span className="font-sans font-medium text-charcoal/70">{poem.publication_year}</span>
+                                            </>
+                                        )}
+                                        {poem.collections?.title && (
+                                            <>
+                                                <span>·</span>
+                                                <span className="italic truncate">{poem.collections.title}</span>
+                                            </>
+                                        )}
+                                    </div>
+                                    {poem.snippet && (
+                                        <span className="text-xs italic text-accent font-serif truncate mt-0.5">
+                                            « {poem.snippet} »
+                                        </span>
+                                    )}
+                                </div>
+
+                                {isSelected && (
+                                    <span className="hidden sm:inline-flex items-center gap-1 px-2 py-0.5 rounded text-[11px] font-sans font-medium text-accent bg-accent/15 flex-shrink-0">
+                                        Entrée ↵
+                                    </span>
+                                )}
+                            </button>
+                        );
+                    })}
+                </div>
+            </div>
+        );
+    };
 
     return (
         <div ref={containerRef} className="relative w-full">
@@ -328,104 +505,16 @@ export default function NavbarSearch({ variant = "desktop", onNavigate }: Navbar
                         }`}
                     >
                         <div className="overflow-y-auto divide-y divide-soft-border/50 p-2">
-                            {/* Auteurs */}
-                            {results?.authors && results.authors.length > 0 && (
-                                <div className="py-2 first:pt-1">
-                                    <div className="px-3 py-1.5 text-xs font-serif tracking-wider uppercase text-warm-gray flex items-center gap-1.5">
-                                        <User size={13} weight="bold" />
-                                        <span>Auteurs</span>
-                                    </div>
-                                    <div className="flex flex-col gap-0.5 mt-1">
-                                        {results.authors.slice(0, 3).map((author) => {
-                                            const itemIndex = flatItems.findIndex(
-                                                (fi) => fi.id === `author-${author.id}`
-                                            );
-                                            const isSelected = selectedIndex === itemIndex;
-                                            return (
-                                                <button
-                                                    key={author.id}
-                                                    type="button"
-                                                    onClick={() => handleNavigate(`/author/${author.slug}`)}
-                                                    onMouseEnter={() => setSelectedIndex(itemIndex)}
-                                                    className={`w-full flex items-center gap-3 px-3 py-2 rounded-xl text-left transition-colors cursor-pointer ${
-                                                        isSelected ? "bg-accent/10" : "hover:bg-charcoal/5"
-                                                    }`}
-                                                >
-                                                    <div className="w-9 h-9 rounded-full overflow-hidden flex-shrink-0 bg-charcoal/10 flex items-center justify-center font-serif text-xs font-medium text-charcoal">
-                                                        {author.image_url ? (
-                                                            <Image
-                                                                src={author.image_url}
-                                                                alt={author.name}
-                                                                width={36}
-                                                                height={36}
-                                                                className="w-full h-full object-cover"
-                                                            />
-                                                        ) : (
-                                                            <span>{getInitials(author.name)}</span>
-                                                        )}
-                                                    </div>
-                                                    <div className="flex flex-col min-w-0 flex-1">
-                                                        <span className={`text-sm font-medium truncate ${isSelected ? "text-accent" : "text-charcoal"}`}>
-                                                            {author.name}
-                                                        </span>
-                                                        <span className="text-xs text-warm-gray truncate">
-                                                            {author.date_of_birth && author.date_of_death
-                                                                ? `${author.date_of_birth.slice(0, 4)} – ${author.date_of_death.slice(0, 4)}`
-                                                                : author.nationality || "Auteur"}
-                                                        </span>
-                                                    </div>
-                                                </button>
-                                            );
-                                        })}
-                                    </div>
-                                </div>
-                            )}
-
-                            {/* Poèmes */}
-                            {results?.poems && results.poems.length > 0 && (
-                                <div className="py-2 first:pt-1">
-                                    <div className="px-3 py-1.5 text-xs font-serif tracking-wider uppercase text-warm-gray flex items-center gap-1.5">
-                                        <Feather size={13} weight="bold" />
-                                        <span>Poèmes</span>
-                                    </div>
-                                    <div className="flex flex-col gap-0.5 mt-1">
-                                        {results.poems.slice(0, 4).map((poem) => {
-                                            const itemIndex = flatItems.findIndex(
-                                                (fi) => fi.id === `poem-${poem.id}`
-                                            );
-                                            const isSelected = selectedIndex === itemIndex;
-                                            const authorName = poem.authors?.length
-                                                ? poem.authors.map((a: any) => a.name).join(", ")
-                                                : "Auteur inconnu";
-
-                                            return (
-                                                <button
-                                                    key={poem.id}
-                                                    type="button"
-                                                    onClick={() => handleNavigate(`/poem/${poem.slug || poem.id}`)}
-                                                    onMouseEnter={() => setSelectedIndex(itemIndex)}
-                                                    className={`w-full flex items-center justify-between gap-3 px-3 py-2 rounded-xl text-left transition-colors cursor-pointer ${
-                                                        isSelected ? "bg-accent/10" : "hover:bg-charcoal/5"
-                                                    }`}
-                                                >
-                                                    <div className="flex flex-col min-w-0 flex-1">
-                                                        <span className={`text-sm font-serif font-medium truncate ${isSelected ? "text-accent" : "text-charcoal"}`}>
-                                                            {poem.title}
-                                                        </span>
-                                                        <span className="text-xs text-warm-gray truncate">
-                                                            {authorName}
-                                                        </span>
-                                                    </div>
-                                                    {poem.publication_year && (
-                                                        <span className="text-xs text-warm-gray font-sans flex-shrink-0">
-                                                            {poem.publication_year}
-                                                        </span>
-                                                    )}
-                                                </button>
-                                            );
-                                        })}
-                                    </div>
-                                </div>
+                            {showAuthorsFirst ? (
+                                <>
+                                    {renderAuthorsSection()}
+                                    {renderPoemsSection()}
+                                </>
+                            ) : (
+                                <>
+                                    {renderPoemsSection()}
+                                    {renderAuthorsSection()}
+                                </>
                             )}
 
                             {/* Recueils */}

@@ -730,6 +730,19 @@ export const getPoemReviewDistribution = (poemId: string) => executeCachedQuery(
 
 // ── SEARCH CATALOG ──
 
+export function normalizeSearchQuery(input: string): string {
+    if (!input) return '';
+    return input
+        .replace(/[’‘ʼ´`]/g, "'") // typographic apostrophes to ASCII '
+        .replace(/œ/g, 'oe')
+        .replace(/Œ/g, 'Oe')
+        .replace(/æ/g, 'ae')
+        .replace(/Æ/g, 'Ae')
+        .replace(/[—–]/g, '-') // typographic dashes
+        .replace(/\s+/g, ' ') // collapse whitespace
+        .trim();
+}
+
 export interface SearchOptions {
     limit?: number;
     includeVerses?: boolean;
@@ -745,8 +758,8 @@ export const searchCatalog = async (
     categories: any[];
     total: number;
 }> => {
-    const query = (rawQuery || '').trim();
-    if (!query) {
+    const cleanQuery = normalizeSearchQuery(rawQuery);
+    if (!cleanQuery) {
         return { poems: [], authors: [], collections: [], categories: [], total: 0 };
     }
 
@@ -754,18 +767,62 @@ export const searchCatalog = async (
 
     return executeCachedQuery(
         {
-            keyParts: [`search-${query.toLowerCase()}-${limit}`],
+            keyParts: [`search-v3-${cleanQuery.toLowerCase()}-${limit}`],
             tags: ['search'],
             revalidate: 300, // 5 minutes cache
             errorMessage: 'Database Error searching catalog:'
         },
         async (supabase) => {
-            // 1. Search in parallel: authors, title matches for poems, collections, and categories
+            // 1. Primary strategy: Call high-performance RPC function search_catalog_v2
+            try {
+                const { data, error } = await supabase.rpc('search_catalog_v2', {
+                    query_text: cleanQuery,
+                    match_limit: limit
+                });
+
+                if (!error && data && typeof data === 'object') {
+                    const poems = (data.poems || []).map((p: any) => ({
+                        ...p,
+                        authors: Array.isArray(p.authors) ? p.authors : [],
+                        collections: p.collections || null,
+                        rothko_params: Array.isArray(p.rothko_params) ? p.rothko_params[0] : p.rothko_params,
+                    }));
+
+                    const authors = data.authors || [];
+                    const collections = (data.collections || []).map((col: any) => ({
+                        ...col,
+                        authors: Array.isArray(col.authors) ? col.authors : []
+                    }));
+                    const categories = data.categories || [];
+                    const total = data.total ?? (poems.length + authors.length + collections.length + categories.length);
+
+                    return {
+                        poems,
+                        authors,
+                        collections,
+                        categories,
+                        total
+                    };
+                }
+                if (error) {
+                    console.warn('RPC search_catalog_v2 returned error, falling back:', error.message);
+                }
+            } catch (rpcErr) {
+                console.warn('RPC search_catalog_v2 failed, falling back to multi-table search:', rpcErr);
+            }
+
+            // 2. Resilient fallback strategy: Intelligent multi-table query
+            const yearMatch = cleanQuery.match(/\b(1[4-9]\d{2}|20\d{2})\b/);
+            const extractedYear = yearMatch ? parseInt(yearMatch[1], 10) : null;
+            const queryWithoutYear = extractedYear
+                ? cleanQuery.replace(/\b(1[4-9]\d{2}|20\d{2})\b/, '').trim()
+                : cleanQuery;
+
             const [authorsRes, poemsByTitleRes, collectionsRes, categoriesRes] = await Promise.all([
                 supabase
                     .from('authors')
                     .select('id, name, slug, image_url, date_of_birth, date_of_death, nationality, movement')
-                    .ilike('name', `%${query}%`)
+                    .ilike('name', `%${cleanQuery}%`)
                     .limit(10),
                 supabase
                     .from('poems')
@@ -775,7 +832,7 @@ export const searchCatalog = async (
                         collections(id, title, slug),
                         rothko_params(seed, palette_id, shape_type, layout_bias, complexity, texture_profile, blend_mode, density, opacity_style)
                     `)
-                    .ilike('title', `%${query}%`)
+                    .ilike('title', `%${queryWithoutYear || cleanQuery}%`)
                     .order('reads_count', { ascending: false })
                     .limit(limit),
                 supabase
@@ -784,12 +841,12 @@ export const searchCatalog = async (
                         id, title, slug, publication_year, poems_count, cover_url,
                         authors:collection_authors(authors(id, name, slug))
                     `)
-                    .ilike('title', `%${query}%`)
+                    .ilike('title', `%${cleanQuery}%`)
                     .limit(10),
                 supabase
                     .from('categories')
                     .select('id, name, slug, type, color, ornament_id, description')
-                    .or(`name.ilike.%${query}%,description.ilike.%${query}%`)
+                    .or(`name.ilike.%${cleanQuery}%,description.ilike.%${cleanQuery}%`)
                     .limit(8)
             ]);
 
@@ -800,54 +857,43 @@ export const searchCatalog = async (
             }));
             const categories = categoriesRes.data || [];
 
-            // Flatten poems
             const poemMap = new Map<string, any>();
             (poemsByTitleRes.data || []).forEach((p: any) => {
                 const formatted = {
                     ...p,
                     authors: (p.authors || []).map((a: any) => a.authors).filter(Boolean),
-                    rothko_params: Array.isArray(p.rothko_params) ? p.rothko_params[0] : p.rothko_params
+                    rothko_params: Array.isArray(p.rothko_params) ? p.rothko_params[0] : p.rothko_params,
+                    matchType: 'title'
                 };
                 poemMap.set(p.id, formatted);
             });
 
-            // 2. If matching authors were found, enrich with famous poems by those authors
-            if (authors.length > 0 && poemMap.size < limit) {
-                const authorIds = authors.map((a: any) => a.id);
-                const { data: authorPoemLinks } = await supabase
-                    .from('poem_authors')
-                    .select('poem_id')
-                    .in('author_id', authorIds)
-                    .limit(limit);
+            // If year specified, boost matching year poems
+            if (extractedYear) {
+                const { data: yearPoems } = await supabase
+                    .from('poems')
+                    .select(`
+                        id, title, slug, publication_year, average_review, reviews_count, reads_count,
+                        authors:poem_authors(authors(id, name, slug)),
+                        collections(id, title, slug),
+                        rothko_params(seed, palette_id, shape_type, layout_bias, complexity, texture_profile, blend_mode, density, opacity_style)
+                    `)
+                    .eq('publication_year', extractedYear)
+                    .ilike('title', `%${queryWithoutYear}%`)
+                    .limit(10);
 
-                const missingPoemIds = (authorPoemLinks || [])
-                    .map((l: any) => l.poem_id)
-                    .filter((id: string) => !poemMap.has(id));
-
-                if (missingPoemIds.length > 0) {
-                    const { data: authorPoems } = await supabase
-                        .from('poems')
-                        .select(`
-                            id, title, slug, publication_year, average_review, reviews_count, reads_count,
-                            authors:poem_authors(authors(id, name, slug)),
-                            collections(id, title, slug),
-                            rothko_params(seed, palette_id, shape_type, layout_bias, complexity, texture_profile, blend_mode, density, opacity_style)
-                        `)
-                        .in('id', missingPoemIds.slice(0, limit - poemMap.size))
-                        .order('reads_count', { ascending: false });
-
-                    (authorPoems || []).forEach((p: any) => {
-                        poemMap.set(p.id, {
-                            ...p,
-                            authors: (p.authors || []).map((a: any) => a.authors).filter(Boolean),
-                            rothko_params: Array.isArray(p.rothko_params) ? p.rothko_params[0] : p.rothko_params
-                        });
+                (yearPoems || []).forEach((p: any) => {
+                    poemMap.set(p.id, {
+                        ...p,
+                        authors: (p.authors || []).map((a: any) => a.authors).filter(Boolean),
+                        rothko_params: Array.isArray(p.rothko_params) ? p.rothko_params[0] : p.rothko_params,
+                        matchType: 'year'
                     });
-                }
+                });
             }
 
-            // 3. If we have few poem matches and query is >= 3 chars, search poem normalized_text (verses)
-            if (includeVerses && poemMap.size < 6 && query.length >= 3) {
+            // Search verses if needed
+            if (includeVerses && poemMap.size < 6 && cleanQuery.length >= 3) {
                 const { data: versePoems } = await supabase
                     .from('poems')
                     .select(`
@@ -856,7 +902,7 @@ export const searchCatalog = async (
                         collections(id, title, slug),
                         rothko_params(seed, palette_id, shape_type, layout_bias, complexity, texture_profile, blend_mode, density, opacity_style)
                     `)
-                    .ilike('normalized_text', `%${query}%`)
+                    .ilike('normalized_text', `%${cleanQuery}%`)
                     .limit(limit - poemMap.size);
 
                 (versePoems || []).forEach((p: any) => {
@@ -884,4 +930,5 @@ export const searchCatalog = async (
         }
     );
 };
+
 
