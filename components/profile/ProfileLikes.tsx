@@ -147,8 +147,8 @@ export default function ProfileLikes({
                                 onClick={() => setActiveCategory(tab.id)}
                                 className={`relative px-4 py-2 text-xs md:text-sm font-medium rounded-lg transition-all select-none flex items-center gap-2 ${
                                     isActive
-                                        ? "text-charcoal dark:text-cream shadow-sm"
-                                        : "text-warm-gray hover:text-charcoal dark:hover:text-cream"
+                                        ? "text-charcoal shadow-sm"
+                                        : "text-warm-gray hover:text-charcoal"
                                 }`}
                             >
                                 {isActive && (
@@ -185,7 +185,7 @@ export default function ProfileLikes({
                             value={searchQuery}
                             onChange={(e) => setSearchQuery(e.target.value)}
                             placeholder="Rechercher..."
-                            className="w-full pl-9 pr-8 py-2 text-xs md:text-sm rounded-full bg-paper dark:bg-zinc-900 border border-soft-border text-charcoal dark:text-cream focus:outline-none focus:ring-1 focus:ring-accent focus:border-accent transition-all placeholder:text-warm-gray/60"
+                            className="w-full pl-9 pr-8 py-2 text-xs md:text-sm rounded-full bg-paper dark:bg-zinc-900 border border-soft-border text-charcoal focus:outline-none focus:ring-1 focus:ring-accent focus:border-accent transition-all placeholder:text-warm-gray/60"
                         />
                         {searchQuery && (
                             <button
@@ -209,7 +209,7 @@ export default function ProfileLikes({
                     <div className="w-16 h-16 rounded-full bg-accent/10 text-accent flex items-center justify-center mb-2 shadow-inner">
                         <Heart size={32} weight="duotone" />
                     </div>
-                    <h3 className="font-serif text-2xl text-charcoal dark:text-cream">
+                    <h3 className="font-serif text-2xl text-charcoal">
                         Aucun favori pour le moment
                     </h3>
                     <p className="font-serif italic text-warm-gray text-sm md:text-base max-w-md">
@@ -239,7 +239,7 @@ export default function ProfileLikes({
                                 <div className="flex items-center justify-between border-b border-soft-border pb-3">
                                     <div className="flex items-center gap-2">
                                         <Feather size={20} className="text-accent" />
-                                        <h3 className="font-serif text-xl text-charcoal dark:text-cream">
+                                        <h3 className="font-serif text-xl text-charcoal">
                                             Poèmes Favoris
                                         </h3>
                                         <span className="text-xs text-warm-gray font-mono">
@@ -288,7 +288,7 @@ export default function ProfileLikes({
                                 <div className="flex items-center justify-between border-b border-soft-border pb-3">
                                     <div className="flex items-center gap-2">
                                         <BookOpen size={20} className="text-accent" />
-                                        <h3 className="font-serif text-xl text-charcoal dark:text-cream">
+                                        <h3 className="font-serif text-xl text-charcoal">
                                             Recueils Favoris
                                         </h3>
                                         <span className="text-xs text-warm-gray font-mono">
@@ -320,7 +320,7 @@ export default function ProfileLikes({
                                         ).map((col, idx) => {
                                             const coverColor = getCoverGradient(col.slug);
                                             const authorName =
-                                                col.authors?.map((a) => a.name).join(", ") ||
+                                                 col.authors?.map((a) => a.name).join(", ") ||
                                                 "Auteur inconnu";
 
                                             return (
@@ -377,7 +377,7 @@ export default function ProfileLikes({
                                 <div className="flex items-center justify-between border-b border-soft-border pb-3">
                                     <div className="flex items-center gap-2">
                                         <Sparkle size={20} className="text-accent" />
-                                        <h3 className="font-serif text-xl text-charcoal dark:text-cream">
+                                        <h3 className="font-serif text-xl text-charcoal">
                                             Auteurs Favoris
                                         </h3>
                                         <span className="text-xs text-warm-gray font-mono">
@@ -431,7 +431,7 @@ export default function ProfileLikes({
                                                                     className="w-full h-full object-cover filter grayscale group-hover:grayscale-0 transition-all duration-500"
                                                                 />
                                                             ) : (
-                                                                <div className="w-full h-full flex items-center justify-center font-serif text-2xl text-charcoal/60 dark:text-cream/60">
+                                                                <div className="w-full h-full flex items-center justify-center font-serif text-2xl text-charcoal/60">
                                                                     {getInitials(author.name)}
                                                                 </div>
                                                             )}
@@ -439,7 +439,7 @@ export default function ProfileLikes({
                                                     </div>
 
                                                     {/* Info */}
-                                                    <h4 className="font-serif text-sm sm:text-base text-charcoal dark:text-cream group-hover:text-accent transition-colors font-medium line-clamp-1">
+                                                    <h4 className="font-serif text-sm sm:text-base text-charcoal group-hover:text-accent transition-colors font-medium line-clamp-1">
                                                         {author.name}
                                                     </h4>
 

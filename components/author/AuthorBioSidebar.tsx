@@ -61,17 +61,6 @@ function formatDateFr(dateStr?: string | null): string | null {
     return match ? match[0] : dateStr;
 }
 
-function calculateAge(birthStr?: string | null, deathStr?: string | null): number | null {
-    if (!birthStr || !deathStr) return null;
-    const bMatch = birthStr.match(/(\d{4})/);
-    const dMatch = deathStr.match(/(\d{4})/);
-    if (bMatch && dMatch) {
-        const age = parseInt(dMatch[1], 10) - parseInt(bMatch[1], 10);
-        return age > 0 && age < 130 ? age : null;
-    }
-    return null;
-}
-
 function getCentury(dateStr?: string | null): string | null {
     if (!dateStr) return null;
     const match = dateStr.match(/(\d{4})/);
@@ -117,7 +106,6 @@ export default function AuthorBioSidebar({ author, isLiked = false }: AuthorBioS
 
     const formattedBirth = formatDateFr(author.date_of_birth);
     const formattedDeath = formatDateFr(author.date_of_death);
-    const ageAtDeath = calculateAge(author.date_of_birth, author.date_of_death);
 
     const bioText = (author.biography && author.biography.trim().length > 0)
         ? author.biography
@@ -137,7 +125,7 @@ export default function AuthorBioSidebar({ author, isLiked = false }: AuthorBioS
         <aside className="lg:sticky lg:top-28 flex flex-col gap-6 w-full">
             {/* Carte Principale Biographie & Identité */}
             <div className="bg-paper dark:bg-zinc-900 border border-soft-border rounded-3xl p-6 sm:p-7 shadow-sm transition-all duration-300 hover:shadow-md">
-                
+
                 {/* 1. Barre d'Actions : Like & Partage */}
                 <div className="flex items-center justify-between gap-3 pb-5 mb-5 border-b border-soft-border">
                     <div className="flex items-center gap-2">
@@ -189,7 +177,7 @@ export default function AuthorBioSidebar({ author, isLiked = false }: AuthorBioS
                 {bioText && (
                     <div className="mb-6">
                         <div className="flex items-center justify-between mb-3">
-                            <h2 className="font-serif text-lg md:text-xl text-charcoal dark:text-cream font-medium">
+                            <h2 className="font-serif text-lg md:text-xl text-charcoal font-medium">
                                 Biographie
                             </h2>
                             {author.native_name && author.native_name !== author.name && (
@@ -200,7 +188,7 @@ export default function AuthorBioSidebar({ author, isLiked = false }: AuthorBioS
                         </div>
 
                         <div className="relative">
-                            <p className="font-serif text-charcoal/85 dark:text-cream/85 text-sm md:text-[15px] leading-relaxed drop-cap text-justify">
+                            <p className="font-serif text-charcoal/90 text-sm md:text-[15px] leading-relaxed text-justify">
                                 {displayBio}
                             </p>
 
@@ -234,14 +222,14 @@ export default function AuthorBioSidebar({ author, isLiked = false }: AuthorBioS
                             Repères biographiques
                         </h3>
 
-                        <div className="flex flex-col gap-2.5 text-xs text-charcoal/90 dark:text-cream/90 font-sans">
+                        <div className="flex flex-col gap-2.5 text-xs text-charcoal font-sans">
                             {(formattedBirth || author.birth_place) && (
                                 <div className="flex items-start gap-2.5">
                                     <div className="w-5 h-5 rounded-full bg-black/5 dark:bg-white/5 flex items-center justify-center text-warm-gray flex-shrink-0 mt-0.5">
                                         <CalendarBlank size={12} />
                                     </div>
                                     <div className="flex flex-col">
-                                        <span className="font-medium">
+                                        <span className="font-medium text-charcoal">
                                             Naissance {formattedBirth ? `le ${formattedBirth}` : ""}
                                         </span>
                                         {author.birth_place && (
@@ -260,9 +248,8 @@ export default function AuthorBioSidebar({ author, isLiked = false }: AuthorBioS
                                         <CalendarBlank size={12} />
                                     </div>
                                     <div className="flex flex-col">
-                                        <span className="font-medium">
+                                        <span className="font-medium text-charcoal">
                                             Décès {formattedDeath ? `le ${formattedDeath}` : ""}
-                                            {ageAtDeath ? ` (à ${ageAtDeath} ans)` : ""}
                                         </span>
                                         {author.death_place && (
                                             <span className="text-warm-gray text-[11px] flex items-center gap-1 mt-0.5">
@@ -288,7 +275,7 @@ export default function AuthorBioSidebar({ author, isLiked = false }: AuthorBioS
                             {author.influenced_by!.map((influencer, idx) => (
                                 <span
                                     key={idx}
-                                    className="font-serif italic text-xs px-2.5 py-1 rounded-lg bg-black/[0.03] dark:bg-white/[0.03] border border-soft-border text-charcoal/80 dark:text-cream/80"
+                                    className="font-serif italic text-xs px-2.5 py-1 rounded-lg bg-black/[0.03] dark:bg-white/[0.05] border border-soft-border text-charcoal/90"
                                 >
                                     {influencer}
                                 </span>
@@ -300,7 +287,7 @@ export default function AuthorBioSidebar({ author, isLiked = false }: AuthorBioS
                 {/* 6. Chiffres Clés de l'Œuvre */}
                 <div className="pt-5 border-t border-soft-border grid grid-cols-3 gap-2 text-center">
                     <div className="flex flex-col p-2.5 rounded-2xl bg-black/[0.02] dark:bg-white/[0.02] border border-soft-border">
-                        <span className="font-serif text-lg sm:text-xl text-charcoal dark:text-cream font-medium">
+                        <span className="font-serif text-lg sm:text-xl text-charcoal font-medium">
                             {author.poems_count || 0}
                         </span>
                         <span className="text-[10px] uppercase tracking-wider text-warm-gray font-sans mt-0.5">
@@ -309,7 +296,7 @@ export default function AuthorBioSidebar({ author, isLiked = false }: AuthorBioS
                     </div>
 
                     <div className="flex flex-col p-2.5 rounded-2xl bg-black/[0.02] dark:bg-white/[0.02] border border-soft-border">
-                        <span className="font-serif text-lg sm:text-xl text-charcoal dark:text-cream font-medium">
+                        <span className="font-serif text-lg sm:text-xl text-charcoal font-medium">
                             {author.collections_count || 0}
                         </span>
                         <span className="text-[10px] uppercase tracking-wider text-warm-gray font-sans mt-0.5">
@@ -330,9 +317,6 @@ export default function AuthorBioSidebar({ author, isLiked = false }: AuthorBioS
                 {/* 7. Signature Littéraire d'époque */}
                 {author.signature_url && (
                     <div className="pt-5 mt-5 border-t border-soft-border flex flex-col items-center justify-center">
-                        <span className="text-[10px] uppercase tracking-widest text-warm-gray/70 font-sans mb-2">
-                            Signature autographe
-                        </span>
                         <div className="h-12 w-auto flex items-center justify-center opacity-75 hover:opacity-100 transition-opacity">
                             <img
                                 src={author.signature_url}

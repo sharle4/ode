@@ -60,7 +60,7 @@ export default function ShareButton({
 
             {/* Infobulle standard au hover (masquée lorsque le lien est copié) */}
             <div
-                className={`absolute bottom-full mb-2.5 left-1/2 -translate-x-1/2 px-2.5 py-1.5 bg-paper dark:bg-zinc-900 border border-soft-border text-charcoal dark:text-cream text-[10px] uppercase tracking-widest rounded shadow-md transition-opacity whitespace-nowrap pointer-events-none flex items-center justify-center z-20 ${
+                className={`absolute bottom-full mb-2.5 left-1/2 -translate-x-1/2 px-2.5 py-1.5 bg-paper dark:bg-zinc-900 border border-soft-border text-charcoal text-[10px] uppercase tracking-widest rounded shadow-md transition-opacity whitespace-nowrap pointer-events-none flex items-center justify-center z-20 ${
                     showCopied ? "opacity-0" : "opacity-0 group-hover:opacity-100"
                 }`}
             >
