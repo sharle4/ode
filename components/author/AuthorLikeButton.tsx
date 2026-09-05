@@ -76,6 +76,7 @@ export default function AuthorLikeButton({
     return (
         <div className={`relative inline-flex items-center ${className}`}>
             <motion.button
+                type="button"
                 onClick={handleClick}
                 whileTap={{ scale: 0.88 }}
                 whileHover={{ scale: 1.05 }}

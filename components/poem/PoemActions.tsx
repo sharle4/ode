@@ -132,6 +132,7 @@ export default function PoemActions({ poemId, initialIsLiked = false }: PoemActi
                 {actionButtons.map((btn) => (
                     <motion.button
                         key={btn.id}
+                        type="button"
                         onClick={btn.onClick}
                         className="group relative flex items-center justify-center w-12 h-12 rounded-full hover:bg-charcoal/5 transition-colors"
                         whileTap={{ scale: 0.9 }}

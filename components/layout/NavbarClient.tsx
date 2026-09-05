@@ -226,6 +226,13 @@ const NavbarClient = React.memo(function NavbarClient({ userProfile }: { userPro
       </AnimatePresence>
     </>
   );
+}, (prevProps, nextProps) => {
+  return (
+    prevProps.userProfile?.id === nextProps.userProfile?.id &&
+    prevProps.userProfile?.username === nextProps.userProfile?.username &&
+    prevProps.userProfile?.avatar_url === nextProps.userProfile?.avatar_url &&
+    prevProps.userProfile?.email === nextProps.userProfile?.email
+  );
 });
 
 export default NavbarClient;

@@ -503,14 +503,9 @@ export const getCategoryWithContent = (slug: string) => executeCachedQuery(
 
 // ── USER PROFILE ──
 
-export const getUserProfileByUsername = (username: string) => executeCachedQuery(
-    {
-        keyParts: [CACHE_TAGS.profile(username), 'v3'],
-        tags: [CACHE_TAGS.profile(username)],
-        revalidate: 300,
-        errorMessage: 'Database Error fetching user profile:'
-    },
-    async (supabase) => {
+export const getUserProfileByUsername = async (username: string) => {
+    try {
+        const supabase = getPublicClient();
         // 1. Fetch user profile
         const { data: user } = await supabase
             .from('users')
@@ -699,8 +694,11 @@ export const getUserProfileByUsername = (username: string) => executeCachedQuery
             likedAuthors,
             likesCount,
         };
+    } catch (error) {
+        console.error('Database Error fetching user profile:', error);
+        throw error;
     }
-);
+};
 
 // ── POEM REVIEW DISTRIBUTION ──
 

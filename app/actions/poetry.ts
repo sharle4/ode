@@ -86,12 +86,6 @@ export const toggleLike = authActionClient
             if (error) return { failure: 'Impossible de retirer votre like.' }
         }
 
-        // Invalidate user profile so the likes tab reflects changes without forcing a full page refresh here
-        const { data: currentUser } = await supabase.from('users').select('username').eq('id', user.id).maybeSingle()
-        if (currentUser?.username) {
-            revalidateTag(CACHE_TAGS.profile(currentUser.username), undefined as never)
-        }
-
         const { data: poemData } = await supabase.from('poems').select('likes_count').eq('id', poemId).maybeSingle()
         return { success: true, isLiked: targetState, likesCount: poemData?.likes_count ?? 0 }
     })
@@ -117,12 +111,6 @@ export const toggleCollectionLike = authActionClient
             if (error) return { failure: 'Impossible de retirer votre like.' }
         }
 
-        // Invalidate user profile so the likes tab reflects changes without forcing a full page refresh here
-        const { data: currentUser } = await supabase.from('users').select('username').eq('id', user.id).maybeSingle()
-        if (currentUser?.username) {
-            revalidateTag(CACHE_TAGS.profile(currentUser.username), undefined as never)
-        }
-
         const { data: colData } = await supabase.from('collections').select('likes_count').eq('id', collectionId).maybeSingle()
         return { success: true, isLiked: targetState, likesCount: colData?.likes_count ?? 0 }
     })
@@ -146,12 +134,6 @@ export const toggleAuthorLike = authActionClient
                 .eq('author_id', authorId)
 
             if (error) return { failure: 'Impossible de retirer votre like.' }
-        }
-
-        // Invalidate user profile so the likes tab reflects changes without forcing a full page refresh here
-        const { data: currentUser } = await supabase.from('users').select('username').eq('id', user.id).maybeSingle()
-        if (currentUser?.username) {
-            revalidateTag(CACHE_TAGS.profile(currentUser.username), undefined as never)
         }
 
         const { data: authorData } = await supabase.from('authors').select('likes_count').eq('id', authorId).maybeSingle()
