@@ -86,7 +86,7 @@ export const toggleLike = authActionClient
             if (error) return { failure: 'Impossible de retirer votre like.' }
         }
 
-        revalidateTag(CACHE_TAGS.poem(slug), undefined as never)
+        // Invalidate user profile so the likes tab reflects changes without forcing a full page refresh here
         const { data: currentUser } = await supabase.from('users').select('username').eq('id', user.id).maybeSingle()
         if (currentUser?.username) {
             revalidateTag(CACHE_TAGS.profile(currentUser.username), undefined as never)
@@ -117,7 +117,7 @@ export const toggleCollectionLike = authActionClient
             if (error) return { failure: 'Impossible de retirer votre like.' }
         }
 
-        revalidateTag(CACHE_TAGS.collection(slug), undefined as never)
+        // Invalidate user profile so the likes tab reflects changes without forcing a full page refresh here
         const { data: currentUser } = await supabase.from('users').select('username').eq('id', user.id).maybeSingle()
         if (currentUser?.username) {
             revalidateTag(CACHE_TAGS.profile(currentUser.username), undefined as never)
@@ -148,7 +148,7 @@ export const toggleAuthorLike = authActionClient
             if (error) return { failure: 'Impossible de retirer votre like.' }
         }
 
-        revalidateTag(CACHE_TAGS.author(slug), undefined as never)
+        // Invalidate user profile so the likes tab reflects changes without forcing a full page refresh here
         const { data: currentUser } = await supabase.from('users').select('username').eq('id', user.id).maybeSingle()
         if (currentUser?.username) {
             revalidateTag(CACHE_TAGS.profile(currentUser.username), undefined as never)

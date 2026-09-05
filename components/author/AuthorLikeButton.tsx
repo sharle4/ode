@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useTransition } from "react";
+import React, { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Heart } from "@phosphor-icons/react";
 import { useAction } from "next-safe-action/hooks";
@@ -26,20 +26,11 @@ export default function AuthorLikeButton({
     className = "",
 }: AuthorLikeButtonProps) {
     const router = useRouter();
-    const [, startTransition] = useTransition();
 
     const [isLiked, setIsLiked] = useState(initialIsLiked);
     const [likesCount, setLikesCount] = useState(initialLikesCount);
     const [showTooltip, setShowTooltip] = useState(false);
     const [errorMessage, setErrorMessage] = useState<string | null>(null);
-
-    const [optimisticLike, setOptimisticLike] = React.useOptimistic(
-        { isLiked, count: likesCount },
-        (state, newLiked: boolean) => ({
-            isLiked: newLiked,
-            count: newLiked ? state.count + 1 : Math.max(0, state.count - 1),
-        })
-    );
 
     const { executeAsync } = useAction(toggleAuthorLike);
 
@@ -55,9 +46,10 @@ export default function AuthorLikeButton({
                     setErrorMessage(result.serverError);
                     setTimeout(() => setErrorMessage(null), 3000);
                 }
+                // Rollback on error
                 setIsLiked(!targetState);
+                setLikesCount((prev) => targetState ? Math.max(0, prev - 1) : prev + 1);
             } else if (result?.data?.success) {
-                setIsLiked(targetState);
                 if (typeof result.data.likesCount === "number") {
                     setLikesCount(result.data.likesCount);
                 }
@@ -65,17 +57,18 @@ export default function AuthorLikeButton({
         } catch (error) {
             console.error("Erreur toggleAuthorLike:", error);
             setIsLiked(!targetState);
+            setLikesCount((prev) => targetState ? Math.max(0, prev - 1) : prev + 1);
         }
-    }, 400);
+    }, 250);
 
     const handleClick = (e: React.MouseEvent) => {
         e.preventDefault();
         e.stopPropagation();
 
-        const newState = !optimisticLike.isLiked;
-        startTransition(() => {
-            setOptimisticLike(newState);
-        });
+        const newState = !isLiked;
+        const newCount = newState ? likesCount + 1 : Math.max(0, likesCount - 1);
+        setIsLiked(newState); // True 0ms instant visual feedback
+        setLikesCount(newCount);
 
         debouncedToggle(newState);
     };
@@ -89,15 +82,15 @@ export default function AuthorLikeButton({
                 onMouseEnter={() => setShowTooltip(true)}
                 onMouseLeave={() => setShowTooltip(false)}
                 className={`flex items-center justify-center gap-2 h-11 px-4 rounded-full backdrop-blur-md transition-all duration-200 select-none shadow-md border ${
-                    optimisticLike.isLiked
+                    isLiked
                         ? "bg-accent/20 border-accent/60 text-white shadow-accent/20"
                         : "bg-black/30 border-white/20 text-white/90 hover:bg-black/40 hover:border-white/40"
                 }`}
-                aria-label={optimisticLike.isLiked ? "Retirer des favoris" : "Ajouter aux favoris"}
+                aria-label={isLiked ? "Retirer des favoris" : "Ajouter aux favoris"}
             >
                 <motion.div
                     animate={
-                        optimisticLike.isLiked
+                        isLiked
                             ? { scale: [1, 1.35, 1], rotate: [0, -10, 10, 0] }
                             : { scale: 1 }
                     }
@@ -105,18 +98,18 @@ export default function AuthorLikeButton({
                 >
                     <Heart
                         size={20}
-                        weight={optimisticLike.isLiked ? "fill" : "regular"}
-                        className={optimisticLike.isLiked ? "text-accent fill-accent" : "text-white"}
+                        weight={isLiked ? "fill" : "regular"}
+                        className={isLiked ? "text-accent fill-accent" : "text-white"}
                     />
                 </motion.div>
 
                 <span className="text-xs font-medium font-sans tracking-wide">
-                    {optimisticLike.isLiked ? "Favori" : "Aimer"}
+                    {isLiked ? "Favori" : "Aimer"}
                 </span>
 
-                {showCount && optimisticLike.count > 0 && (
+                {showCount && likesCount > 0 && (
                     <span className="text-[11px] font-sans font-medium px-1.5 py-0.5 rounded-full bg-white/15 text-white">
-                        {optimisticLike.count}
+                        {likesCount}
                     </span>
                 )}
             </motion.button>
@@ -131,7 +124,7 @@ export default function AuthorLikeButton({
                         transition={{ duration: 0.15 }}
                         className="absolute -top-9 left-1/2 -translate-x-1/2 px-2.5 py-1 bg-charcoal text-white text-[10px] uppercase tracking-wider rounded shadow-md pointer-events-none whitespace-nowrap z-30"
                     >
-                        {optimisticLike.isLiked ? "Auteur dans vos favoris" : "Aimer cet auteur"}
+                        {isLiked ? "Auteur dans vos favoris" : "Aimer cet auteur"}
                         <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-2 h-2 bg-charcoal rotate-45" />
                     </motion.div>
                 )}

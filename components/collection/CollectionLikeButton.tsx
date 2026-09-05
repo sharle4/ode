@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useTransition } from "react";
+import React, { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Heart } from "@phosphor-icons/react";
 import { useAction } from "next-safe-action/hooks";
@@ -26,20 +26,11 @@ export default function CollectionLikeButton({
     className = "",
 }: CollectionLikeButtonProps) {
     const router = useRouter();
-    const [, startTransition] = useTransition();
 
     const [isLiked, setIsLiked] = useState(initialIsLiked);
     const [likesCount, setLikesCount] = useState(initialLikesCount);
     const [showTooltip, setShowTooltip] = useState(false);
     const [errorMessage, setErrorMessage] = useState<string | null>(null);
-
-    const [optimisticLike, setOptimisticLike] = React.useOptimistic(
-        { isLiked, count: likesCount },
-        (state, newLiked: boolean) => ({
-            isLiked: newLiked,
-            count: newLiked ? state.count + 1 : Math.max(0, state.count - 1),
-        })
-    );
 
     const { executeAsync } = useAction(toggleCollectionLike);
 
@@ -55,10 +46,10 @@ export default function CollectionLikeButton({
                     setErrorMessage(result.serverError);
                     setTimeout(() => setErrorMessage(null), 3000);
                 }
-                // Revert
+                // Rollback on error
                 setIsLiked(!targetState);
+                setLikesCount((prev) => targetState ? Math.max(0, prev - 1) : prev + 1);
             } else if (result?.data?.success) {
-                setIsLiked(targetState);
                 if (typeof result.data.likesCount === "number") {
                     setLikesCount(result.data.likesCount);
                 }
@@ -66,17 +57,18 @@ export default function CollectionLikeButton({
         } catch (error) {
             console.error("Erreur toggleCollectionLike:", error);
             setIsLiked(!targetState);
+            setLikesCount((prev) => targetState ? Math.max(0, prev - 1) : prev + 1);
         }
-    }, 400);
+    }, 250);
 
     const handleClick = (e: React.MouseEvent) => {
         e.preventDefault();
         e.stopPropagation();
 
-        const newState = !optimisticLike.isLiked;
-        startTransition(() => {
-            setOptimisticLike(newState);
-        });
+        const newState = !isLiked;
+        const newCount = newState ? likesCount + 1 : Math.max(0, likesCount - 1);
+        setIsLiked(newState); // True 0ms instant visual feedback
+        setLikesCount(newCount);
 
         debouncedToggle(newState);
     };
@@ -90,15 +82,15 @@ export default function CollectionLikeButton({
                 onMouseEnter={() => setShowTooltip(true)}
                 onMouseLeave={() => setShowTooltip(false)}
                 className={`flex items-center justify-center gap-1.5 h-11 px-3.5 rounded-full border transition-all duration-200 select-none ${
-                    optimisticLike.isLiked
+                    isLiked
                         ? "border-accent/40 bg-accent/10 text-accent shadow-sm"
                         : "border-soft-border text-charcoal hover:bg-black/5 dark:hover:bg-white/5 hover:border-charcoal/30"
                 }`}
-                aria-label={optimisticLike.isLiked ? "Retirer des favoris" : "Ajouter aux favoris"}
+                aria-label={isLiked ? "Retirer des favoris" : "Ajouter aux favoris"}
             >
                 <motion.div
                     animate={
-                        optimisticLike.isLiked
+                        isLiked
                             ? { scale: [1, 1.35, 1], rotate: [0, -10, 10, 0] }
                             : { scale: 1 }
                     }
@@ -106,14 +98,14 @@ export default function CollectionLikeButton({
                 >
                     <Heart
                         size={20}
-                        weight={optimisticLike.isLiked ? "fill" : "regular"}
-                        className={optimisticLike.isLiked ? "text-accent" : "text-charcoal"}
+                        weight={isLiked ? "fill" : "regular"}
+                        className={isLiked ? "text-accent fill-accent" : "text-charcoal"}
                     />
                 </motion.div>
 
-                {showCount && optimisticLike.count > 0 && (
+                {showCount && likesCount > 0 && (
                     <span className="text-xs font-sans font-medium tracking-wide">
-                        {optimisticLike.count}
+                        {likesCount}
                     </span>
                 )}
             </motion.button>
@@ -128,7 +120,7 @@ export default function CollectionLikeButton({
                         transition={{ duration: 0.15 }}
                         className="absolute -top-9 left-1/2 -translate-x-1/2 px-2.5 py-1 bg-charcoal text-white text-[10px] uppercase tracking-wider rounded shadow-md pointer-events-none whitespace-nowrap z-30"
                     >
-                        {optimisticLike.isLiked ? "Coup de cœur !" : "Aimer ce recueil"}
+                        {isLiked ? "Coup de cœur !" : "Aimer ce recueil"}
                         <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-2 h-2 bg-charcoal rotate-45" />
                     </motion.div>
                 )}

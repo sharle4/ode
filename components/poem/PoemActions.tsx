@@ -29,37 +29,45 @@ export default function PoemActions({ poemId, initialIsLiked = false }: PoemActi
 
     const [isRead, setIsRead] = useState(false);
     const [showShareTooltip, setShowShareTooltip] = useState(false);
+    const [likeNotice, setLikeNotice] = useState<string | null>(null);
 
-    // Optimistic Like State
+    // True Instant Optimistic Like State (0ms visual feedback)
     const [isLiked, setIsLiked] = useState(initialIsLiked);
-    const [optimisticLike, addOptimisticLike] = React.useOptimistic(
-        isLiked,
-        (state: boolean, newState: boolean) => newState
-    );
 
     const { executeAsync: executeRate } = useAction(ratePoem);
     const { executeAsync: executeLike } = useAction(toggleLike);
 
     const debouncedToggleLike = useDebouncedCallback(async (liked: boolean) => {
-        const result = await executeLike({ poemId, slug, targetState: liked });
-        if (result?.serverError || result?.validationErrors) {
-            console.error("Erreur serveur lors du like:", result);
-            if (result?.serverError?.includes("connecté")) {
-                alert("Vous devez être connecté pour aimer ce poème.");
-                window.location.href = "/login";
-            } else {
-                alert("Une erreur est survenue lors de l'enregistrement de votre like. Veuillez réessayer.");
+        try {
+            const result = await executeLike({ poemId, slug, targetState: liked });
+            if (result?.serverError || result?.validationErrors) {
+                console.error("Erreur serveur lors du like:", result);
+                if (result?.serverError?.includes("connecté")) {
+                    setLikeNotice("Connexion requise");
+                    setTimeout(() => { window.location.href = "/login"; }, 1200);
+                } else {
+                    setLikeNotice("Erreur d'enregistrement");
+                    setTimeout(() => setLikeNotice(null), 2500);
+                }
+                // Rollback if server rejects
+                setIsLiked(!liked);
             }
+        } catch (err) {
+            console.error("Erreur toggleLike:", err);
             setIsLiked(!liked);
-        } else {
-            setIsLiked(liked);
         }
-    }, 400);
+    }, 250);
 
     const handleShare = () => {
         navigator.clipboard.writeText(window.location.href);
         setShowShareTooltip(true);
         setTimeout(() => setShowShareTooltip(false), 2000);
+    };
+
+    const handleLikeClick = () => {
+        const newValue = !isLiked;
+        setIsLiked(newValue); // Instant 0ms update!
+        debouncedToggleLike(newValue);
     };
 
     const actionButtons = [
@@ -71,15 +79,16 @@ export default function PoemActions({ poemId, initialIsLiked = false }: PoemActi
         },
         {
             id: "like",
-            icon: <Heart size={22} weight={optimisticLike ? "fill" : "regular"} className={optimisticLike ? "text-accent" : "text-charcoal"} />,
-            label: "Liker",
-            onClick: () => {
-                const newValue = !isLiked;
-                React.startTransition(() => {
-                    addOptimisticLike(newValue);
-                });
-                debouncedToggleLike(newValue);
-            },
+            icon: (
+                <motion.div
+                    animate={isLiked ? { scale: [1, 1.35, 1], rotate: [0, -10, 10, 0] } : { scale: 1 }}
+                    transition={{ duration: 0.35, ease: "easeOut" }}
+                >
+                    <Heart size={22} weight={isLiked ? "fill" : "regular"} className={isLiked ? "text-accent fill-accent" : "text-charcoal"} />
+                </motion.div>
+            ),
+            label: isLiked ? "Aimé" : "Liker",
+            onClick: handleLikeClick,
         },
         {
             id: "list",
@@ -175,6 +184,24 @@ export default function PoemActions({ poemId, initialIsLiked = false }: PoemActi
                         )}
                     </AnimatePresence>
                 </div>
+
+                {/* Like Notice (Auth/Error) Toast */}
+                <AnimatePresence>
+                    {likeNotice && (
+                        <div className="absolute bottom-full mb-3 left-1/2 -translate-x-1/2 pointer-events-none z-50">
+                            <motion.div
+                                initial={{ opacity: 0, scale: 0.9, y: 6 }}
+                                animate={{ opacity: 1, scale: 1, y: 0 }}
+                                exit={{ opacity: 0, scale: 0.9, y: 6 }}
+                                transition={{ duration: 0.18, ease: "easeOut" }}
+                                className="relative px-3.5 py-1.5 bg-charcoal text-white text-xs font-medium rounded-full shadow-xl whitespace-nowrap flex items-center justify-center font-sans"
+                            >
+                                {likeNotice}
+                                <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-2 h-2 bg-charcoal rotate-45" />
+                            </motion.div>
+                        </div>
+                    )}
+                </AnimatePresence>
 
             </motion.div>
         </div>

@@ -34,6 +34,14 @@ const NavbarClient = React.memo(function NavbarClient({ userProfile }: { userPro
   useEffect(() => {
     setMounted(true);
     hasAnimated = true;
+
+    function handleScroll() {
+      setScrolled(window.scrollY > 20);
+    }
+
+    handleScroll();
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
   const handleThemeToggle = () => {
@@ -48,15 +56,6 @@ const NavbarClient = React.memo(function NavbarClient({ userProfile }: { userPro
       });
     });
   };
-
-  useEffect(() => {
-    setMounted(true);
-    function handleScroll() {
-      setScrolled(window.scrollY > 20);
-    }
-    window.addEventListener("scroll", handleScroll, { passive: true });
-    return () => window.removeEventListener("scroll", handleScroll);
-  }, []);
 
   return (
     <>
