@@ -9,7 +9,11 @@ export type UserProfile = {
   avatar_url?: string;
 } | null;
 
-export default async function Navbar() {
+export interface NavbarProps {
+  forceSolidBackground?: boolean;
+}
+
+export default async function Navbar({ forceSolidBackground }: NavbarProps = {}) {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
 
@@ -30,5 +34,5 @@ export default async function Navbar() {
     };
   }
 
-  return <NavbarClient userProfile={userProfile} />;
+  return <NavbarClient userProfile={userProfile} forceSolidBackground={forceSolidBackground} />;
 }

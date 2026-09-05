@@ -3,6 +3,7 @@
 import React, { useState, useEffect, Suspense } from "react";
 import { flushSync } from "react-dom";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Compass,
@@ -24,7 +25,17 @@ let hasAnimated = false;
 
 import { type UserProfile } from "./Navbar";
 
-const NavbarClient = React.memo(function NavbarClient({ userProfile }: { userProfile: UserProfile }) {
+interface NavbarClientProps {
+  userProfile: UserProfile;
+  forceSolidBackground?: boolean;
+}
+
+const NavbarClient = React.memo(function NavbarClient({
+  userProfile,
+  forceSolidBackground = false,
+}: NavbarClientProps) {
+  const pathname = usePathname();
+  const isAuthorPage = pathname ? pathname.startsWith("/author") : false;
   const isFirstMount = !hasAnimated;
   const [scrolled, setScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -57,11 +68,13 @@ const NavbarClient = React.memo(function NavbarClient({ userProfile }: { userPro
     });
   };
 
+  const isSolid = forceSolidBackground || isAuthorPage || scrolled;
+
   return (
     <>
       <motion.header
-        className={`fixed top-0 left-0 right-0 z-40 transition-all duration-500 ${scrolled
-          ? "bg-cream/70 backdrop-blur-xl shadow-sm"
+        className={`fixed top-0 left-0 right-0 z-40 transition-all duration-500 ${isSolid
+          ? "bg-cream/80 backdrop-blur-xl border-b border-soft-border/40 shadow-xs"
           : "bg-transparent"
           }`}
         initial={isFirstMount ? { y: -80 } : false}
@@ -231,7 +244,8 @@ const NavbarClient = React.memo(function NavbarClient({ userProfile }: { userPro
     prevProps.userProfile?.id === nextProps.userProfile?.id &&
     prevProps.userProfile?.username === nextProps.userProfile?.username &&
     prevProps.userProfile?.avatar_url === nextProps.userProfile?.avatar_url &&
-    prevProps.userProfile?.email === nextProps.userProfile?.email
+    prevProps.userProfile?.email === nextProps.userProfile?.email &&
+    prevProps.forceSolidBackground === nextProps.forceSolidBackground
   );
 });
 

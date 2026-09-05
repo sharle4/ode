@@ -80,7 +80,7 @@ export default async function AuthorPage({ params }: { params: Promise<{ slug: s
                 type="application/ld+json"
                 dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
             />
-            <Navbar />
+            <Navbar forceSolidBackground />
 
             <main className="flex-grow">
                 {/* 1. Hero Header */}
