@@ -11,6 +11,7 @@ import { Metadata } from "next";
 import Link from "next/link";
 import FadeIn from "@/components/ui/FadeIn";
 import { CreativeWork, WithContext } from "schema-dts";
+import { formatAuthors } from "@/utils/author";
 
 interface PoemPageProps {
     params: Promise<{ slug: string }>;
@@ -24,9 +25,8 @@ export async function generateMetadata({ params }: PoemPageProps): Promise<Metad
         return { title: "Poème introuvable - ode" };
     }
 
-    const authorName = Array.isArray(poem.authors)
-        ? poem.authors.map((a: any) => a.name).join(', ')
-        : (poem.authors as any)?.name || "Auteur inconnu";
+    const authorInfo = formatAuthors(poem.authors);
+    const authorName = authorInfo.count > 0 ? authorInfo.displayText : "Auteur inconnu";
 
     return {
         title: `${poem.title} de ${authorName} - ode`,
@@ -47,12 +47,9 @@ export default async function PoemPage({ params }: PoemPageProps) {
         redirect(`/poem/${poem.slug}`);
     }
 
-    const authorsList = Array.isArray(poem.authors)
-        ? poem.authors
-        : poem.authors
-        ? [poem.authors]
-        : [];
-    const authorName = authorsList.map((a: any) => a.name).join(', ') || "Auteur inconnu";
+    const authorInfo = formatAuthors(poem.authors);
+    const authorsList = authorInfo.authors;
+    const authorName = authorInfo.displayText;
 
     const collectionTitle = Array.isArray(poem.collections)
         ? poem.collections[0]?.title
@@ -99,27 +96,48 @@ export default async function PoemPage({ params }: PoemPageProps) {
                                 <div className="flex flex-col items-center justify-center gap-2">
                                     <div className="text-lg md:text-xl text-warm-gray italic">
                                         Par{" "}
-                                        {authorsList.length > 0 ? (
-                                            authorsList.map((author: any, idx: number) => {
-                                                const authorTarget = author.slug || author.id;
-                                                return (
-                                                    <span key={author.id || idx}>
-                                                        {authorTarget ? (
-                                                            <Link
-                                                                href={`/author/${authorTarget}`}
-                                                                className="hover:text-charcoal transition-colors"
-                                                            >
-                                                                {author.name}
-                                                            </Link>
-                                                        ) : (
-                                                            <span>{author.name}</span>
-                                                        )}
-                                                        {idx < authorsList.length - 1 && ", "}
-                                                    </span>
-                                                );
-                                            })
-                                        ) : (
-                                            <span>{authorName}</span>
+                                        {authorInfo.count === 1 && (
+                                            authorsList[0].slug ? (
+                                                <Link
+                                                    href={`/author/${authorsList[0].slug}`}
+                                                    className="hover:text-charcoal transition-colors not-italic font-serif"
+                                                >
+                                                    {authorsList[0].name}
+                                                </Link>
+                                            ) : (
+                                                <span className="not-italic font-serif">{authorsList[0].name}</span>
+                                            )
+                                        )}
+                                        {authorInfo.count === 2 && (
+                                            <span className="not-italic font-serif inline-flex items-center gap-1.5 flex-wrap">
+                                                {authorsList[0].slug ? (
+                                                    <Link
+                                                        href={`/author/${authorsList[0].slug}`}
+                                                        className="hover:text-charcoal transition-colors"
+                                                    >
+                                                        {authorsList[0].name}
+                                                    </Link>
+                                                ) : (
+                                                    <span>{authorsList[0].name}</span>
+                                                )}
+                                                <span className="text-warm-gray/60 font-sans text-base">&</span>
+                                                {authorsList[1].slug ? (
+                                                    <Link
+                                                        href={`/author/${authorsList[1].slug}`}
+                                                        className="hover:text-charcoal transition-colors"
+                                                    >
+                                                        {authorsList[1].name}
+                                                    </Link>
+                                                ) : (
+                                                    <span>{authorsList[1].name}</span>
+                                                )}
+                                            </span>
+                                        )}
+                                        {authorInfo.count > 2 && (
+                                            <span className="not-italic font-serif">Auteurs multiples</span>
+                                        )}
+                                        {authorInfo.count === 0 && (
+                                            <span className="not-italic font-serif">Auteur inconnu</span>
                                         )}
                                         {poem.publication_year ? ` (${poem.publication_year})` : ""}
                                     </div>

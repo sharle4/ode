@@ -9,18 +9,21 @@ import { Metadata } from "next";
 import { getCollectionWithSections } from "@/utils/supabase/queries";
 import { getCoverGradient } from "@/utils/gradient";
 import { createClient } from "@/utils/supabase/server";
+import { formatAuthors } from "@/utils/author";
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
     const resolvedParams = await params;
     const collection = await getCollectionWithSections(resolvedParams.slug);
 
     const collectionTitle = collection?.title || resolvedParams.slug.split('-').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
+    const authorInfo = formatAuthors(collection?.authors);
+    const authorDesc = authorInfo.count > 0 ? ` (${authorInfo.displayText})` : '';
 
     return {
-        title: `${collectionTitle} - ode`,
+        title: `${collectionTitle}${authorDesc} - ode`,
         description: collection?.summary
             ? collection.summary.substring(0, 160) + '...'
-            : `Lisez les poèmes du recueil ${collectionTitle} sur ode.`,
+            : `Lisez les poèmes du recueil ${collectionTitle}${authorDesc} sur ode.`,
     };
 }
 
@@ -54,13 +57,8 @@ export default async function CollectionPage({ params }: { params: Promise<{ slu
         if (likeData) isLiked = true;
     }
 
-    // Get author name from the collection's authors join
-    const authorName = Array.isArray(collectionData.authors)
-        ? collectionData.authors.map((a: any) => a.name).join(', ')
-        : (collectionData.authors as any)?.name || '';
-    const authorSlug = Array.isArray(collectionData.authors)
-        ? collectionData.authors[0]?.slug
-        : (collectionData.authors as any)?.slug || '';
+    // Normalisation et formatage des auteurs
+    const authorInfo = formatAuthors(collectionData.authors);
 
     let globalPoemIndex = 0;
 
@@ -74,8 +72,9 @@ export default async function CollectionPage({ params }: { params: Promise<{ slu
                     id: collectionData.id,
                     title: collectionData.title,
                     slug: collectionData.slug,
-                    authorName,
-                    authorSlug,
+                    authorName: authorInfo.displayText,
+                    authorSlug: authorInfo.authors[0]?.slug || '',
+                    authors: authorInfo.authors,
                     year: collectionData.publication_year || 0,
                     poemCount: collectionData.poems_count || collectionData.allPoems?.length || 0,
                     coverColor: getCoverGradient(collectionData.slug || ''),

@@ -18,6 +18,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { AnimatePresence, motion } from "framer-motion";
 import { getInitials } from "@/utils/gradient";
+import { formatAuthors } from "@/utils/author";
 import type { SearchResults } from "@/types";
 
 interface NavbarSearchProps {
@@ -170,9 +171,8 @@ export default function NavbarSearch({ variant = "desktop", onNavigate }: Navbar
 
     const pushPoems = () => {
         (results?.poems || []).slice(0, 5).forEach((p) => {
-            const authorName = p.authors?.length
-                ? p.authors.map((a: any) => a.name).join(", ")
-                : "Auteur inconnu";
+            const authorInfo = formatAuthors(p.authors);
+            const authorName = authorInfo.count > 0 ? authorInfo.displayText : "Auteur inconnu";
             flatItems.push({
                 type: "poem",
                 id: `poem-${p.id}`,
@@ -196,9 +196,8 @@ export default function NavbarSearch({ variant = "desktop", onNavigate }: Navbar
         }
 
         (results.collections || []).slice(0, 2).forEach((c) => {
-            const authorName = c.authors?.length
-                ? c.authors.map((a: any) => a.name).join(", ")
-                : "";
+            const authorInfo = formatAuthors(c.authors);
+            const authorName = authorInfo.count > 0 ? authorInfo.displayText : "";
             flatItems.push({
                 type: "collection",
                 id: `col-${c.id}`,
@@ -559,9 +558,8 @@ export default function NavbarSearch({ variant = "desktop", onNavigate }: Navbar
                                                 (fi) => fi.id === `col-${col.id}`
                                             );
                                             const isSelected = selectedIndex === itemIndex;
-                                            const authorName = col.authors?.length
-                                                ? col.authors.map((a: any) => a.name).join(", ")
-                                                : "";
+                                            const authorInfo = formatAuthors(col.authors);
+                                            const authorName = authorInfo.count > 0 ? authorInfo.displayText : "";
 
                                             return (
                                                 <button

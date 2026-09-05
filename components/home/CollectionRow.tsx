@@ -6,6 +6,7 @@ import { motion } from "framer-motion";
 import Link from "next/link";
 import FadeIn from "@/components/ui/FadeIn";
 import { getCoverGradient } from "@/utils/gradient";
+import { formatAuthors } from "@/utils/author";
 
 interface Collection {
     id?: string;
@@ -45,11 +46,7 @@ const CollectionRow = React.memo(function CollectionRow({
     const cardWidth = `calc((100% - ${CARD_GAP * (VISIBLE_CARDS - 1)}px) / ${VISIBLE_CARDS})`;
 
     function getAuthorName(collection: Collection): string {
-        if (!collection.authors) return '';
-        if (Array.isArray(collection.authors)) {
-            return collection.authors.map(a => a.name).join(', ');
-        }
-        return collection.authors.name;
+        return formatAuthors(collection.authors).displayText;
     }
 
     return (

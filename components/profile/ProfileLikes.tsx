@@ -15,6 +15,7 @@ import {
 } from "@phosphor-icons/react";
 import PoemCard from "@/components/ui/PoemCard";
 import { getCoverGradient, getInitials } from "@/utils/gradient";
+import { formatAuthors } from "@/utils/author";
 
 interface LikedPoem {
     id: string;
@@ -319,9 +320,7 @@ export default function ProfileLikes({
                                             : filteredCollections
                                         ).map((col, idx) => {
                                             const coverColor = getCoverGradient(col.slug);
-                                            const authorName =
-                                                 col.authors?.map((a) => a.name).join(", ") ||
-                                                "Auteur inconnu";
+                                            const authorInfo = formatAuthors(col.authors);
 
                                             return (
                                                 <motion.div
@@ -343,7 +342,7 @@ export default function ProfileLikes({
                                                         {/* Contenu centré de la couverture avec typographie agrandie et équilibrée */}
                                                         <div className="absolute inset-0 flex flex-col justify-between items-center p-4 sm:p-5 text-center z-20">
                                                             <span className="text-xs sm:text-[13px] tracking-widest uppercase text-white/90 font-sans font-medium line-clamp-2 px-2 pt-1 drop-shadow-sm">
-                                                                {authorName}
+                                                                {authorInfo.coverText}
                                                             </span>
 
                                                             <h4 className="font-serif text-white text-lg sm:text-xl md:text-2xl text-center leading-snug drop-shadow-md font-medium px-2 line-clamp-4">

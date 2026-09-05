@@ -7,6 +7,7 @@ import PoemCard from "@/components/ui/PoemCard";
 import CollectionCard from "@/components/author/CollectionCard";
 import { RothkoArtwork } from "@/components/poem/RothkoArtwork";
 import { getInitials, getCoverGradient } from "@/utils/gradient";
+import { formatAuthors } from "@/utils/author";
 import { Feather, User, BookOpen, Sparkle, Tag, ArrowRight } from "@phosphor-icons/react";
 import type { SearchResults } from "@/types";
 
@@ -79,9 +80,8 @@ export default function ExploreSearchResults({ query, results }: ExploreSearchRe
     const renderSpotlight = () => {
         if (!hasStrongSpotlight || !topPoem) return null;
 
-        const authorNames = Array.isArray(topPoem.authors) && topPoem.authors.length > 0
-            ? topPoem.authors.map((a: any) => (typeof a === "string" ? a : a?.name || "")).filter(Boolean).join(", ")
-            : "Auteur inconnu";
+        const authorInfo = formatAuthors(topPoem.authors);
+        const authorNames = authorInfo.count > 0 ? authorInfo.displayText : "Auteur inconnu";
 
         const fallbackGradient = topPoem.slug
             ? getCoverGradient(topPoem.slug)

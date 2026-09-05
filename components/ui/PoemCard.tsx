@@ -5,6 +5,7 @@ import { motion, useInView } from "framer-motion";
 import { RothkoArtwork } from "@/components/poem/RothkoArtwork";
 import { getCoverGradient } from "@/utils/gradient";
 import Link from "next/link";
+import { formatAuthors } from "@/utils/author";
 
 interface PoemCardProps {
   poem: any;
@@ -21,19 +22,8 @@ const PoemCard = React.memo(function PoemCard({ poem, index, layout = "flex", ac
   const ref = useRef(null);
   const isInView = useInView(ref, { once: true, margin: "200px" });
 
-  let authorName = "Auteur inconnu";
-  if (Array.isArray(poem.authors) && poem.authors.length > 0) {
-    authorName = poem.authors
-      .map((a: any) => (typeof a === "string" ? a : a?.name || a?.authors?.name || ""))
-      .filter(Boolean)
-      .join(", ") || "Auteur inconnu";
-  } else if (poem.author?.name) {
-    authorName = poem.author.name;
-  } else if (typeof poem.authors === "object" && poem.authors?.name) {
-    authorName = poem.authors.name;
-  } else if (typeof poem.author === "string") {
-    authorName = poem.author;
-  }
+  const authorInfo = formatAuthors(poem.authors || poem.author);
+  const authorName = authorInfo.displayText;
     
   // Support both direct slug or slug inside a nested generic structure if any.
   // We prefer poem.slug, fallback to poem.id
