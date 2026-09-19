@@ -16,6 +16,7 @@ import {
 import PoemCard from "@/components/ui/PoemCard";
 import { getCoverGradient, getInitials } from "@/utils/gradient";
 import { formatAuthors } from "@/utils/author";
+import { fetchUserLikesAction } from "@/app/actions/profile";
 
 interface LikedPoem {
     id: string;
@@ -67,6 +68,7 @@ interface ProfileLikesProps {
     initialLikedPoems?: LikedPoem[];
     initialLikedCollections?: LikedCollection[];
     initialLikedAuthors?: LikedAuthor[];
+    likesCount?: { poems: number; collections: number; authors: number; total: number };
 }
 
 type LikeCategory = "all" | "poems" | "collections" | "authors";
@@ -77,10 +79,41 @@ export default function ProfileLikes({
     initialLikedPoems = [],
     initialLikedCollections = [],
     initialLikedAuthors = [],
+    likesCount,
 }: ProfileLikesProps) {
     const [likedPoems, setLikedPoems] = useState<LikedPoem[]>(initialLikedPoems);
     const [likedCollections, setLikedCollections] = useState<LikedCollection[]>(initialLikedCollections);
     const [likedAuthors, setLikedAuthors] = useState<LikedAuthor[]>(initialLikedAuthors);
+
+    const hasInitialData = initialLikedPoems.length > 0 || initialLikedCollections.length > 0 || initialLikedAuthors.length > 0;
+    const totalExpectedLikes = likesCount?.total ?? (initialLikedPoems.length + initialLikedCollections.length + initialLikedAuthors.length);
+
+    const [isLoading, setIsLoading] = useState(!hasInitialData && totalExpectedLikes > 0);
+
+    React.useEffect(() => {
+        if (!hasInitialData && totalExpectedLikes > 0) {
+            let mounted = true;
+            setIsLoading(true);
+            fetchUserLikesAction(username)
+                .then((data) => {
+                    if (mounted && data) {
+                        setLikedPoems(data.likedPoems || []);
+                        setLikedCollections(data.likedCollections || []);
+                        setLikedAuthors(data.likedAuthors || []);
+                    }
+                })
+                .catch((err) => {
+                    console.error("Erreur lors du chargement des likes à la demande:", err);
+                })
+                .finally(() => {
+                    if (mounted) setIsLoading(false);
+                });
+
+            return () => {
+                mounted = false;
+            };
+        }
+    }, [username, hasInitialData, totalExpectedLikes]);
 
     const [activeCategory, setActiveCategory] = useState<LikeCategory>("all");
     const [searchQuery, setSearchQuery] = useState("");
@@ -117,13 +150,27 @@ export default function ProfileLikes({
         );
     }, [likedAuthors, searchQuery]);
 
-    const totalLikes = likedPoems.length + likedCollections.length + likedAuthors.length;
+    const totalLikes = (likesCount?.total !== undefined && !hasInitialData && isLoading)
+        ? likesCount.total
+        : likedPoems.length + likedCollections.length + likedAuthors.length;
+
+    const poemsCount = (likesCount?.poems !== undefined && !hasInitialData && isLoading)
+        ? likesCount.poems
+        : likedPoems.length;
+
+    const collectionsCount = (likesCount?.collections !== undefined && !hasInitialData && isLoading)
+        ? likesCount.collections
+        : likedCollections.length;
+
+    const authorsCount = (likesCount?.authors !== undefined && !hasInitialData && isLoading)
+        ? likesCount.authors
+        : likedAuthors.length;
 
     const tabs: { id: LikeCategory; label: string; count: number }[] = [
         { id: "all", label: "Tout", count: totalLikes },
-        { id: "poems", label: "Poèmes", count: likedPoems.length },
-        { id: "collections", label: "Recueils", count: likedCollections.length },
-        { id: "authors", label: "Auteurs", count: likedAuthors.length },
+        { id: "poems", label: "Poèmes", count: poemsCount },
+        { id: "collections", label: "Recueils", count: collectionsCount },
+        { id: "authors", label: "Auteurs", count: authorsCount },
     ];
 
     function extractLifespan(author: LikedAuthor): string {
@@ -200,8 +247,62 @@ export default function ProfileLikes({
                 )}
             </div>
 
+            {/* Skeleton Loading State */}
+            {isLoading && (
+                <div className="flex flex-col gap-12 w-full animate-fadeIn">
+                    {/* Skeleton Poèmes */}
+                    {(activeCategory === "all" || activeCategory === "poems") && (
+                        <section className="flex flex-col gap-6">
+                            <div className="flex items-center justify-between border-b border-soft-border pb-3">
+                                <div className="h-6 w-36 rounded skeleton-shimmer" />
+                            </div>
+                            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                                {[0, 1, 2].map((i) => (
+                                    <div key={i} className="flex flex-col bg-paper/60 border border-soft-border rounded-xl p-4 overflow-hidden">
+                                        <div className="aspect-[3/4] w-full rounded-lg skeleton-shimmer mb-4" />
+                                        <div className="h-5 w-3/4 rounded skeleton-shimmer mb-2" />
+                                        <div className="h-3.5 w-1/2 rounded skeleton-shimmer" />
+                                    </div>
+                                ))}
+                            </div>
+                        </section>
+                    )}
+
+                    {/* Skeleton Recueils */}
+                    {(activeCategory === "all" || activeCategory === "collections") && (
+                        <section className="flex flex-col gap-6">
+                            <div className="flex items-center justify-between border-b border-soft-border pb-3">
+                                <div className="h-6 w-36 rounded skeleton-shimmer" />
+                            </div>
+                            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                                {[0, 1].map((i) => (
+                                    <div key={i} className="aspect-[3/4] w-full rounded-r-xl rounded-l-sm skeleton-shimmer" />
+                                ))}
+                            </div>
+                        </section>
+                    )}
+
+                    {/* Skeleton Auteurs */}
+                    {(activeCategory === "all" || activeCategory === "authors") && (
+                        <section className="flex flex-col gap-6">
+                            <div className="flex items-center justify-between border-b border-soft-border pb-3">
+                                <div className="h-6 w-36 rounded skeleton-shimmer" />
+                            </div>
+                            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-6">
+                                {[0, 1, 2, 3].map((i) => (
+                                    <div key={i} className="flex flex-col items-center p-4 bg-paper/60 border border-soft-border rounded-2xl gap-3">
+                                        <div className="w-16 h-16 rounded-full skeleton-shimmer" />
+                                        <div className="h-3 w-16 rounded skeleton-shimmer" />
+                                    </div>
+                                ))}
+                            </div>
+                        </section>
+                    )}
+                </div>
+            )}
+
             {/* Global Empty State */}
-            {totalLikes === 0 && (
+            {!isLoading && totalLikes === 0 && (
                 <motion.div
                     initial={{ opacity: 0, y: 12 }}
                     animate={{ opacity: 1, y: 0 }}
@@ -231,7 +332,7 @@ export default function ProfileLikes({
             )}
 
             {/* Content Display */}
-            {totalLikes > 0 && (
+            {!isLoading && totalLikes > 0 && (
                 <div className="flex flex-col gap-12">
                     {/* 1. VUE TOUT OU POÈMES */}
                     {(activeCategory === "all" || activeCategory === "poems") && (

@@ -1,6 +1,6 @@
 import { notFound } from "next/navigation";
 import Link from "next/link";
-import { getUserProfileByUsername, getTrendingPoems } from "@/utils/supabase/queries";
+import { getUserProfileByUsername, getUserLikesByUsername, getTrendingPoems } from "@/utils/supabase/queries";
 import { createClient } from "@/utils/supabase/server";
 import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
@@ -12,6 +12,7 @@ import { Metadata } from "next";
 
 interface ProfilePageProps {
     params: Promise<{ username: string }>;
+    searchParams?: Promise<{ tab?: string }>;
 }
 
 export async function generateMetadata({ params }: ProfilePageProps): Promise<Metadata> {
@@ -24,18 +25,23 @@ export async function generateMetadata({ params }: ProfilePageProps): Promise<Me
     };
 }
 
-export default async function ProfilePage({ params }: ProfilePageProps) {
-    const resolvedParams = await params;
+export default async function ProfilePage({ params, searchParams }: ProfilePageProps) {
+    const [resolvedParams, resolvedSearchParams] = await Promise.all([
+        params,
+        searchParams ? searchParams : Promise.resolve({ tab: undefined })
+    ]);
     const decodedUsername = decodeURIComponent(resolvedParams.username);
+    const isLikesTab = resolvedSearchParams?.tab === "likes";
 
-    // Fetch profile and auth state in parallel
-    const [userProfile, authUser] = await Promise.all([
+    // Fetch profile, auth state, and optionally likes (if directly accessing tab=likes) in parallel
+    const [userProfile, authUser, directLikes] = await Promise.all([
         getUserProfileByUsername(decodedUsername),
         (async () => {
             const supabase = await createClient();
             const { data: { user } } = await supabase.auth.getUser();
             return user;
-        })()
+        })(),
+        isLikesTab ? getUserLikesByUsername(decodedUsername) : Promise.resolve(null)
     ]);
 
     if (!userProfile) {
@@ -129,9 +135,9 @@ export default async function ProfilePage({ params }: ProfilePageProps) {
                             badges={badges}
                             reviewDistribution={reviewDistribution}
                             isOwner={isOwner}
-                            likedPoems={userProfile.likedPoems}
-                            likedCollections={userProfile.likedCollections}
-                            likedAuthors={userProfile.likedAuthors}
+                            likedPoems={directLikes?.likedPoems || userProfile.likedPoems}
+                            likedCollections={directLikes?.likedCollections || userProfile.likedCollections}
+                            likedAuthors={directLikes?.likedAuthors || userProfile.likedAuthors}
                             likesCount={userProfile.likesCount}
                         />
                     </FadeIn>

@@ -253,6 +253,7 @@ export default function ProfileTabs({
                                 initialLikedPoems={likedPoems}
                                 initialLikedCollections={likedCollections}
                                 initialLikedAuthors={likedAuthors}
+                                likesCount={likesCount}
                             />
                         </motion.div>
                     )}

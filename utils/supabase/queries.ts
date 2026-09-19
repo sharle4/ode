@@ -581,7 +581,7 @@ export const getUserProfileByUsername = (username: string) => executeCachedQuery
             recentReviewsResult,
             userBadgesResult,
             allReviewsResult,
-            [likedPoemsRes, likedCollectionsRes, likedAuthorsRes]
+            [likedPoemsCountRes, likedCollectionsCountRes, likedAuthorsCountRes]
         ] = await Promise.all([
             // Stats counts in parallel
             Promise.all([
@@ -632,42 +632,11 @@ export const getUserProfileByUsername = (username: string) => executeCachedQuery
                 .select('score')
                 .eq('user_id', user.id)
                 .throwOnError(),
-            // User likes (poems, collections, authors) in parallel
+            // Fast likes count in parallel (exact head count on index, 0 rows transferred)
             Promise.all([
-                supabase
-                    .from('poem_likes')
-                    .select(`
-                        created_at,
-                        poems (
-                            id, title, slug, publication_year, average_review, reviews_count, reads_count, likes_count,
-                            authors:poem_authors(authors(id, name, slug)),
-                            collections(id, title, slug),
-                            rothko_params(seed, palette_id, shape_type, layout_bias, complexity, texture_profile, blend_mode, density, opacity_style)
-                        )
-                    `)
-                    .eq('user_id', user.id)
-                    .order('created_at', { ascending: false }),
-                supabase
-                    .from('collection_likes')
-                    .select(`
-                        created_at,
-                        collections (
-                            id, title, slug, publication_year, summary, cover_url, poems_count, average_review, reviews_count, likes_count,
-                            authors:collection_authors(authors(id, name, slug))
-                        )
-                    `)
-                    .eq('user_id', user.id)
-                    .order('created_at', { ascending: false }),
-                supabase
-                    .from('author_likes')
-                    .select(`
-                        created_at,
-                        authors (
-                            id, name, slug, biography, image_url, date_of_birth, date_of_death, nationality, movement, likes_count
-                        )
-                    `)
-                    .eq('user_id', user.id)
-                    .order('created_at', { ascending: false }),
+                supabase.from('poem_likes').select('id', { count: 'exact', head: true }).eq('user_id', user.id).throwOnError(),
+                supabase.from('collection_likes').select('id', { count: 'exact', head: true }).eq('user_id', user.id).throwOnError(),
+                supabase.from('author_likes').select('id', { count: 'exact', head: true }).eq('user_id', user.id).throwOnError(),
             ])
         ]);
 
@@ -698,6 +667,92 @@ export const getUserProfileByUsername = (username: string) => executeCachedQuery
             stars,
             count: (allReviewsResult.data || []).filter((r: any) => Math.round(r.score) === stars).length,
         }));
+
+        const likesCount = {
+            poems: likedPoemsCountRes.count || 0,
+            collections: likedCollectionsCountRes.count || 0,
+            authors: likedAuthorsCountRes.count || 0,
+            total: (likedPoemsCountRes.count || 0) + (likedCollectionsCountRes.count || 0) + (likedAuthorsCountRes.count || 0),
+        };
+
+        return {
+            ...user,
+            stats: {
+                reads: readsResult.count || 0,
+                reviews: reviewsResult.count || 0,
+                lists: listsResult.count || 0,
+                followers: followersResult.count || 0,
+                following: followingResult.count || 0,
+                likes: likesCount.total,
+            },
+            topPoems,
+            topAuthors,
+            recentReviews,
+            badges,
+            reviewDistribution,
+            likedPoems: [],
+            likedCollections: [],
+            likedAuthors: [],
+            likesCount,
+        };
+    }
+);
+
+// ── USER LIKES (ON DEMAND / LAZY LOADED) ──
+
+export const getUserLikesByUsername = (username: string) => executeCachedQuery(
+    {
+        keyParts: ['user-likes', username.toLowerCase()],
+        tags: [CACHE_TAGS.profile(username)],
+        revalidate: 60,
+        errorMessage: 'Database Error fetching user likes:'
+    },
+    async (supabase) => {
+        const { data: user } = await supabase
+            .from('users')
+            .select('id')
+            .eq('username', username)
+            .maybeSingle()
+            .throwOnError();
+
+        if (!user) return { likedPoems: [], likedCollections: [], likedAuthors: [] };
+
+        const [likedPoemsRes, likedCollectionsRes, likedAuthorsRes] = await Promise.all([
+            supabase
+                .from('poem_likes')
+                .select(`
+                    created_at,
+                    poems (
+                        id, title, slug, publication_year, average_review, reviews_count, reads_count, likes_count,
+                        authors:poem_authors(authors(id, name, slug)),
+                        collections(id, title, slug),
+                        rothko_params(seed, palette_id, shape_type, layout_bias, complexity, texture_profile, blend_mode, density, opacity_style)
+                    )
+                `)
+                .eq('user_id', user.id)
+                .order('created_at', { ascending: false }),
+            supabase
+                .from('collection_likes')
+                .select(`
+                    created_at,
+                    collections (
+                        id, title, slug, publication_year, summary, cover_url, poems_count, average_review, reviews_count, likes_count,
+                        authors:collection_authors(authors(id, name, slug))
+                    )
+                `)
+                .eq('user_id', user.id)
+                .order('created_at', { ascending: false }),
+            supabase
+                .from('author_likes')
+                .select(`
+                    created_at,
+                    authors (
+                        id, name, slug, biography, image_url, date_of_birth, date_of_death, nationality, movement, likes_count
+                    )
+                `)
+                .eq('user_id', user.id)
+                .order('created_at', { ascending: false }),
+        ]);
 
         const likedPoems = (likedPoemsRes.data || [])
             .map((item: any) => {
@@ -735,32 +790,10 @@ export const getUserProfileByUsername = (username: string) => executeCachedQuery
             })
             .filter(Boolean);
 
-        const likesCount = {
-            poems: likedPoems.length,
-            collections: likedCollections.length,
-            authors: likedAuthors.length,
-            total: likedPoems.length + likedCollections.length + likedAuthors.length,
-        };
-
         return {
-            ...user,
-            stats: {
-                reads: readsResult.count || 0,
-                reviews: reviewsResult.count || 0,
-                lists: listsResult.count || 0,
-                followers: followersResult.count || 0,
-                following: followingResult.count || 0,
-                likes: likesCount.total,
-            },
-            topPoems,
-            topAuthors,
-            recentReviews,
-            badges,
-            reviewDistribution,
             likedPoems,
             likedCollections,
             likedAuthors,
-            likesCount,
         };
     }
 );
