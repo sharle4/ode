@@ -11,7 +11,10 @@ import {
   List,
   Moon,
   Sun,
+  Gear,
+  SignOut,
 } from "@phosphor-icons/react";
+import { signout } from "@/app/auth/actions";
 import OdeLogoStatic from "@/components/ui/OdeLogoStatic";
 import NavbarSearch from "./NavbarSearch";
 import ProfileDropdown from "./ProfileDropdown";
@@ -150,7 +153,7 @@ const NavbarClient = React.memo(function NavbarClient({
       <AnimatePresence>
         {mobileMenuOpen && (
           <motion.div
-            className="fixed inset-0 z-30 bg-zinc-950/95 backdrop-blur-2xl md:hidden"
+            className="fixed inset-0 z-30 bg-zinc-950/95 backdrop-blur-2xl md:hidden overflow-y-auto"
             initial={{ opacity: 0, y: -20 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -20 }}
@@ -193,21 +196,62 @@ const NavbarClient = React.memo(function NavbarClient({
 
               {userProfile ? (
                 <motion.div
-                  className="mt-12 flex items-center gap-3"
+                  className="mt-12 flex items-center justify-between w-full"
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
                   transition={{ delay: 0.3 }}
                 >
-                  <div className="h-11 w-11 overflow-hidden relative rounded-full bg-gradient-to-br from-accent to-accent-light flex items-center justify-center text-white text-sm font-medium">
-                    {userProfile.avatar_url ? (
-                      <img src={userProfile.avatar_url} alt={userProfile.username} className="w-full h-full object-cover" />
-                    ) : (
-                      userProfile.username?.charAt(0).toUpperCase() || "U"
-                    )}
-                  </div>
-                  <div>
-                    <p className="text-sm font-medium text-white">{userProfile.username || "Profil"}</p>
-                    <p className="text-xs text-zinc-400">Voir votre bibliothèque</p>
+                  <Link
+                    href={`/profile/${encodeURIComponent(userProfile.username)}`}
+                    onClick={() => setMobileMenuOpen(false)}
+                    className="flex items-center gap-3 transition-opacity hover:opacity-80 active:opacity-60 min-w-0"
+                    aria-label={`Accéder au profil de ${userProfile.username}`}
+                  >
+                    <div className="h-11 w-11 overflow-hidden relative rounded-full bg-gradient-to-br from-accent to-accent-light flex items-center justify-center text-white text-sm font-medium flex-shrink-0">
+                      {userProfile.avatar_url ? (
+                        <img src={userProfile.avatar_url} alt={userProfile.username} className="w-full h-full object-cover" />
+                      ) : (
+                        userProfile.username?.charAt(0).toUpperCase() || "U"
+                      )}
+                    </div>
+                    <div className="min-w-0">
+                      <p className="text-sm font-medium text-white truncate">{userProfile.username || "Profil"}</p>
+                      <p className="text-xs text-zinc-400 truncate">Voir votre bibliothèque</p>
+                    </div>
+                  </Link>
+
+                  <div className="flex items-center gap-1 text-zinc-400 flex-shrink-0">
+                    <button
+                      onClick={handleThemeToggle}
+                      className="p-2.5 rounded-full hover:text-white hover:bg-white/5 transition-colors"
+                      aria-label="Changer de thème"
+                      title="Changer de thème"
+                    >
+                      <Sun size={20} className="hidden dark:block" />
+                      <Moon size={20} className="block dark:hidden" />
+                    </button>
+                    <Link
+                      href="/settings"
+                      onClick={() => setMobileMenuOpen(false)}
+                      className="p-2.5 rounded-full hover:text-white hover:bg-white/5 transition-colors"
+                      aria-label="Paramètres"
+                      title="Paramètres"
+                    >
+                      <Gear size={20} />
+                    </Link>
+                    <button
+                      onClick={() => {
+                        setMobileMenuOpen(false);
+                        React.startTransition(() => {
+                          signout();
+                        });
+                      }}
+                      className="p-2.5 rounded-full hover:text-red-400 hover:bg-white/5 transition-colors cursor-pointer"
+                      aria-label="Déconnexion"
+                      title="Déconnexion"
+                    >
+                      <SignOut size={20} />
+                    </button>
                   </div>
                 </motion.div>
               ) : (
@@ -231,6 +275,17 @@ const NavbarClient = React.memo(function NavbarClient({
                   >
                     Créer un compte
                   </a>
+                  <div className="flex justify-end pt-1">
+                    <button
+                      onClick={handleThemeToggle}
+                      className="p-2.5 rounded-full text-zinc-400 hover:text-white hover:bg-white/5 transition-colors"
+                      aria-label="Changer de thème"
+                      title="Changer de thème"
+                    >
+                      <Sun size={20} className="hidden dark:block" />
+                      <Moon size={20} className="block dark:hidden" />
+                    </button>
+                  </div>
                 </motion.div>
               )}
             </div>
