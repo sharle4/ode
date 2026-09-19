@@ -148,7 +148,7 @@ export default function ProfileDropdown({ userProfile }: { userProfile: UserProf
                                         signout();
                                     });
                                 }}
-                                className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-red-600/80 hover:bg-red-50 hover:text-red-700 transition-colors cursor-pointer"
+                                className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-red-600/80 dark:text-red-400 hover:bg-red-500/10 hover:text-red-700 dark:hover:text-red-300 transition-colors cursor-pointer"
                             >
                                 <SignOut size={16} className="flex-shrink-0" />
                                 Déconnexion

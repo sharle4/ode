@@ -153,7 +153,7 @@ const NavbarClient = React.memo(function NavbarClient({
       <AnimatePresence>
         {mobileMenuOpen && (
           <motion.div
-            className="fixed inset-0 z-30 bg-zinc-950/95 backdrop-blur-2xl md:hidden overflow-y-auto"
+            className="fixed inset-0 z-30 bg-cream/95 dark:bg-zinc-950/95 backdrop-blur-2xl md:hidden overflow-y-auto"
             initial={{ opacity: 0, y: -20 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -20 }}
@@ -166,7 +166,7 @@ const NavbarClient = React.memo(function NavbarClient({
             <div className="flex flex-col items-start justify-center h-full px-8 pb-20 pt-24">
               <div className="w-full mb-8">
                 <Suspense fallback={
-                  <div className="relative w-full h-[46px] rounded-full bg-zinc-900 animate-pulse"></div>
+                  <div className="relative w-full h-[46px] rounded-full bg-paper/60 border border-soft-border animate-pulse"></div>
                 }>
                   <NavbarSearch variant="mobile" onNavigate={() => setMobileMenuOpen(false)} />
                 </Suspense>
@@ -177,7 +177,7 @@ const NavbarClient = React.memo(function NavbarClient({
                   <motion.a
                     key={link.label}
                     href={link.href}
-                    className="flex items-center gap-4 rounded-2xl px-4 py-4 text-white transition-colors hover:bg-white/5"
+                    className="flex items-center gap-4 rounded-2xl px-4 py-4 text-charcoal transition-colors hover:bg-charcoal/5"
                     initial={{ opacity: 0, x: -20 }}
                     animate={{ opacity: 1, x: 0 }}
                     transition={{
@@ -215,15 +215,15 @@ const NavbarClient = React.memo(function NavbarClient({
                       )}
                     </div>
                     <div className="min-w-0">
-                      <p className="text-sm font-medium text-white truncate">{userProfile.username || "Profil"}</p>
-                      <p className="text-xs text-zinc-400 truncate">Voir votre bibliothèque</p>
+                      <p className="text-sm font-medium text-charcoal truncate">{userProfile.username || "Profil"}</p>
+                      <p className="text-xs text-warm-gray truncate">Voir votre bibliothèque</p>
                     </div>
                   </Link>
 
-                  <div className="flex items-center gap-1 text-zinc-400 flex-shrink-0">
+                  <div className="flex items-center gap-1 text-charcoal/70 flex-shrink-0">
                     <button
                       onClick={handleThemeToggle}
-                      className="p-2.5 rounded-full hover:text-white hover:bg-white/5 transition-colors"
+                      className="p-2.5 rounded-full hover:text-charcoal hover:bg-charcoal/5 transition-colors"
                       aria-label="Changer de thème"
                       title="Changer de thème"
                     >
@@ -233,7 +233,7 @@ const NavbarClient = React.memo(function NavbarClient({
                     <Link
                       href="/settings"
                       onClick={() => setMobileMenuOpen(false)}
-                      className="p-2.5 rounded-full hover:text-white hover:bg-white/5 transition-colors"
+                      className="p-2.5 rounded-full hover:text-charcoal hover:bg-charcoal/5 transition-colors"
                       aria-label="Paramètres"
                       title="Paramètres"
                     >
@@ -246,7 +246,7 @@ const NavbarClient = React.memo(function NavbarClient({
                           signout();
                         });
                       }}
-                      className="p-2.5 rounded-full hover:text-red-400 hover:bg-white/5 transition-colors cursor-pointer"
+                      className="p-2.5 rounded-full hover:text-red-500 hover:bg-charcoal/5 transition-colors cursor-pointer"
                       aria-label="Déconnexion"
                       title="Déconnexion"
                     >
@@ -264,7 +264,7 @@ const NavbarClient = React.memo(function NavbarClient({
                   <a
                     href="/login"
                     onClick={() => setMobileMenuOpen(false)}
-                    className="w-full text-center rounded-full border border-white/20 text-white px-6 py-3.5 text-sm font-medium transition-colors hover:bg-white/10"
+                    className="w-full text-center rounded-full border border-soft-border text-charcoal px-6 py-3.5 text-sm font-medium transition-colors hover:bg-charcoal/5"
                   >
                     Se connecter
                   </a>
@@ -278,7 +278,7 @@ const NavbarClient = React.memo(function NavbarClient({
                   <div className="flex justify-end pt-1">
                     <button
                       onClick={handleThemeToggle}
-                      className="p-2.5 rounded-full text-zinc-400 hover:text-white hover:bg-white/5 transition-colors"
+                      className="p-2.5 rounded-full text-charcoal/70 hover:text-charcoal hover:bg-charcoal/5 transition-colors"
                       aria-label="Changer de thème"
                       title="Changer de thème"
                     >
