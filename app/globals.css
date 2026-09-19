@@ -320,3 +320,35 @@ body {
     padding-right: 1rem;
   }
 }
+
+/* ── SKELETON SHIMMER ── */
+@keyframes skeleton-shimmer {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}
+
+.skeleton-shimmer {
+  background: linear-gradient(
+    90deg,
+    rgba(232, 228, 217, 0.45) 0%,
+    rgba(245, 242, 233, 0.95) 50%,
+    rgba(232, 228, 217, 0.45) 100%
+  );
+  background-size: 200% 100%;
+  animation: skeleton-shimmer 2s ease-in-out infinite;
+}
+
+:where(.dark, .dark *) .skeleton-shimmer {
+  background: linear-gradient(
+    90deg,
+    rgba(45, 45, 43, 0.45) 0%,
+    rgba(68, 68, 65, 0.85) 50%,
+    rgba(45, 45, 43, 0.45) 100%
+  );
+  background-size: 200% 100%;
+  animation: skeleton-shimmer 2s ease-in-out infinite;
+}

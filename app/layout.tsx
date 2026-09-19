@@ -4,6 +4,7 @@ import "./globals.css";
 import { ThemeProvider } from "@/components/theme-provider";
 import { SyncPreferences } from "@/components/sync-preferences";
 import { NuqsAdapter } from "nuqs/adapters/next/app";
+import NextTopLoader from "nextjs-toploader";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -63,6 +64,18 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} ${playfair.variable} antialiased`}
       >
+        <NextTopLoader
+          color="#B85450"
+          initialPosition={0.08}
+          crawlSpeed={200}
+          height={2.5}
+          crawl={true}
+          showSpinner={false}
+          easing="ease"
+          speed={200}
+          shadow="0 0 10px rgba(184, 84, 80, 0.5), 0 0 5px rgba(184, 84, 80, 0.3)"
+          zIndex={99999}
+        />
         <NuqsAdapter>
           <ThemeProvider
             attribute="class"
