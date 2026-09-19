@@ -58,6 +58,57 @@ const NavbarClient = React.memo(function NavbarClient({
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
+  // Bloquer le défilement de la page (html et body) quand le menu mobile est ouvert
+  useEffect(() => {
+    if (!mobileMenuOpen) return;
+
+    const html = document.documentElement;
+    const body = document.body;
+
+    const originalHtmlOverflow = html.style.overflow;
+    const originalHtmlOverflowY = html.style.overflowY;
+    const originalHtmlOverscroll = html.style.overscrollBehavior;
+
+    const originalBodyOverflow = body.style.overflow;
+    const originalBodyOverflowY = body.style.overflowY;
+    const originalBodyOverscroll = body.style.overscrollBehavior;
+
+    html.style.overflow = "hidden";
+    html.style.overflowY = "hidden";
+    html.style.overscrollBehavior = "none";
+
+    body.style.overflow = "hidden";
+    body.style.overflowY = "hidden";
+    body.style.overscrollBehavior = "none";
+
+    return () => {
+      html.style.overflow = originalHtmlOverflow;
+      html.style.overflowY = originalHtmlOverflowY;
+      html.style.overscrollBehavior = originalHtmlOverscroll;
+
+      body.style.overflow = originalBodyOverflow;
+      body.style.overflowY = originalBodyOverflowY;
+      body.style.overscrollBehavior = originalBodyOverscroll;
+    };
+  }, [mobileMenuOpen]);
+
+  // Fermer le menu mobile lors d'un changement de route
+  useEffect(() => {
+    setMobileMenuOpen(false);
+  }, [pathname]);
+
+  // Fermeture avec la touche Échap
+  useEffect(() => {
+    if (!mobileMenuOpen) return;
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        setMobileMenuOpen(false);
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [mobileMenuOpen]);
+
   const handleThemeToggle = () => {
     const nextTheme = resolvedTheme === "dark" ? "light" : "dark";
     if (!document.startViewTransition) {
@@ -153,7 +204,7 @@ const NavbarClient = React.memo(function NavbarClient({
       <AnimatePresence>
         {mobileMenuOpen && (
           <motion.div
-            className="fixed inset-0 z-30 bg-cream/95 dark:bg-zinc-950/95 backdrop-blur-2xl md:hidden overflow-y-auto"
+            className="fixed inset-0 z-30 bg-cream/95 dark:bg-zinc-950/95 backdrop-blur-2xl md:hidden overflow-y-auto overscroll-contain"
             initial={{ opacity: 0, y: -20 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -20 }}
