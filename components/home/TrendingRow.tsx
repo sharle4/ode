@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useRef } from "react";
+import Link from "next/link";
 import { CaretRight, CaretLeft } from "@phosphor-icons/react";
 import type { Poem } from "@/types";
 import PoemCard from "@/components/ui/PoemCard";
@@ -89,7 +90,8 @@ const TrendingRow = React.memo(function TrendingRow({
               </div>
             ))}
 
-            <div
+            <Link
+              href="/explore"
               className="flex-none snap-start flex flex-col items-center justify-center border-2 border-dashed border-soft-border/40 rounded-2xl p-6 hover:border-soft-border transition-colors cursor-pointer bg-paper/30"
               style={{ width: cardWidth }}
             >
@@ -97,7 +99,7 @@ const TrendingRow = React.memo(function TrendingRow({
                 <CaretRight size={20} />
               </div>
               <span className="text-sm font-medium text-charcoal">Voir tout</span>
-            </div>
+            </Link>
           </div>
         </div>
       </div>

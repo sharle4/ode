@@ -1,6 +1,6 @@
 import Link from 'next/link'
 import { PenNib, UsersThree, Books, Sun, ArrowRight, Tag } from '@phosphor-icons/react/dist/ssr'
-import { getFeaturedAuthors, getFeaturedCollections, getDailyPoem, getCategories } from '@/utils/supabase/queries'
+import { getFeaturedAuthors, getFeaturedCollections, getFeaturedPoems, getDailyPoem, getCategories } from '@/utils/supabase/queries'
 import CacheSyncButton from '@/components/admin/CacheSyncButton'
 
 export const dynamic = 'force-dynamic'
@@ -51,15 +51,17 @@ const sections = [
 
 export default async function AdminDashboard() {
     // Fetch current state for quick stats
-    const [authorsResult, collectionsResult, dailyResult, categoriesResult] = await Promise.allSettled([
+    const [authorsResult, collectionsResult, poemsResult, dailyResult, categoriesResult] = await Promise.allSettled([
         getFeaturedAuthors(),
         getFeaturedCollections(),
+        getFeaturedPoems(),
         getDailyPoem(),
         getCategories(),
     ])
 
     const featuredAuthorsCount = authorsResult.status === 'fulfilled' ? authorsResult.value.length : 0
     const featuredCollectionsCount = collectionsResult.status === 'fulfilled' ? collectionsResult.value.length : 0
+    const featuredPoemsCount = poemsResult.status === 'fulfilled' ? poemsResult.value.length : 0
     const categoriesCount = categoriesResult.status === 'fulfilled' ? categoriesResult.value.length : 0
     const dailyPoem = dailyResult.status === 'fulfilled' ? dailyResult.value : null
 
@@ -78,7 +80,11 @@ export default async function AdminDashboard() {
             </div>
 
             {/* Quick stats */}
-            <div className="mb-8 grid grid-cols-2 gap-4 sm:grid-cols-4">
+            <div className="mb-8 grid grid-cols-2 gap-4 sm:grid-cols-5">
+                <div className="rounded-xl border border-zinc-800 bg-zinc-900/50 p-5">
+                    <p className="text-xs font-medium uppercase tracking-wider text-zinc-500">Poèmes à la une</p>
+                    <p className="mt-1 text-2xl font-semibold text-zinc-100">{featuredPoemsCount}</p>
+                </div>
                 <div className="rounded-xl border border-zinc-800 bg-zinc-900/50 p-5">
                     <p className="text-xs font-medium uppercase tracking-wider text-zinc-500">Auteurs en avant</p>
                     <p className="mt-1 text-2xl font-semibold text-zinc-100">{featuredAuthorsCount}</p>
@@ -91,7 +97,7 @@ export default async function AdminDashboard() {
                     <p className="text-xs font-medium uppercase tracking-wider text-zinc-500">Catégories</p>
                     <p className="mt-1 text-2xl font-semibold text-zinc-100">{categoriesCount}</p>
                 </div>
-                <div className="rounded-xl border border-zinc-800 bg-zinc-900/50 p-5">
+                <div className="col-span-2 sm:col-span-1 rounded-xl border border-zinc-800 bg-zinc-900/50 p-5">
                     <p className="text-xs font-medium uppercase tracking-wider text-zinc-500">Poème du jour</p>
                     <p className="mt-1 text-sm font-medium text-zinc-100 truncate">
                         {dailyPoem?.title || <span className="text-zinc-500">Non défini</span>}

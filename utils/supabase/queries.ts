@@ -178,29 +178,81 @@ export const getTrendingPoems = (limit: number = 10) => executeCachedQuery(
         errorMessage: 'Database Error fetching trending poems:'
     },
     async (supabase) => {
-        const { data: poems } = await supabase
-            .from('poems')
-            .select(`
-                *,
-                authors ( id, name, slug ),
-                rothko_params ( seed, palette_id, shape_type, layout_bias, complexity, texture_profile, blend_mode, density, opacity_style )
-            `)
-            .limit(limit)
-            .order('reads_count', { ascending: false })
-            .order('id', { ascending: false }) // Tie-breaker
-            .throwOnError();
+        try {
+            const { data: poems, error } = await supabase
+                .from('poems')
+                .select(`
+                    id, title, slug, publication_year, average_review, reviews_count, reads_count,
+                    authors:poem_authors(authors(id, name, slug)),
+                    rothko_params ( seed, palette_id, shape_type, layout_bias, complexity, texture_profile, blend_mode, density, opacity_style )
+                `)
+                .order('reads_count', { ascending: false })
+                .order('id', { ascending: false }) // Tie-breaker
+                .limit(limit);
 
-        return (poems || []).map(poem => {
-            if (poem.rothko_params) {
-                const rothko = Array.isArray(poem.rothko_params) ? poem.rothko_params[0] : poem.rothko_params;
-                return { ...poem, rothko_params: rothko as any };
+            if (error) {
+                console.warn('Warning: Could not fetch trending poems (database timeout or error):', error.message);
+                return [];
             }
-            return poem;
-        });
+
+            return (poems || []).map((poem: any) => {
+                const rothko = Array.isArray(poem.rothko_params) ? poem.rothko_params[0] : poem.rothko_params;
+                const authors = (poem.authors || []).map((a: any) => a.authors).filter(Boolean);
+                return {
+                    ...poem,
+                    authors,
+                    rothko_params: rothko || undefined,
+                };
+            });
+        } catch (err: any) {
+            console.warn('Warning: Exception in getTrendingPoems:', err?.message || err);
+            return [];
+        }
     }
 );
 
 // ── FEATURED CONTENT (Homepage) ──
+
+export const getFeaturedPoems = () => executeCachedQuery(
+    {
+        keyParts: ['featured-poems'],
+        tags: [CACHE_TAGS.featured],
+        revalidate: 86400,
+        errorMessage: 'Database Error fetching featured poems:'
+    },
+    async (supabase) => {
+        const { data } = await supabase
+            .from('featured_poems')
+            .select(`
+                position,
+                poems:poem_id (
+                    id, title, slug, publication_year, average_review, reviews_count,
+                    authors:poem_authors(authors(id, name, slug)),
+                    rothko_params ( seed, palette_id, shape_type, layout_bias, complexity, texture_profile, blend_mode, density, opacity_style )
+                )
+            `)
+            .order('position', { ascending: true })
+            .throwOnError();
+
+        return (data || [])
+            .map((row: any) => {
+                const poem = row.poems;
+                if (!poem) return null;
+
+                const rothko = Array.isArray(poem.rothko_params) ? poem.rothko_params[0] : poem.rothko_params;
+                const authors = (poem.authors || []).map((a: any) => a.authors).filter(Boolean);
+
+                // Aucun snippet n'est injecté pour conserver l'affichage strictement identique à l'original (titre et auteur uniquement)
+                return {
+                    ...poem,
+                    authors,
+                    rothko_params: rothko || undefined,
+                    position: row.position,
+                };
+            })
+            .filter(Boolean);
+    }
+);
 
 export const getFeaturedAuthors = () => executeCachedQuery(
     {

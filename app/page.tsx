@@ -8,13 +8,14 @@ import AuthorRow from "@/components/home/AuthorRow";
 import CollectionRow from "@/components/home/CollectionRow";
 import CategoryGrid from "@/components/explore/CategoryGrid";
 import FadeIn from "@/components/ui/FadeIn";
-import { getDailyPoem, getTrendingPoems, getFeaturedAuthors, getFeaturedCollections, getCommunityFeed, getPlatformStats, getCategories, getPoemReviewDistribution } from "@/utils/supabase/queries";
+import { getDailyPoem, getFeaturedPoems, getTrendingPoems, getFeaturedAuthors, getFeaturedCollections, getCommunityFeed, getPlatformStats, getCategories, getPoemReviewDistribution } from "@/utils/supabase/queries";
 
 export default async function Home() {
   // Fetch ALL data from database in parallel. Using allSettled so one failing query
   // doesn't crash the entire landing page — each section degrades independently.
   const [
     dailyPoemResult,
+    featuredPoemsResult,
     trendingPoemsResult,
     authorsResult,
     collectionsResult,
@@ -22,6 +23,7 @@ export default async function Home() {
     statsResult,
   ] = await Promise.allSettled([
     getDailyPoem(),
+    getFeaturedPoems(),
     getTrendingPoems(10),
     getFeaturedAuthors(),
     getFeaturedCollections(),
@@ -30,11 +32,16 @@ export default async function Home() {
   ]);
 
   const dailyPoem = dailyPoemResult.status === 'fulfilled' ? dailyPoemResult.value : null;
+  const featuredPoems = featuredPoemsResult.status === 'fulfilled' ? featuredPoemsResult.value : [];
   const trendingPoems = trendingPoemsResult.status === 'fulfilled' ? trendingPoemsResult.value : [];
   const featuredAuthors = authorsResult.status === 'fulfilled' ? authorsResult.value : [];
   const featuredCollections = collectionsResult.status === 'fulfilled' ? collectionsResult.value : [];
   const communityFeed = communityResult.status === 'fulfilled' ? communityResult.value : [];
   const platformStats = statsResult.status === 'fulfilled' ? statsResult.value : { poemsCount: 0, collectionsCount: 0, authorsCount: 0 };
+
+  // Section 'Poèmes tendances' alimentée par les FeaturedPoems curatés manuellement.
+  // Fallback gracieux sur trendingPoems si aucun poème n'est configuré en base.
+  const displayFeaturedPoems = featuredPoems.length > 0 ? featuredPoems : trendingPoems;
 
   // Fetch review distribution for the daily poem if available
   let dailyPoemReviews: any[] = [];
@@ -57,8 +64,8 @@ export default async function Home() {
         <section id="explore" className="pb-12 md:pb-24">
           <TrendingRow
             title="Poèmes tendances"
-            subtitle="Les poèmes les plus lus et parcourés cette semaine"
-            poems={trendingPoems}
+            subtitle="Les poèmes les plus lus et parcourus cette semaine"
+            poems={displayFeaturedPoems}
           />
 
           {featuredAuthors.length > 0 && (
