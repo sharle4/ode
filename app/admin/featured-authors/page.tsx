@@ -1,6 +1,9 @@
 import { getPublicClient } from '@/utils/supabase/queries'
 import FeaturedAuthorsClient from './FeaturedAuthorsClient'
 
+export const dynamic = 'force-dynamic'
+export const revalidate = 0
+
 export default async function FeaturedAuthorsPage() {
     const supabase = getPublicClient()
     const { data } = await supabase

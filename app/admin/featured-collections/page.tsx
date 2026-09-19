@@ -1,6 +1,9 @@
 import { getPublicClient } from '@/utils/supabase/queries'
 import FeaturedCollectionsClient from './FeaturedCollectionsClient'
 
+export const dynamic = 'force-dynamic'
+export const revalidate = 0
+
 export default async function FeaturedCollectionsPage() {
     const supabase = getPublicClient()
     const { data } = await supabase

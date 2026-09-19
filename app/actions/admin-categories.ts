@@ -1,6 +1,6 @@
 'use server'
 
-import { revalidateTag } from 'next/cache'
+import { revalidateTag, revalidatePath } from 'next/cache'
 import { z } from 'zod'
 import { adminActionClient } from '@/lib/safe-action'
 import { CACHE_TAGS } from '@/lib/cache-keys'
@@ -67,7 +67,10 @@ export const saveCategory = adminActionClient
         revalidateTag(CACHE_TAGS.categories, undefined as never);
         if (slugToInvalidate) {
             revalidateTag(CACHE_TAGS.categoryDetail(slugToInvalidate), undefined as never);
+            revalidatePath(`/category/${slugToInvalidate}`);
         }
+        revalidatePath('/explore');
+        revalidatePath('/admin/categories');
 
         return { success: true };
     });
@@ -91,7 +94,10 @@ export const deleteCategory = adminActionClient
         revalidateTag(CACHE_TAGS.categories, undefined as never);
         if (data?.slug) {
             revalidateTag(CACHE_TAGS.categoryDetail(data.slug), undefined as never);
+            revalidatePath(`/category/${data.slug}`);
         }
+        revalidatePath('/explore');
+        revalidatePath('/admin/categories');
 
         return { success: true };
     });
@@ -130,6 +136,9 @@ export const saveCategoryPoems = adminActionClient
 
         revalidateTag(CACHE_TAGS.categories, undefined as never);
         revalidateTag(CACHE_TAGS.categoryDetail(categorySlug), undefined as never);
+        revalidatePath(`/category/${categorySlug}`);
+        revalidatePath('/explore');
+        revalidatePath(`/admin/categories/${categoryId}`);
         return { success: true };
     });
 
@@ -163,6 +172,9 @@ export const saveCategoryAuthors = adminActionClient
 
         revalidateTag(CACHE_TAGS.categories, undefined as never);
         revalidateTag(CACHE_TAGS.categoryDetail(categorySlug), undefined as never);
+        revalidatePath(`/category/${categorySlug}`);
+        revalidatePath('/explore');
+        revalidatePath(`/admin/categories/${categoryId}`);
         return { success: true };
     });
 
@@ -196,5 +208,8 @@ export const saveCategoryCollections = adminActionClient
 
         revalidateTag(CACHE_TAGS.categories, undefined as never);
         revalidateTag(CACHE_TAGS.categoryDetail(categorySlug), undefined as never);
+        revalidatePath(`/category/${categorySlug}`);
+        revalidatePath('/explore');
+        revalidatePath(`/admin/categories/${categoryId}`);
         return { success: true };
     });

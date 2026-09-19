@@ -1,6 +1,10 @@
 import Link from 'next/link'
 import { PenNib, UsersThree, Books, Sun, ArrowRight, Tag } from '@phosphor-icons/react/dist/ssr'
 import { getFeaturedAuthors, getFeaturedCollections, getDailyPoem, getCategories } from '@/utils/supabase/queries'
+import CacheSyncButton from '@/components/admin/CacheSyncButton'
+
+export const dynamic = 'force-dynamic'
+export const revalidate = 0
 
 const sections = [
     {
@@ -61,13 +65,16 @@ export default async function AdminDashboard() {
 
     return (
         <>
-            <div className="mb-10">
-                <h1 className="text-2xl font-serif font-semibold text-zinc-100">
-                    Panneau d&apos;administration
-                </h1>
-                <p className="mt-1.5 text-sm text-zinc-400">
-                    Gérez le contenu mis en avant sur la page d&apos;accueil d&apos;ode.
-                </p>
+            <div className="mb-10 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+                <div>
+                    <h1 className="text-2xl font-serif font-semibold text-zinc-100">
+                        Panneau d&apos;administration
+                    </h1>
+                    <p className="mt-1.5 text-sm text-zinc-400">
+                        Gérez le contenu mis en avant sur la page d&apos;accueil d&apos;ode.
+                    </p>
+                </div>
+                <CacheSyncButton />
             </div>
 
             {/* Quick stats */}

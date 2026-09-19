@@ -1,5 +1,6 @@
 'use client'
 
+import { useRouter } from 'next/navigation'
 import FeaturedManager from '@/components/admin/FeaturedManager'
 import { type SearchResult } from '@/components/admin/SearchSelect'
 import { type SortableItem } from '@/components/admin/SortableList'
@@ -10,6 +11,8 @@ interface FeaturedAuthorsClientProps {
 }
 
 export default function FeaturedAuthorsClient({ initialItems }: FeaturedAuthorsClientProps) {
+    const router = useRouter()
+
     const handleSearch = async (query: string): Promise<SearchResult[]> => {
         const result = await searchAuthors({ query })
         if (result?.data?.success && result.data.data) {
@@ -24,9 +27,19 @@ export default function FeaturedAuthorsClient({ initialItems }: FeaturedAuthorsC
 
     const handleSave = async (ids: string[]) => {
         const result = await saveFeaturedAuthors({ authorIds: ids })
+        if (result?.serverError) {
+            return { failure: result.serverError }
+        }
+        if (result?.validationErrors) {
+            return { failure: 'Données transmises non valides.' }
+        }
         if (result?.data?.failure) {
             return { failure: result.data.failure }
         }
+        if (!result?.data?.success) {
+            return { failure: "Une erreur inattendue est survenue lors de l'enregistrement." }
+        }
+        router.refresh()
         return { success: true }
     }
 

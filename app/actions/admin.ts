@@ -1,6 +1,6 @@
 'use server'
 
-import { revalidateTag } from 'next/cache'
+import { revalidateTag, revalidatePath } from 'next/cache'
 import { z } from 'zod'
 import { adminActionClient } from '@/lib/safe-action'
 import { CACHE_TAGS } from '@/lib/cache-keys'
@@ -18,10 +18,13 @@ export const saveFeaturedPoems = adminActionClient
 
         if (error) {
             console.error('Failed to update featured poems:', error.message)
-            return { failure: 'Impossible de mettre à jour les poèmes à la une.' }
+            return { failure: 'Impossible de mettre à jour les poèmes à la une : ' + error.message }
         }
 
         revalidateTag(CACHE_TAGS.featured, undefined as never)
+        revalidatePath('/')
+        revalidatePath('/explore')
+        revalidatePath('/admin/featured-poems')
         return { success: true }
     })
 
@@ -38,10 +41,13 @@ export const saveFeaturedAuthors = adminActionClient
 
         if (error) {
             console.error('Failed to update featured authors:', error.message)
-            return { failure: 'Impossible de mettre à jour les auteurs à la une.' }
+            return { failure: 'Impossible de mettre à jour les auteurs à la une : ' + error.message }
         }
 
         revalidateTag(CACHE_TAGS.featured, undefined as never)
+        revalidatePath('/')
+        revalidatePath('/explore')
+        revalidatePath('/admin/featured-authors')
         return { success: true }
     })
 
@@ -58,10 +64,13 @@ export const saveFeaturedCollections = adminActionClient
 
         if (error) {
             console.error('Failed to update featured collections:', error.message)
-            return { failure: 'Impossible de mettre à jour les recueils à la une.' }
+            return { failure: 'Impossible de mettre à jour les recueils à la une : ' + error.message }
         }
 
         revalidateTag(CACHE_TAGS.featured, undefined as never)
+        revalidatePath('/')
+        revalidatePath('/explore')
+        revalidatePath('/admin/featured-collections')
         return { success: true }
     })
 
@@ -80,10 +89,12 @@ export const saveDailyPoem = adminActionClient
 
         if (error) {
             console.error('Failed to set daily poem:', error.message)
-            return { failure: 'Impossible de définir le poème du jour.' }
+            return { failure: 'Impossible de définir le poème du jour : ' + error.message }
         }
 
         revalidateTag(CACHE_TAGS.daily, undefined as never)
+        revalidatePath('/')
+        revalidatePath('/admin/daily-poem')
         return { success: true }
     })
 
@@ -259,4 +270,20 @@ export const fetchDailyPoemHistory = adminActionClient
         })).filter((p: any) => p.id)
 
         return { success: true, data: results }
+    })
+
+// ── MASTER CACHE PURGE & SYNCHRONIZATION ──
+
+export const purgeAllPlatformCache = adminActionClient
+    .action(async () => {
+        revalidateTag(CACHE_TAGS.featured, undefined as never)
+        revalidateTag(CACHE_TAGS.daily, undefined as never)
+        revalidateTag(CACHE_TAGS.categories, undefined as never)
+        revalidateTag(CACHE_TAGS.trending, undefined as never)
+        revalidateTag(CACHE_TAGS.community, undefined as never)
+        revalidateTag(CACHE_TAGS.stats, undefined as never)
+        revalidatePath('/', 'layout')
+        revalidatePath('/explore')
+        revalidatePath('/admin')
+        return { success: true }
     })

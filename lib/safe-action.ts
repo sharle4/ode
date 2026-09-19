@@ -26,9 +26,20 @@ export const authActionClient = actionClient.use(async ({ next }) => {
     return next({ ctx: { supabase, user } });
 });
 
-// Admin client requiring is_admin in JWT app_metadata
+// Admin client requiring is_admin in JWT app_metadata or database fallback
 export const adminActionClient = authActionClient.use(async ({ next, ctx }) => {
-    const isAdmin = ctx.user.app_metadata?.is_admin === true;
+    let isAdmin = ctx.user.app_metadata?.is_admin === true;
+
+    // Fallback: Si le token JWT n'a pas encore été rafraîchi, vérifier directement dans public.users
+    if (!isAdmin) {
+        const { data: profile } = await ctx.supabase
+            .from('users')
+            .select('is_admin')
+            .eq('id', ctx.user.id)
+            .maybeSingle();
+
+        isAdmin = profile?.is_admin === true;
+    }
 
     if (!isAdmin) {
         throw new Error("Accès réservé aux administrateurs.");

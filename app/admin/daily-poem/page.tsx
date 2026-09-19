@@ -1,6 +1,9 @@
 import { getPublicClient } from '@/utils/supabase/queries'
 import DailyPoemClient from './DailyPoemClient'
 
+export const dynamic = 'force-dynamic'
+export const revalidate = 0
+
 export default async function DailyPoemPage() {
     const supabase = getPublicClient()
 

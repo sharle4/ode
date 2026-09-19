@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useTransition, useCallback } from 'react'
+import { useRouter } from 'next/navigation'
 import SearchSelect, { type SearchResult } from '@/components/admin/SearchSelect'
 import { searchPoems, saveDailyPoem } from '@/app/actions/admin'
 import { CalendarBlank, FloppyDisk, Check, Warning, Robot, UserCircle } from '@phosphor-icons/react'
@@ -19,6 +20,7 @@ interface DailyPoemClientProps {
 }
 
 export default function DailyPoemClient({ history }: DailyPoemClientProps) {
+    const router = useRouter()
     const today = new Date().toISOString().split('T')[0]
     const [selectedDate, setSelectedDate] = useState(today)
     const [selectedPoem, setSelectedPoem] = useState<SearchResult | null>(null)
@@ -46,11 +48,15 @@ export default function DailyPoemClient({ history }: DailyPoemClientProps) {
             setFeedback(null)
             const result = await saveDailyPoem({ date: selectedDate, poemId: selectedPoem.id })
 
-            if (result?.data?.failure) {
-                setFeedback({ type: 'error', message: result.data.failure })
-            } else {
+            const failure = result?.serverError || (result?.validationErrors ? 'Données transmises non valides.' : null) || result?.data?.failure
+            if (failure) {
+                setFeedback({ type: 'error', message: failure })
+            } else if (result?.data?.success) {
                 setFeedback({ type: 'success', message: `Poème du jour défini pour le ${formatDateFR(selectedDate)}.` })
                 setSelectedPoem(null)
+                router.refresh()
+            } else {
+                setFeedback({ type: 'error', message: 'Une erreur inattendue est survenue.' })
             }
         })
     }

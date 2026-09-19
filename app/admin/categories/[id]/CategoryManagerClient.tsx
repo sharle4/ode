@@ -114,7 +114,7 @@ export default function CategoryManagerClient({
             alert('Contenu sauvegardé avec succès.')
             router.refresh()
         } else {
-            alert('Erreur : ' + (res?.data?.failure || '?'))
+            alert('Erreur : ' + (res?.serverError || (res?.validationErrors ? 'Données invalides' : null) || res?.data?.failure || 'Une erreur est survenue.'))
         }
     }
 

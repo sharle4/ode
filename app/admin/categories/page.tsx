@@ -2,6 +2,9 @@ import Link from 'next/link'
 import { getCategories } from '@/utils/supabase/queries'
 import { Plus, Tag } from '@phosphor-icons/react/dist/ssr'
 
+export const dynamic = 'force-dynamic'
+export const revalidate = 0
+
 export default async function CategoriesAdminPage() {
     const categories = await getCategories()
 

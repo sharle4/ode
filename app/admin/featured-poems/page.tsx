@@ -1,6 +1,9 @@
 import FeaturedPoemsClient from './FeaturedPoemsClient'
 import { getPublicClient } from '@/utils/supabase/queries'
 
+export const dynamic = 'force-dynamic'
+export const revalidate = 0
+
 export default async function FeaturedPoemsPage() {
     // Fetch current featured poems for initial state
     const supabase = getPublicClient()
