@@ -5,6 +5,22 @@ import { z } from 'zod'
 import { authActionClient } from '@/lib/safe-action'
 import { CACHE_TAGS } from '@/lib/cache-keys'
 
+async function revalidateUserProfile(supabase: any, user: any) {
+    try {
+        const username = user.user_metadata?.username;
+        if (username) {
+            revalidateTag(CACHE_TAGS.profile(username), undefined as never);
+            return;
+        }
+        const { data: dbUser } = await supabase.from('users').select('username').eq('id', user.id).maybeSingle();
+        if (dbUser?.username) {
+            revalidateTag(CACHE_TAGS.profile(dbUser.username), undefined as never);
+        }
+    } catch {
+        // Ignore profiling revalidation error
+    }
+}
+
 export const ratePoem = authActionClient
     .schema(z.object({
         poemId: z.string().uuid(),
@@ -32,6 +48,7 @@ export const ratePoem = authActionClient
         }
 
         revalidateTag(CACHE_TAGS.poem(slug), undefined as never)
+        await revalidateUserProfile(supabase, user)
         return { success: true }
     })
 
@@ -62,6 +79,7 @@ export const rateCollection = authActionClient
         }
 
         revalidateTag(CACHE_TAGS.collection(slug), undefined as never)
+        await revalidateUserProfile(supabase, user)
         return { success: true }
     })
 
@@ -86,6 +104,7 @@ export const toggleLike = authActionClient
             if (error) return { failure: 'Impossible de retirer votre like.' }
         }
 
+        await revalidateUserProfile(supabase, user)
         const { data: poemData } = await supabase.from('poems').select('likes_count').eq('id', poemId).maybeSingle()
         return { success: true, isLiked: targetState, likesCount: poemData?.likes_count ?? 0 }
     })
@@ -111,6 +130,7 @@ export const toggleCollectionLike = authActionClient
             if (error) return { failure: 'Impossible de retirer votre like.' }
         }
 
+        await revalidateUserProfile(supabase, user)
         const { data: colData } = await supabase.from('collections').select('likes_count').eq('id', collectionId).maybeSingle()
         return { success: true, isLiked: targetState, likesCount: colData?.likes_count ?? 0 }
     })
@@ -136,6 +156,7 @@ export const toggleAuthorLike = authActionClient
             if (error) return { failure: 'Impossible de retirer votre like.' }
         }
 
+        await revalidateUserProfile(supabase, user)
         const { data: authorData } = await supabase.from('authors').select('likes_count').eq('id', authorId).maybeSingle()
         return { success: true, isLiked: targetState, likesCount: authorData?.likes_count ?? 0 }
     })

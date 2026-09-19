@@ -555,9 +555,14 @@ export const getCategoryWithContent = (slug: string) => executeCachedQuery(
 
 // ── USER PROFILE ──
 
-export const getUserProfileByUsername = async (username: string) => {
-    try {
-        const supabase = getPublicClient();
+export const getUserProfileByUsername = (username: string) => executeCachedQuery(
+    {
+        keyParts: ['user-profile', username.toLowerCase()],
+        tags: [CACHE_TAGS.profile(username)],
+        revalidate: 60, // 60 seconds caching with background revalidation
+        errorMessage: 'Database Error fetching user profile:'
+    },
+    async (supabase) => {
         // 1. Fetch user profile
         const { data: user } = await supabase
             .from('users')
@@ -568,31 +573,105 @@ export const getUserProfileByUsername = async (username: string) => {
 
         if (!user) return null;
 
-        // 2. Fetch stats in parallel
-        const [readsResult, reviewsResult, listsResult, followersResult, followingResult] = await Promise.all([
-            supabase.from('reads').select('id', { count: 'exact', head: true }).eq('user_id', user.id).throwOnError(),
-            supabase.from('poem_reviews').select('id', { count: 'exact', head: true }).eq('user_id', user.id).throwOnError(),
-            supabase.from('lists').select('id', { count: 'exact', head: true }).eq('user_id', user.id).throwOnError(),
-            supabase.from('followers').select('follower_id', { count: 'exact', head: true }).eq('following_id', user.id).throwOnError(),
-            supabase.from('followers').select('following_id', { count: 'exact', head: true }).eq('follower_id', user.id).throwOnError(),
+        // 2. Fetch all child data concurrently in a single parallel batch
+        const [
+            [readsResult, reviewsResult, listsResult, followersResult, followingResult],
+            topPoemLinksResult,
+            topAuthorLinksResult,
+            recentReviewsResult,
+            userBadgesResult,
+            allReviewsResult,
+            [likedPoemsRes, likedCollectionsRes, likedAuthorsRes]
+        ] = await Promise.all([
+            // Stats counts in parallel
+            Promise.all([
+                supabase.from('reads').select('id', { count: 'exact', head: true }).eq('user_id', user.id).throwOnError(),
+                supabase.from('poem_reviews').select('id', { count: 'exact', head: true }).eq('user_id', user.id).throwOnError(),
+                supabase.from('lists').select('id', { count: 'exact', head: true }).eq('user_id', user.id).throwOnError(),
+                supabase.from('followers').select('follower_id', { count: 'exact', head: true }).eq('following_id', user.id).throwOnError(),
+                supabase.from('followers').select('following_id', { count: 'exact', head: true }).eq('follower_id', user.id).throwOnError(),
+            ]),
+            // Top poems
+            supabase
+                .from('user_top_poems')
+                .select(`
+                    position,
+                    poems (
+                        id, title, slug, publication_year, average_review, reviews_count, reads_count, likes_count,
+                        authors ( id, name, slug ),
+                        rothko_params ( seed, palette_id, shape_type, layout_bias, complexity, texture_profile, blend_mode, density, opacity_style )
+                    )
+                `)
+                .eq('user_id', user.id)
+                .order('position', { ascending: true })
+                .throwOnError(),
+            // Top authors
+            supabase
+                .from('user_top_authors')
+                .select('position, authors ( id, name, slug, image_url )')
+                .eq('user_id', user.id)
+                .order('position', { ascending: true })
+                .throwOnError(),
+            // Recent reviews
+            supabase
+                .from('poem_reviews')
+                .select('id, score, review_text, created_at, poems ( id, title, slug, authors ( id, name, slug ) )')
+                .eq('user_id', user.id)
+                .order('created_at', { ascending: false })
+                .limit(3)
+                .throwOnError(),
+            // Badges
+            supabase
+                .from('user_badges')
+                .select('unlocked_at, badges ( id, name, description, icon_url )')
+                .eq('user_id', user.id)
+                .throwOnError(),
+            // All reviews for score distribution
+            supabase
+                .from('poem_reviews')
+                .select('score')
+                .eq('user_id', user.id)
+                .throwOnError(),
+            // User likes (poems, collections, authors) in parallel
+            Promise.all([
+                supabase
+                    .from('poem_likes')
+                    .select(`
+                        created_at,
+                        poems (
+                            id, title, slug, publication_year, average_review, reviews_count, reads_count, likes_count,
+                            authors:poem_authors(authors(id, name, slug)),
+                            collections(id, title, slug),
+                            rothko_params(seed, palette_id, shape_type, layout_bias, complexity, texture_profile, blend_mode, density, opacity_style)
+                        )
+                    `)
+                    .eq('user_id', user.id)
+                    .order('created_at', { ascending: false }),
+                supabase
+                    .from('collection_likes')
+                    .select(`
+                        created_at,
+                        collections (
+                            id, title, slug, publication_year, summary, cover_url, poems_count, average_review, reviews_count, likes_count,
+                            authors:collection_authors(authors(id, name, slug))
+                        )
+                    `)
+                    .eq('user_id', user.id)
+                    .order('created_at', { ascending: false }),
+                supabase
+                    .from('author_likes')
+                    .select(`
+                        created_at,
+                        authors (
+                            id, name, slug, biography, image_url, date_of_birth, date_of_death, nationality, movement, likes_count
+                        )
+                    `)
+                    .eq('user_id', user.id)
+                    .order('created_at', { ascending: false }),
+            ])
         ]);
 
-        // 3. Fetch top poems
-        const { data: topPoemLinks } = await supabase
-            .from('user_top_poems')
-            .select(`
-                position,
-                poems (
-                    id, title, slug, publication_year, average_review, reviews_count, reads_count, likes_count,
-                    authors ( id, name, slug ),
-                    rothko_params ( seed, palette_id, shape_type, layout_bias, complexity, texture_profile, blend_mode, density, opacity_style )
-                )
-            `)
-            .eq('user_id', user.id)
-            .order('position', { ascending: true })
-            .throwOnError();
-
-        const topPoems = (topPoemLinks || [])
+        const topPoems = (topPoemLinksResult.data || [])
             .map((link: any) => {
                 const poem = link.poems;
                 if (!poem) return null;
@@ -605,83 +684,20 @@ export const getUserProfileByUsername = async (username: string) => {
             })
             .filter(Boolean);
 
-        // 4. Fetch top authors
-        const { data: topAuthorLinks } = await supabase
-            .from('user_top_authors')
-            .select('position, authors ( id, name, slug, image_url )')
-            .eq('user_id', user.id)
-            .order('position', { ascending: true })
-            .throwOnError();
+        const topAuthors = (topAuthorLinksResult.data || [])
+            .map((link: any) => ({ ...link.authors, position: link.position }))
+            .filter((a: any) => a.id);
 
-        const topAuthors = (topAuthorLinks || []).map((link: any) => ({ ...link.authors, position: link.position })).filter((a: any) => a.id);
+        const recentReviews = recentReviewsResult.data || [];
 
-        // 5. Fetch recent reviews
-        const { data: recentReviews } = await supabase
-            .from('poem_reviews')
-            .select('id, score, review_text, created_at, poems ( id, title, slug, authors ( id, name, slug ) )')
-            .eq('user_id', user.id)
-            .order('created_at', { ascending: false })
-            .limit(3)
-            .throwOnError();
-
-        // 6. Fetch badges
-        const { data: userBadges } = await supabase
-            .from('user_badges')
-            .select('unlocked_at, badges ( id, name, description, icon_url )')
-            .eq('user_id', user.id)
-            .throwOnError();
-
-        const badges = (userBadges || []).map((link: any) => ({ ...link.badges, unlocked_at: link.unlocked_at })).filter((b: any) => b.id);
-
-        // 7. Fetch review score distribution
-        const { data: allReviews } = await supabase
-            .from('poem_reviews')
-            .select('score')
-            .eq('user_id', user.id)
-            .throwOnError();
+        const badges = (userBadgesResult.data || [])
+            .map((link: any) => ({ ...link.badges, unlocked_at: link.unlocked_at }))
+            .filter((b: any) => b.id);
 
         const reviewDistribution = [5, 4, 3, 2, 1].map(stars => ({
             stars,
-            count: (allReviews || []).filter((r: any) => Math.round(r.score) === stars).length,
+            count: (allReviewsResult.data || []).filter((r: any) => Math.round(r.score) === stars).length,
         }));
-
-        // 8. Fetch user likes (poems, collections, authors)
-        const [likedPoemsRes, likedCollectionsRes, likedAuthorsRes] = await Promise.all([
-            supabase
-                .from('poem_likes')
-                .select(`
-                    created_at,
-                    poems (
-                        id, title, slug, publication_year, average_review, reviews_count, reads_count, likes_count,
-                        authors:poem_authors(authors(id, name, slug)),
-                        collections(id, title, slug),
-                        rothko_params(seed, palette_id, shape_type, layout_bias, complexity, texture_profile, blend_mode, density, opacity_style)
-                    )
-                `)
-                .eq('user_id', user.id)
-                .order('created_at', { ascending: false }),
-            supabase
-                .from('collection_likes')
-                .select(`
-                    created_at,
-                    collections (
-                        id, title, slug, publication_year, summary, cover_url, poems_count, average_review, reviews_count, likes_count,
-                        authors:collection_authors(authors(id, name, slug))
-                    )
-                `)
-                .eq('user_id', user.id)
-                .order('created_at', { ascending: false }),
-            supabase
-                .from('author_likes')
-                .select(`
-                    created_at,
-                    authors (
-                        id, name, slug, biography, image_url, date_of_birth, date_of_death, nationality, movement, likes_count
-                    )
-                `)
-                .eq('user_id', user.id)
-                .order('created_at', { ascending: false }),
-        ]);
 
         const likedPoems = (likedPoemsRes.data || [])
             .map((item: any) => {
@@ -738,7 +754,7 @@ export const getUserProfileByUsername = async (username: string) => {
             },
             topPoems,
             topAuthors,
-            recentReviews: recentReviews || [],
+            recentReviews,
             badges,
             reviewDistribution,
             likedPoems,
@@ -746,11 +762,8 @@ export const getUserProfileByUsername = async (username: string) => {
             likedAuthors,
             likesCount,
         };
-    } catch (error) {
-        console.error('Database Error fetching user profile:', error);
-        throw error;
     }
-};
+);
 
 // ── POEM REVIEW DISTRIBUTION ──
 

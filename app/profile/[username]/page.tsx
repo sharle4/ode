@@ -28,16 +28,21 @@ export default async function ProfilePage({ params }: ProfilePageProps) {
     const resolvedParams = await params;
     const decodedUsername = decodeURIComponent(resolvedParams.username);
 
-    // Try to fetch user profile from DB
-    const userProfile = await getUserProfileByUsername(decodedUsername);
+    // Fetch profile and auth state in parallel
+    const [userProfile, authUser] = await Promise.all([
+        getUserProfileByUsername(decodedUsername),
+        (async () => {
+            const supabase = await createClient();
+            const { data: { user } } = await supabase.auth.getUser();
+            return user;
+        })()
+    ]);
 
     if (!userProfile) {
         notFound();
     }
 
-    const supabase = await createClient();
-    const { data: { user } } = await supabase.auth.getUser();
-    const isOwner = user?.id === userProfile.id;
+    const isOwner = authUser?.id === userProfile.id;
 
     const stats = userProfile.stats;
     const topPoems = userProfile.topPoems;
