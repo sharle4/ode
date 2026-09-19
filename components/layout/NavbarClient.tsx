@@ -13,6 +13,8 @@ import {
   Sun,
   Gear,
   SignOut,
+  SignIn,
+  UserPlus,
 } from "@phosphor-icons/react";
 import { signout } from "@/app/auth/actions";
 import OdeLogoStatic from "@/components/ui/OdeLogoStatic";
@@ -243,9 +245,66 @@ const NavbarClient = React.memo(function NavbarClient({
                     <span className="text-lg">{link.label}</span>
                   </motion.a>
                 ))}
+
+                {!userProfile && (
+                  <>
+                    <motion.a
+                      href="/login"
+                      className="flex items-center gap-4 rounded-2xl px-4 py-4 text-charcoal transition-colors hover:bg-charcoal/5"
+                      initial={{ opacity: 0, x: -20 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      transition={{
+                        type: "spring",
+                        stiffness: 100,
+                        damping: 20,
+                        delay: 0.08,
+                      }}
+                      onClick={() => setMobileMenuOpen(false)}
+                    >
+                      <SignIn size={24} weight="regular" />
+                      <span className="text-lg">Se connecter</span>
+                    </motion.a>
+
+                    <motion.a
+                      href="/signup"
+                      className="flex items-center gap-4 rounded-2xl px-4 py-4 text-charcoal transition-colors hover:bg-charcoal/5"
+                      initial={{ opacity: 0, x: -20 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      transition={{
+                        type: "spring",
+                        stiffness: 100,
+                        damping: 20,
+                        delay: 0.16,
+                      }}
+                      onClick={() => setMobileMenuOpen(false)}
+                    >
+                      <UserPlus size={24} weight="regular" />
+                      <span className="text-lg">Créer un compte</span>
+                    </motion.a>
+
+                    <motion.button
+                      onClick={handleThemeToggle}
+                      className="flex items-center gap-4 rounded-2xl px-4 py-4 text-charcoal transition-colors hover:bg-charcoal/5 w-full text-left cursor-pointer"
+                      initial={{ opacity: 0, x: -20 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      transition={{
+                        type: "spring",
+                        stiffness: 100,
+                        damping: 20,
+                        delay: 0.24,
+                      }}
+                      aria-label="Changer de thème"
+                    >
+                      <Sun size={24} className="hidden dark:block" weight="regular" />
+                      <Moon size={24} className="block dark:hidden" weight="regular" />
+                      <span className="text-lg block dark:hidden">Mode sombre</span>
+                      <span className="text-lg hidden dark:block">Mode clair</span>
+                    </motion.button>
+                  </>
+                )}
               </nav>
 
-              {userProfile ? (
+              {userProfile && (
                 <motion.div
                   className="mt-12 flex items-center justify-between w-full"
                   initial={{ opacity: 0 }}
@@ -302,39 +361,6 @@ const NavbarClient = React.memo(function NavbarClient({
                       title="Déconnexion"
                     >
                       <SignOut size={20} />
-                    </button>
-                  </div>
-                </motion.div>
-              ) : (
-                <motion.div
-                  className="mt-12 flex flex-col gap-3 w-full"
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  transition={{ delay: 0.3 }}
-                >
-                  <a
-                    href="/login"
-                    onClick={() => setMobileMenuOpen(false)}
-                    className="w-full text-center rounded-full border border-soft-border text-charcoal px-6 py-3.5 text-sm font-medium transition-colors hover:bg-charcoal/5"
-                  >
-                    Se connecter
-                  </a>
-                  <a
-                    href="/signup"
-                    onClick={() => setMobileMenuOpen(false)}
-                    className="w-full text-center rounded-full bg-accent text-white px-6 py-3.5 text-sm font-medium transition-colors hover:bg-accent-light"
-                  >
-                    Créer un compte
-                  </a>
-                  <div className="flex justify-end pt-1">
-                    <button
-                      onClick={handleThemeToggle}
-                      className="p-2.5 rounded-full text-charcoal/70 hover:text-charcoal hover:bg-charcoal/5 transition-colors"
-                      aria-label="Changer de thème"
-                      title="Changer de thème"
-                    >
-                      <Sun size={20} className="hidden dark:block" />
-                      <Moon size={20} className="block dark:hidden" />
                     </button>
                   </div>
                 </motion.div>
