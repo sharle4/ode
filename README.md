@@ -244,3 +244,4 @@ ode/
 - [ ] corriger bug stanzas (ligne seule avec "&#160;<br />" ou "<br />" pas reconnue comme saut de ligne) (<i> reconnu comme saut de ligne alors que ca ne devrait pas être le cas)
 - [ ] réduire une ligne par catégories page explore + bouton étendre ou voir plus
 - [ ] ajouter fonctionnalité ajouter ses propres poèmes (ex poèmes non public ou poèmes persos)
+- [ ] ajouter badges nombre onglets profil
