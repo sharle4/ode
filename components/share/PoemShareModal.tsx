@@ -222,78 +222,95 @@ function PoemShareModalInner({
                         </div>
 
                         {/* Barre d'actions épurée */}
-                        <div className="p-4 sm:p-5 border-t border-soft-border/80 bg-paper/60 flex flex-col gap-3">
-                            {/* Actions principales */}
-                            <div className="flex items-center gap-2.5">
-                                {isMobileDevice ? (
-                                    /* Action Reine sur Mobile : Partage Natif + Télécharger */
-                                    <>
-                                        <button
-                                            type="button"
-                                            onClick={handleNativeShare}
-                                            disabled={isGenerating}
-                                            className="flex-1 flex items-center justify-center gap-2 py-2.5 px-4 rounded-xl bg-[#1A1A1A] hover:bg-[#2C2C2B] dark:bg-white dark:text-black dark:hover:bg-zinc-200 text-white font-sans text-sm font-medium transition-all shadow-md active:scale-[0.98] disabled:opacity-60"
-                                        >
-                                            {isGenerating ? (
-                                                <CircleNotch size={18} className="animate-spin" />
-                                            ) : (
-                                                <ShareNetwork size={18} weight="bold" />
-                                            )}
-                                            <span>Partager</span>
-                                        </button>
+                        <div className="p-4 sm:p-5 border-t border-soft-border/80 bg-paper/60 flex flex-col gap-2.5">
+                            {isMobileDevice ? (
+                                /* Agencement Mobile ergonomique */
+                                <div className="flex flex-col gap-2">
+                                    {/* Action principale : Partage Natif */}
+                                    <button
+                                        type="button"
+                                        onClick={handleNativeShare}
+                                        disabled={isGenerating}
+                                        className="w-full flex items-center justify-center gap-2 py-3 px-4 rounded-xl bg-[#1A1A1A] hover:bg-[#2C2C2B] dark:bg-white dark:text-black dark:hover:bg-zinc-200 text-white font-sans text-sm font-medium transition-all shadow-md active:scale-[0.98] disabled:opacity-60"
+                                    >
+                                        {isGenerating ? (
+                                            <CircleNotch size={18} className="animate-spin" />
+                                        ) : (
+                                            <ShareNetwork size={18} weight="bold" />
+                                        )}
+                                        <span>Partager la carte</span>
+                                    </button>
 
-                                        <button
-                                            type="button"
-                                            onClick={handleDownload}
-                                            disabled={isGenerating}
-                                            title="Télécharger l'image PNG"
-                                            className="flex items-center justify-center w-10 h-10 rounded-xl border border-soft-border bg-paper hover:bg-black/5 dark:hover:bg-white/5 text-charcoal transition-colors active:scale-[0.98]"
-                                        >
-                                            <DownloadSimple size={18} />
-                                        </button>
-                                    </>
-                                ) : (
-                                    /* Actions sur Desktop : Copier Image + Télécharger */
-                                    <>
+                                    {/* Actions secondaires en 3 colonnes : Copier l'image, Enregistrer, Lien */}
+                                    <div className="grid grid-cols-3 gap-2">
                                         <button
                                             type="button"
                                             onClick={handleCopyImage}
                                             disabled={isGenerating}
-                                            className="flex-1 flex items-center justify-center gap-2 py-2.5 px-4 rounded-xl bg-[#1A1A1A] hover:bg-[#2C2C2B] dark:bg-white dark:text-black dark:hover:bg-zinc-200 text-white font-sans text-sm font-medium transition-all shadow-md active:scale-[0.98] disabled:opacity-60"
+                                            className="flex items-center justify-center gap-1.5 py-2 px-2.5 rounded-xl border border-soft-border bg-paper hover:bg-black/5 dark:hover:bg-white/5 text-charcoal font-sans text-xs font-medium transition-colors active:scale-[0.98] disabled:opacity-60"
                                         >
-                                            {isGenerating ? (
-                                                <CircleNotch size={17} className="animate-spin" />
-                                            ) : (
-                                                <Copy size={17} weight="bold" />
-                                            )}
-                                            <span>Copier l'image</span>
+                                            <Copy size={15} />
+                                            <span>Copier</span>
                                         </button>
 
                                         <button
                                             type="button"
                                             onClick={handleDownload}
                                             disabled={isGenerating}
-                                            title="Télécharger l'image PNG en haute résolution"
-                                            className="flex items-center justify-center w-10 h-10 rounded-xl border border-soft-border bg-paper hover:bg-black/5 dark:hover:bg-white/5 text-charcoal transition-colors active:scale-[0.98]"
+                                            className="flex items-center justify-center gap-1.5 py-2 px-2.5 rounded-xl border border-soft-border bg-paper hover:bg-black/5 dark:hover:bg-white/5 text-charcoal font-sans text-xs font-medium transition-colors active:scale-[0.98] disabled:opacity-60"
                                         >
-                                            <DownloadSimple size={18} />
+                                            <DownloadSimple size={15} />
+                                            <span>Enregistrer</span>
                                         </button>
-                                    </>
-                                )}
 
-                                {/* Bouton Copier le lien (Toujours accessible et rapide) */}
-                                <button
-                                    type="button"
-                                    onClick={handleCopyLink}
-                                    title="Copier le lien du poème"
-                                    className={`flex items-center justify-center gap-1.5 py-2.5 px-3.5 rounded-xl border border-soft-border bg-paper hover:bg-black/5 dark:hover:bg-white/5 text-charcoal font-sans text-xs font-medium transition-colors active:scale-[0.98] ${
-                                        isMobileDevice ? "w-auto" : ""
-                                    }`}
-                                >
-                                    <LinkSimple size={16} />
-                                    <span>Lien</span>
-                                </button>
-                            </div>
+                                        <button
+                                            type="button"
+                                            onClick={handleCopyLink}
+                                            className="flex items-center justify-center gap-1.5 py-2 px-2.5 rounded-xl border border-soft-border bg-paper hover:bg-black/5 dark:hover:bg-white/5 text-charcoal font-sans text-xs font-medium transition-colors active:scale-[0.98]"
+                                        >
+                                            <LinkSimple size={15} />
+                                            <span>Lien</span>
+                                        </button>
+                                    </div>
+                                </div>
+                            ) : (
+                                /* Actions sur Desktop : Copier Image + Télécharger + Lien */
+                                <div className="flex items-center gap-2.5">
+                                    <button
+                                        type="button"
+                                        onClick={handleCopyImage}
+                                        disabled={isGenerating}
+                                        className="flex-1 flex items-center justify-center gap-2 py-2.5 px-4 rounded-xl bg-[#1A1A1A] hover:bg-[#2C2C2B] dark:bg-white dark:text-black dark:hover:bg-zinc-200 text-white font-sans text-sm font-medium transition-all shadow-md active:scale-[0.98] disabled:opacity-60"
+                                    >
+                                        {isGenerating ? (
+                                            <CircleNotch size={17} className="animate-spin" />
+                                        ) : (
+                                            <Copy size={17} weight="bold" />
+                                        )}
+                                        <span>Copier l'image</span>
+                                    </button>
+
+                                    <button
+                                        type="button"
+                                        onClick={handleDownload}
+                                        disabled={isGenerating}
+                                        title="Télécharger l'image PNG en haute résolution"
+                                        className="flex items-center justify-center w-10 h-10 rounded-xl border border-soft-border bg-paper hover:bg-black/5 dark:hover:bg-white/5 text-charcoal transition-colors active:scale-[0.98]"
+                                    >
+                                        <DownloadSimple size={18} />
+                                    </button>
+
+                                    <button
+                                        type="button"
+                                        onClick={handleCopyLink}
+                                        title="Copier le lien du poème"
+                                        className="flex items-center justify-center gap-1.5 py-2.5 px-3.5 rounded-xl border border-soft-border bg-paper hover:bg-black/5 dark:hover:bg-white/5 text-charcoal font-sans text-xs font-medium transition-colors active:scale-[0.98]"
+                                    >
+                                        <LinkSimple size={16} />
+                                        <span>Lien</span>
+                                    </button>
+                                </div>
+                            )}
 
                             {/* Toast / Message de statut */}
                             <AnimatePresence>
