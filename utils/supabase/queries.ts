@@ -634,9 +634,9 @@ export const getUserProfileByUsername = (username: string) => executeCachedQuery
                 .throwOnError(),
             // Fast likes count in parallel (exact head count on index, 0 rows transferred)
             Promise.all([
-                supabase.from('poem_likes').select('id', { count: 'exact', head: true }).eq('user_id', user.id).throwOnError(),
-                supabase.from('collection_likes').select('id', { count: 'exact', head: true }).eq('user_id', user.id).throwOnError(),
-                supabase.from('author_likes').select('id', { count: 'exact', head: true }).eq('user_id', user.id).throwOnError(),
+                supabase.from('poem_likes').select('user_id', { count: 'exact', head: true }).eq('user_id', user.id).throwOnError(),
+                supabase.from('collection_likes').select('user_id', { count: 'exact', head: true }).eq('user_id', user.id).throwOnError(),
+                supabase.from('author_likes').select('user_id', { count: 'exact', head: true }).eq('user_id', user.id).throwOnError(),
             ])
         ]);
 
