@@ -47,6 +47,7 @@ export default function PoemReader({ content }: PoemReaderProps) {
 
     return (
         <motion.article
+            id="poem-text-content"
             className="max-w-3xl mx-auto px-4 sm:px-6 py-12 md:py-20 font-serif"
             initial="hidden"
             animate="visible"

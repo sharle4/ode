@@ -10,7 +10,6 @@ import {
     LinkSimple,
     Check,
     CircleNotch,
-    Sparkle,
 } from "@phosphor-icons/react";
 import { usePoemShare } from "./PoemShareContext";
 import PoemCardPreview from "./PoemCardPreview";
@@ -197,17 +196,9 @@ function PoemShareModalInner({
                     >
                         {/* En-tête de la Modale */}
                         <div className="flex items-center justify-between px-5 py-4 border-b border-soft-border/80">
-                            <div className="flex items-center gap-2">
-                                <span className="font-serif font-semibold text-base sm:text-lg text-charcoal">
-                                    Partager la carte poétique
-                                </span>
-                                {isCustomSelection && (
-                                    <span className="inline-flex items-center gap-1 text-[10px] font-sans font-medium px-2 py-0.5 rounded-full bg-[#B85450]/10 text-[#B85450] uppercase tracking-wider">
-                                        <Sparkle size={10} weight="fill" />
-                                        Extrait choisi
-                                    </span>
-                                )}
-                            </div>
+                            <span className="font-serif font-semibold text-base sm:text-lg text-charcoal">
+                                Partager la carte poétique
+                            </span>
 
                             <button
                                 type="button"

@@ -54,22 +54,34 @@ export function PoemShareProvider({
                 return;
             }
 
-            // 2. Option A : Vérifier silencieusement si l'utilisateur a surligné du texte dans la page
+            // 2. Option A : Vérifier silencieusement si l'utilisateur a surligné du texte STRICTEMENT dans le poème
             if (typeof window !== "undefined") {
                 const selection = window.getSelection();
                 const selectedText = selection?.toString()?.trim();
 
-                if (selectedText && selectedText.length > 3) {
-                    const lines = selectedText
-                        .split("\n")
-                        .map((l) => l.trim())
-                        .filter((l) => l.length > 0);
+                if (selection && selection.rangeCount > 0 && selectedText && selectedText.length > 3) {
+                    const range = selection.getRangeAt(0);
+                    const poemContainer = document.getElementById("poem-text-content");
 
-                    if (lines.length > 0) {
-                        setActiveVerses(lines.slice(0, 8)); // limiter à 8 vers pour une lisibilité parfaite
-                        setIsCustomSelection(true);
-                        setIsOpen(true);
-                        return;
+                    // Vérifier rigoureusement que la sélection provient bien du poème
+                    const isInsidePoem =
+                        poemContainer &&
+                        (poemContainer.contains(range.commonAncestorContainer) ||
+                            (poemContainer.contains(range.startContainer) &&
+                                poemContainer.contains(range.endContainer)));
+
+                    if (isInsidePoem) {
+                        const lines = selectedText
+                            .split("\n")
+                            .map((l) => l.trim())
+                            .filter((l) => l.length > 0);
+
+                        if (lines.length > 0) {
+                            setActiveVerses(lines.slice(0, 8)); // limiter à 8 vers pour une lisibilité parfaite
+                            setIsCustomSelection(true);
+                            setIsOpen(true);
+                            return;
+                        }
                     }
                 }
             }
