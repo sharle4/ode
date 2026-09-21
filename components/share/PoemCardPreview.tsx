@@ -44,7 +44,8 @@ export default function PoemCardPreview({
     verses,
     collectionTitle,
     publicationYear,
-}: PoemCardPreviewProps) {
+    cardRef,
+}: PoemCardPreviewProps & { cardRef?: React.Ref<HTMLDivElement> }) {
     const cleanVerses = verses.filter((v) => v.trim().length > 0);
     const lineCount = cleanVerses.length || 1;
 
@@ -59,7 +60,11 @@ export default function PoemCardPreview({
     const details = formatCollectionAndYear(collectionTitle, publicationYear);
 
     return (
-        <div className="relative w-[320px] sm:w-[370px] aspect-square mx-auto rounded-xl shadow-2xl overflow-hidden select-none bg-[#FFFCF2] text-[#1A1A1A] p-4 sm:p-5 flex flex-col justify-between border border-[#1A1A1A]/10">
+        <div
+            id="poem-card-preview"
+            ref={cardRef}
+            className="relative w-[320px] sm:w-[370px] aspect-square mx-auto rounded-xl shadow-2xl overflow-hidden select-none bg-[#FFFCF2] text-[#1A1A1A] p-4 sm:p-5 flex flex-col justify-between border border-[#1A1A1A]/10"
+        >
             {/* Texture radiale papier vélin */}
             <div
                 className="absolute inset-0 pointer-events-none"
@@ -75,10 +80,10 @@ export default function PoemCardPreview({
 
             {/* Contenu intérieur */}
             <div className="relative z-10 h-full flex flex-col justify-between py-2 sm:py-2.5 px-2 sm:px-3 text-center">
-                {/* ── 1. EN-TÊTE : Logo officiel agrandi ── */}
-                <div className="flex flex-col items-center shrink-0 pt-0.5">
-                    <div className="w-14 sm:w-16 text-[#1A1A1A]">
-                        <OdeLogoStatic width="100%" height="auto" />
+                {/* ── 1. EN-TÊTE : Logo officiel agrandi et plus gras ── */}
+                <div className="flex flex-col items-center shrink-0 pt-0.5 sm:pt-1">
+                    <div className="w-[88px] sm:w-[102px] text-[#1A1A1A]">
+                        <OdeLogoStatic width="100%" height="auto" strokeWidth={4.4} />
                     </div>
                 </div>
 

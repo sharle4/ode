@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
     X,
@@ -35,7 +35,6 @@ function PoemShareModalInner({
         isOpen,
         closeShare,
         activeVerses,
-        isCustomSelection,
         poem,
         getShareUrl,
     } = context;
@@ -43,7 +42,7 @@ function PoemShareModalInner({
     const [isGenerating, setIsGenerating] = useState(false);
     const [statusFeedback, setStatusFeedback] = useState<string | null>(null);
     const [isMobileDevice, setIsMobileDevice] = useState(false);
-    const [hasNativeShare, setHasNativeShare] = useState(false);
+    const cardRef = React.useRef<HTMLDivElement>(null);
 
     // Détection appareil mobile et capacité de partage natif
     useEffect(() => {
@@ -52,7 +51,6 @@ function PoemShareModalInner({
             const userAgent = navigator.userAgent || "";
             const isMobile = /android|iphone|ipad|ipod/i.test(userAgent) || window.innerWidth < 768;
             setIsMobileDevice(isMobile);
-            setHasNativeShare(typeof navigator !== "undefined" && typeof navigator.share === "function");
         };
         updateDevice();
         window.addEventListener("resize", updateDevice);
@@ -84,6 +82,7 @@ function PoemShareModalInner({
         try {
             const url = getShareUrl();
             const blob = await generatePoemCardBlob({
+                element: cardRef.current,
                 title: poem.title,
                 authorName: poem.authorName,
                 verses: activeVerses,
@@ -117,6 +116,7 @@ function PoemShareModalInner({
         setIsGenerating(true);
         try {
             const blob = await generatePoemCardBlob({
+                element: cardRef.current,
                 title: poem.title,
                 authorName: poem.authorName,
                 verses: activeVerses,
@@ -147,6 +147,7 @@ function PoemShareModalInner({
         setIsGenerating(true);
         try {
             const blob = await generatePoemCardBlob({
+                element: cardRef.current,
                 title: poem.title,
                 authorName: poem.authorName,
                 verses: activeVerses,
@@ -213,6 +214,7 @@ function PoemShareModalInner({
                         {/* Corps : Aperçu de la carte */}
                         <div className="p-4 sm:p-6 overflow-y-auto flex flex-col items-center justify-center bg-[#F3EFE6]/40 dark:bg-black/20">
                             <PoemCardPreview
+                                cardRef={cardRef}
                                 title={poem.title}
                                 authorName={poem.authorName}
                                 verses={activeVerses}
@@ -287,7 +289,7 @@ function PoemShareModalInner({
                                         ) : (
                                             <Copy size={17} weight="bold" />
                                         )}
-                                        <span>Copier l'image</span>
+                                        <span>Copier l&apos;image</span>
                                     </button>
 
                                     <button

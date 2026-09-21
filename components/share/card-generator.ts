@@ -1,3 +1,5 @@
+import { toBlob } from "html-to-image";
+
 export interface PoemCardOptions {
     title: string;
     authorName: string;
@@ -5,6 +7,7 @@ export interface PoemCardOptions {
     collectionTitle?: string;
     publicationYear?: number | null;
     url?: string;
+    element?: HTMLElement | null;
 }
 
 /**
@@ -69,7 +72,7 @@ function drawOdeLogo(
     ctx: CanvasRenderingContext2D,
     centerX: number,
     centerY: number,
-    targetWidth = 150
+    targetWidth = 240
 ) {
     const pathO = new Path2D(
         "M 360 140 C 320 80, 240 120, 250 230 C 260 340, 350 350, 380 270 C 395 210, 375 160, 355 160 C 335 160, 330 200, 350 240 C 360 260, 380 270, 410 250"
@@ -86,7 +89,7 @@ function drawOdeLogo(
     ctx.translate(-445, -210);
 
     ctx.strokeStyle = "#1A1A1A";
-    ctx.lineWidth = 8;
+    ctx.lineWidth = 14;
     ctx.lineCap = "round";
     ctx.lineJoin = "round";
 
@@ -144,8 +147,8 @@ export async function renderPoemCardCanvas(options: PoemCardOptions): Promise<HT
     ctx.lineWidth = 1;
     ctx.strokeRect(mInner, mInner, 1080 - mInner * 2, 1080 - mInner * 2);
 
-    // 3. En-tête : Logo ode agrandi (targetWidth = 150)
-    drawOdeLogo(ctx, 540, 120, 150);
+    // 3. En-tête : Logo ode agrandi (targetWidth = 240)
+    drawOdeLogo(ctx, 540, 130, 240);
 
     // 4. Zone des Vers avec Guillemets Carmin Fonctionnels
     const cleanVerses = verses.filter((v) => v.trim().length > 0);
@@ -190,7 +193,7 @@ export async function renderPoemCardCanvas(options: PoemCardOptions): Promise<HT
     const contentBoxBottom = 755;
     const availableHeight = contentBoxBottom - contentBoxTop;
     const totalTextHeight = (finalLines.length - 1) * lineHeight;
-    let startY = contentBoxTop + (availableHeight - totalTextHeight) / 2;
+    const startY = contentBoxTop + (availableHeight - totalTextHeight) / 2;
 
     ctx.textBaseline = "middle";
 
@@ -285,9 +288,55 @@ export async function renderPoemCardCanvas(options: PoemCardOptions): Promise<HT
 }
 
 /**
- * Exporte le Canvas en Blob PNG haute résolution
+ * Exporte la carte poétique en Blob PNG haute résolution (identique 1:1 à l'aperçu DOM)
  */
 export async function generatePoemCardBlob(options: PoemCardOptions): Promise<Blob> {
+    const el =
+        options.element ||
+        (typeof document !== "undefined"
+            ? (document.getElementById("poem-card-preview") as HTMLElement)
+            : null);
+
+    if (el) {
+        try {
+            if (typeof document !== "undefined" && document.fonts) {
+                await document.fonts.ready;
+            }
+
+            const w = el.offsetWidth || 370;
+            const h = el.offsetHeight || 370;
+            const pixelRatio = 1080 / w;
+
+            const blob = await toBlob(el, {
+                width: w,
+                height: h,
+                style: {
+                    margin: "0",
+                    marginTop: "0",
+                    marginBottom: "0",
+                    marginLeft: "0",
+                    marginRight: "0",
+                    transform: "none",
+                    boxShadow: "none",
+                },
+                pixelRatio,
+                quality: 1.0,
+                cacheBust: false,
+            });
+
+            if (blob) {
+                console.log("HTML_TO_IMAGE_BLOB_SUCCESS, size:", blob.size, "type:", blob.type);
+                return blob;
+            }
+        } catch (err) {
+            console.error(
+                "HTML_TO_IMAGE_ERROR, fallback to Canvas:",
+                err
+            );
+        }
+    }
+
+    // Repli de secours : rendu Canvas 2D
     const canvas = await renderPoemCardCanvas(options);
     return new Promise((resolve, reject) => {
         canvas.toBlob(

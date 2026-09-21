@@ -4,6 +4,7 @@ interface OdeLogoStaticProps {
     width?: string | number;
     height?: string | number;
     className?: string;
+    strokeWidth?: number;
 }
 
 /**
@@ -14,6 +15,7 @@ export default function OdeLogoStatic({
     width = "100%",
     height = "auto",
     className = "",
+    strokeWidth = 2.5,
 }: OdeLogoStaticProps) {
     return (
         <svg
@@ -91,7 +93,7 @@ export default function OdeLogoStatic({
                         y={i * -0.3}
                         fill="none"
                         stroke="currentColor"
-                        strokeWidth={2.5}
+                        strokeWidth={strokeWidth}
                         strokeLinecap="round"
                         strokeLinejoin="round"
                         opacity={0.7}
@@ -109,7 +111,7 @@ export default function OdeLogoStatic({
                         y={i * -0.3}
                         fill="none"
                         stroke="currentColor"
-                        strokeWidth={2.5}
+                        strokeWidth={strokeWidth}
                         strokeLinecap="round"
                         strokeLinejoin="round"
                         opacity={0.7}
