@@ -1,8 +1,3 @@
-/**
- * Moteur de rendu graphique haute fidélité pour carte poétique (1080x1080)
- * Style : Édition de Luxe / Pléiade & Gallimard (Crème, Encre & Carmin)
- */
-
 export interface PoemCardOptions {
     title: string;
     authorName: string;
@@ -41,29 +36,68 @@ function wrapText(
 }
 
 /**
- * Dessine un fin losange décoratif
+ * Nettoie et formate élégamment le recueil et l'année sans répétition ni guillemets superflus
  */
-function drawDiamond(
+function formatCollectionAndYear(
+    collectionTitle?: string,
+    publicationYear?: number | null
+): string | null {
+    if (!collectionTitle && !publicationYear) return null;
+
+    let cleanCollection = collectionTitle?.trim();
+    if (cleanCollection) {
+        cleanCollection = cleanCollection.replace(/^[«"'\s]+|[»"'\s]+$/g, "");
+        if (publicationYear) {
+            cleanCollection = cleanCollection.replace(
+                new RegExp(`\\s*\\(${publicationYear}\\)$`),
+                ""
+            );
+        }
+    }
+
+    const parts: string[] = [];
+    if (cleanCollection) parts.push(cleanCollection);
+    if (publicationYear) parts.push(String(publicationYear));
+
+    return parts.join("  •  ");
+}
+
+/**
+ * Dessine le logo calligraphique manuscrit officiel d'Ode
+ */
+function drawOdeLogo(
     ctx: CanvasRenderingContext2D,
-    cx: number,
-    cy: number,
-    size: number,
-    color: string
+    centerX: number,
+    centerY: number,
+    targetWidth = 150
 ) {
+    const pathO = new Path2D(
+        "M 360 140 C 320 80, 240 120, 250 230 C 260 340, 350 350, 380 270 C 395 210, 375 160, 355 160 C 335 160, 330 200, 350 240 C 360 260, 380 270, 410 250"
+    );
+    const pathDE = new Path2D(
+        "M 480 220 C 450 180, 410 190, 410 250 C 410 310, 460 320, 485 260 C 500 180, 510 100, 510 70 C 505 120, 495 200, 490 280 C 485 330, 520 330, 550 280 C 570 230, 550 200, 535 220 C 520 240, 525 300, 555 310 C 585 320, 620 300, 650 270"
+    );
+
+    const scale = targetWidth / 410;
+
     ctx.save();
-    ctx.fillStyle = color;
-    ctx.beginPath();
-    ctx.moveTo(cx, cy - size);
-    ctx.lineTo(cx + size, cy);
-    ctx.lineTo(cx, cy + size);
-    ctx.lineTo(cx - size, cy);
-    ctx.closePath();
-    ctx.fill();
+    ctx.translate(centerX, centerY);
+    ctx.scale(scale, scale);
+    ctx.translate(-445, -210);
+
+    ctx.strokeStyle = "#1A1A1A";
+    ctx.lineWidth = 8;
+    ctx.lineCap = "round";
+    ctx.lineJoin = "round";
+
+    ctx.stroke(pathO);
+    ctx.stroke(pathDE);
+
     ctx.restore();
 }
 
 /**
- * Génère un Canvas 1080x1080 avec la carte poétique
+ * Génère un Canvas 1080x1080 avec la carte poétique définitive (Édition Blanche)
  */
 export async function renderPoemCardCanvas(options: PoemCardOptions): Promise<HTMLCanvasElement> {
     const {
@@ -92,158 +126,160 @@ export async function renderPoemCardCanvas(options: PoemCardOptions): Promise<HT
     ctx.fillStyle = "#FFFCF2";
     ctx.fillRect(0, 0, 1080, 1080);
 
-    // Dégradé radial très subtil pour simuler la profondeur du papier
-    const paperGradient = ctx.createRadialGradient(540, 540, 100, 540, 540, 750);
-    paperGradient.addColorStop(0, "rgba(255, 255, 255, 0.6)");
-    paperGradient.addColorStop(1, "rgba(238, 233, 218, 0.35)");
+    // Dégradé radial subtil simulant la profondeur du papier
+    const paperGradient = ctx.createRadialGradient(540, 540, 120, 540, 540, 750);
+    paperGradient.addColorStop(0, "rgba(255, 255, 255, 0.65)");
+    paperGradient.addColorStop(1, "rgba(238, 233, 218, 0.3)");
     ctx.fillStyle = paperGradient;
     ctx.fillRect(0, 0, 1080, 1080);
 
-    // 2. Double Filet Éditorial (Style Gallimard / Pléiade)
-    const mOuter = 46;
-    const mInner = 56;
-
-    ctx.strokeStyle = "rgba(26, 26, 26, 0.18)";
+    // 2. Double Filet Éditorial Gallimard (Carmin extérieur + Charbon intérieur)
+    const mOuter = 38;
+    ctx.strokeStyle = "rgba(184, 84, 80, 0.45)";
     ctx.lineWidth = 1.5;
     ctx.strokeRect(mOuter, mOuter, 1080 - mOuter * 2, 1080 - mOuter * 2);
 
-    ctx.strokeStyle = "rgba(26, 26, 26, 0.08)";
+    const mInner = 48;
+    ctx.strokeStyle = "rgba(26, 26, 26, 0.16)";
     ctx.lineWidth = 1;
     ctx.strokeRect(mInner, mInner, 1080 - mInner * 2, 1080 - mInner * 2);
 
-    // 3. En-tête : Décoration Carmin & Mention Haute-Édition
-    drawDiamond(ctx, 540, 95, 5, "#B85450");
+    // 3. En-tête : Logo ode agrandi (targetWidth = 150)
+    drawOdeLogo(ctx, 540, 120, 150);
 
-    ctx.textAlign = "center";
-    ctx.textBaseline = "middle";
-    ctx.fillStyle = "#8A817C";
-    ctx.font = '500 15px var(--font-geist-sans), -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
-    ctx.letterSpacing = "0.22em";
-    ctx.fillText("ODE  •  ANTHOLOGIE POÉTIQUE", 540, 126);
-
-    // 4. Guillemet ouvrant raffiné en carmin
-    ctx.fillStyle = "#B85450";
-    ctx.font = 'italic 700 72px "Playfair Display", Georgia, serif';
-    ctx.letterSpacing = "0px";
-    ctx.fillText("«", 540, 205);
-
-    // 5. Zone des Vers (Adaptative)
-    // Nettoyer les vers
+    // 4. Zone des Vers avec Guillemets Carmin Fonctionnels
     const cleanVerses = verses.filter((v) => v.trim().length > 0);
     const totalLinesCount = cleanVerses.length || 1;
 
-    // Déterminer la taille de police idéale
-    let fontSize = 38;
-    let lineHeight = 64;
+    let fontSize = 34;
+    let lineHeight = 58;
 
     if (totalLinesCount <= 2) {
-        fontSize = 46;
-        lineHeight = 74;
+        fontSize = 42;
+        lineHeight = 70;
     } else if (totalLinesCount <= 4) {
-        fontSize = 38;
-        lineHeight = 62;
+        fontSize = 34;
+        lineHeight = 58;
     } else if (totalLinesCount <= 6) {
-        fontSize = 32;
-        lineHeight = 52;
+        fontSize = 28;
+        lineHeight = 48;
     } else {
-        fontSize = 27;
-        lineHeight = 44;
+        fontSize = 23;
+        lineHeight = 40;
     }
 
     ctx.font = `italic 400 ${fontSize}px "Playfair Display", Georgia, serif`;
-    ctx.fillStyle = "#1A1A1A";
+    const quoteFont = `italic 600 ${fontSize}px "Playfair Display", Georgia, serif`;
 
-    // Calculer les lignes avec retour à la ligne automatique si vers trop long (> 840px)
-    const maxTextWidth = 840;
-    const finalLines: string[] = [];
-    for (const v of cleanVerses) {
-        const wrapped = wrapText(ctx, v, maxTextWidth);
-        finalLines.push(...wrapped);
+    const maxTextWidth = 860;
+    const finalLines: { text: string; isFirst: boolean; isLast: boolean }[] = [];
+
+    for (let i = 0; i < cleanVerses.length; i++) {
+        const verse = cleanVerses[i];
+        const wrapped = wrapText(ctx, verse, maxTextWidth);
+        for (let j = 0; j < wrapped.length; j++) {
+            finalLines.push({
+                text: wrapped[j],
+                isFirst: i === 0 && j === 0,
+                isLast: i === cleanVerses.length - 1 && j === wrapped.length - 1,
+            });
+        }
     }
 
-    // Centrage vertical harmonieux du texte dans la zone [240px .. 760px]
-    const contentBoxTop = 235;
-    const contentBoxBottom = 750;
+    const contentBoxTop = 195;
+    const contentBoxBottom = 755;
     const availableHeight = contentBoxBottom - contentBoxTop;
     const totalTextHeight = (finalLines.length - 1) * lineHeight;
     let startY = contentBoxTop + (availableHeight - totalTextHeight) / 2;
 
-    ctx.textAlign = "center";
     ctx.textBaseline = "middle";
 
     for (let i = 0; i < finalLines.length; i++) {
-        ctx.fillText(finalLines[i], 540, startY + i * lineHeight);
+        const line = finalLines[i];
+        const y = startY + i * lineHeight;
+
+        ctx.font = `italic 400 ${fontSize}px "Playfair Display", Georgia, serif`;
+        const textWidth = ctx.measureText(line.text).width;
+
+        ctx.font = quoteFont;
+        const openQuoteWidth = line.isFirst ? ctx.measureText("«  ").width : 0;
+        const closeQuoteWidth = line.isLast ? ctx.measureText("  »").width : 0;
+
+        const totalLineWidth = openQuoteWidth + textWidth + closeQuoteWidth;
+        let currentX = 540 - totalLineWidth / 2;
+
+        if (line.isFirst) {
+            ctx.font = quoteFont;
+            ctx.fillStyle = "#B85450";
+            ctx.textAlign = "left";
+            ctx.fillText("«  ", currentX, y);
+            currentX += openQuoteWidth;
+        }
+
+        ctx.font = `italic 400 ${fontSize}px "Playfair Display", Georgia, serif`;
+        ctx.fillStyle = "#1A1A1A";
+        ctx.textAlign = "left";
+        ctx.fillText(line.text, currentX, y);
+        currentX += textWidth;
+
+        if (line.isLast) {
+            ctx.font = quoteFont;
+            ctx.fillStyle = "#B85450";
+            ctx.textAlign = "left";
+            ctx.fillText("  »", currentX, y);
+        }
     }
 
-    // 6. Séparateur Élégant (Fin filet avec micro-losange carmin)
+    // 5. Bas de Carte (Colophon)
     const sepY = 790;
-    ctx.strokeStyle = "rgba(26, 26, 26, 0.12)";
+    ctx.strokeStyle = "rgba(26, 26, 26, 0.16)";
     ctx.lineWidth = 1;
-    ctx.beginPath();
-    ctx.moveTo(420, sepY);
-    ctx.lineTo(500, sepY);
-    ctx.stroke();
-
-    drawDiamond(ctx, 540, sepY, 4, "#B85450");
 
     ctx.beginPath();
-    ctx.moveTo(580, sepY);
-    ctx.lineTo(660, sepY);
+    ctx.moveTo(540 - 28, sepY);
+    ctx.lineTo(540 - 8, sepY);
     ctx.stroke();
 
-    // 7. Titre du Poème & Auteur
+    // Point rouge carmin central
+    ctx.fillStyle = "#B85450";
+    ctx.beginPath();
+    ctx.arc(540, sepY, 3, 0, Math.PI * 2);
+    ctx.fill();
+
+    ctx.beginPath();
+    ctx.moveTo(540 + 8, sepY);
+    ctx.lineTo(540 + 28, sepY);
+    ctx.stroke();
+
+    // Titre
+    ctx.textAlign = "center";
     ctx.fillStyle = "#1A1A1A";
-    ctx.font = '600 32px "Playfair Display", Georgia, serif';
+    ctx.font = '600 30px "Playfair Display", Georgia, serif';
     ctx.letterSpacing = "-0.01em";
 
-    // Troncature élégante si le titre est trop long
     let displayTitle = title;
-    if (ctx.measureText(displayTitle).width > 780) {
-        while (ctx.measureText(displayTitle + "…").width > 780 && displayTitle.length > 5) {
+    if (ctx.measureText(displayTitle).width > 800) {
+        while (ctx.measureText(displayTitle + "…").width > 800 && displayTitle.length > 5) {
             displayTitle = displayTitle.slice(0, -1);
         }
         displayTitle += "…";
     }
-    ctx.fillText(displayTitle, 540, 845);
+    ctx.fillText(displayTitle, 540, 840);
 
     // Auteur
     ctx.fillStyle = "#8A817C";
-    ctx.font = 'italic 500 24px "Playfair Display", Georgia, serif';
+    ctx.font = 'italic 500 23px "Playfair Display", Georgia, serif';
     ctx.letterSpacing = "0.02em";
-    ctx.fillText(authorName, 540, 890);
+    ctx.fillText(authorName, 540, 880);
 
-    // Recueil & Année (optionnel)
-    if (collectionTitle || publicationYear) {
-        const details = [
-            collectionTitle ? `« ${collectionTitle} »` : null,
-            publicationYear ? `${publicationYear}` : null,
-        ]
-            .filter(Boolean)
-            .join("  •  ");
-
+    // Recueil & Année
+    const details = formatCollectionAndYear(collectionTitle, publicationYear);
+    if (details) {
         ctx.fillStyle = "rgba(138, 129, 124, 0.85)";
         ctx.font = '400 16px "Playfair Display", Georgia, serif';
-        ctx.letterSpacing = "0.04em";
-        ctx.fillText(details, 540, 928);
+        ctx.letterSpacing = "0.03em";
+        ctx.fillText(details, 540, 915);
     }
-
-    // 8. Pied de Carte : Signature Exclusive ode.
-    ctx.font = '700 21px "Playfair Display", Georgia, serif';
-    ctx.letterSpacing = "0.05em";
-
-    const textOde = "ode";
-    const textDot = ".";
-    const wOde = ctx.measureText(textOde).width;
-    const wDot = ctx.measureText(textDot).width;
-    const totalBrandWidth = wOde + wDot;
-    const brandStartX = 540 - totalBrandWidth / 2;
-
-    ctx.textAlign = "left";
-    ctx.fillStyle = "#1A1A1A";
-    ctx.fillText(textOde, brandStartX, 995);
-
-    ctx.fillStyle = "#B85450";
-    ctx.fillText(textDot, brandStartX + wOde, 995);
 
     return canvas;
 }

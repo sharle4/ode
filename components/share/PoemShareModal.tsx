@@ -195,7 +195,7 @@ function PoemShareModalInner({
                         className="relative z-10 w-full max-w-lg bg-[#FAF8F5] dark:bg-[#18181b] border border-soft-border rounded-2xl shadow-2xl overflow-hidden flex flex-col max-h-[92vh]"
                     >
                         {/* En-tête de la Modale */}
-                        <div className="flex items-center justify-between px-5 py-4 border-b border-soft-border/80">
+                        <div className="flex items-center justify-between px-5 py-3.5 border-b border-soft-border/80">
                             <span className="font-serif font-semibold text-base sm:text-lg text-charcoal">
                                 Partager la carte poétique
                             </span>
