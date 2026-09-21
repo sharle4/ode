@@ -17,6 +17,7 @@ import { usePathname } from "next/navigation";
 import { ratePoem, toggleLike } from "@/app/actions/poetry";
 import { useAction } from "next-safe-action/hooks";
 import { useDebouncedCallback } from "use-debounce";
+import { usePoemShare } from "@/components/share/PoemShareContext";
 
 interface PoemActionsProps {
     poemId: string;
@@ -58,10 +59,16 @@ export default function PoemActions({ poemId, initialIsLiked = false }: PoemActi
         }
     }, 250);
 
+    const shareContext = usePoemShare();
+
     const handleShare = () => {
-        navigator.clipboard.writeText(window.location.href);
-        setShowShareTooltip(true);
-        setTimeout(() => setShowShareTooltip(false), 2000);
+        if (shareContext) {
+            shareContext.openShare();
+        } else {
+            navigator.clipboard.writeText(window.location.href);
+            setShowShareTooltip(true);
+            setTimeout(() => setShowShareTooltip(false), 2000);
+        }
     };
 
     const handleLikeClick = () => {
@@ -160,9 +167,8 @@ export default function PoemActions({ poemId, initialIsLiked = false }: PoemActi
 
                     {/* Infobulle standard au hover (masquée si showShareTooltip est vrai) */}
                     <div
-                        className={`absolute bottom-full mb-2.5 left-1/2 -translate-x-1/2 px-2.5 py-1.5 bg-paper border border-soft-border text-charcoal text-[10px] uppercase tracking-widest rounded shadow-md transition-opacity whitespace-nowrap pointer-events-none flex items-center justify-center z-20 ${
-                            showShareTooltip ? "opacity-0" : "opacity-0 group-hover:opacity-100"
-                        }`}
+                        className={`absolute bottom-full mb-2.5 left-1/2 -translate-x-1/2 px-2.5 py-1.5 bg-paper border border-soft-border text-charcoal text-[10px] uppercase tracking-widest rounded shadow-md transition-opacity whitespace-nowrap pointer-events-none flex items-center justify-center z-20 ${showShareTooltip ? "opacity-0" : "opacity-0 group-hover:opacity-100"
+                            }`}
                     >
                         Partager
                         <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-2 h-2 bg-paper border-b border-r border-soft-border rotate-45" />

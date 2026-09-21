@@ -12,6 +12,7 @@ import Link from "next/link";
 import FadeIn from "@/components/ui/FadeIn";
 import { CreativeWork, WithContext } from "schema-dts";
 import { formatAuthors } from "@/utils/author";
+import { PoemShareProvider, PoemShareModal, PoemMetadata } from "@/components/share";
 
 interface PoemPageProps {
     params: Promise<{ slug: string }>;
@@ -71,6 +72,16 @@ export default async function PoemPage({ params }: PoemPageProps) {
         inLanguage: poem.language || 'fr',
     };
 
+    const poemMetadata: PoemMetadata = {
+        id: poem.id,
+        title: poem.title,
+        slug: poem.slug,
+        authorName: authorName,
+        collectionTitle: collectionTitle || undefined,
+        publicationYear: poem.publication_year || undefined,
+        stanzas: (poem.content as any)?.stanzas || [],
+    };
+
     return (
         <div className="min-h-screen bg-cream relative">
             <script
@@ -78,8 +89,9 @@ export default async function PoemPage({ params }: PoemPageProps) {
                 dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
             />
 
-            <div className="relative z-10">
-                <Navbar />
+            <PoemShareProvider poem={poemMetadata}>
+                <div className="relative z-10">
+                    <Navbar />
 
                 <main className="pb-32">
                     {/* Header Immersif */}
@@ -189,6 +201,9 @@ export default async function PoemPage({ params }: PoemPageProps) {
 
                 <Footer />
             </div>
+
+                <PoemShareModal />
+            </PoemShareProvider>
         </div>
     );
 }
