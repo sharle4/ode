@@ -172,66 +172,53 @@ export const getDailyPoem = () => executeCachedQuery(
 
 export const getTrendingPoems = (limit: number = 10) => executeCachedQuery(
     {
-        keyParts: [`trending-poems-${limit}`],
+        keyParts: [`trending-poems-v2-${limit}`],
         tags: [CACHE_TAGS.trending],
         revalidate: 3600,
         errorMessage: 'Database Error fetching trending poems:'
     },
     async (supabase) => {
-        try {
-            // Étape 1 : Récupération ultra-rapide des IDs via l'index sans jointures coûteuses
-            const { data: topRows, error: idsError } = await supabase
-                .from('poems')
-                .select('id')
-                .order('reads_count', { ascending: false })
-                .order('id', { ascending: false })
-                .limit(limit);
+        // Étape 1 : Récupération ultra-rapide des IDs via l'index sans jointures coûteuses
+        const { data: topRows } = await supabase
+            .from('poems')
+            .select('id')
+            .order('reads_count', { ascending: false })
+            .order('id', { ascending: false })
+            .limit(limit)
+            .throwOnError();
 
-            if (idsError) {
-                console.warn('Warning: Could not fetch trending poems (database timeout or error):', idsError.message);
-                return [];
-            }
-
-            if (!topRows || topRows.length === 0) {
-                return [];
-            }
-
-            const ids = topRows.map((r: { id: string }) => r.id);
-
-            // Étape 2 : Chargement des relations uniquement pour les poèmes sélectionnés
-            const { data: poems, error: detailsError } = await supabase
-                .from('poems')
-                .select(`
-                    id, title, slug, publication_year, average_review, reviews_count, reads_count,
-                    authors:poem_authors(authors(id, name, slug)),
-                    rothko_params ( seed, palette_id, shape_type, layout_bias, complexity, texture_profile, blend_mode, density, opacity_style )
-                `)
-                .in('id', ids);
-
-            if (detailsError) {
-                console.warn('Warning: Could not fetch trending poem details:', detailsError.message);
-                return [];
-            }
-
-            // Préserver l'ordre du classement issu de l'étape 1
-            const poemMap = new Map((poems || []).map((poem: any) => [poem.id, poem]));
-
-            return ids
-                .map((id: string) => poemMap.get(id))
-                .filter(Boolean)
-                .map((poem: any) => {
-                    const rothko = Array.isArray(poem.rothko_params) ? poem.rothko_params[0] : poem.rothko_params;
-                    const authors = (poem.authors || []).map((a: any) => a.authors).filter(Boolean);
-                    return {
-                        ...poem,
-                        authors,
-                        rothko_params: rothko || undefined,
-                    };
-                });
-        } catch (err: any) {
-            console.warn('Warning: Exception in getTrendingPoems:', err?.message || err);
+        if (!topRows || topRows.length === 0) {
             return [];
         }
+
+        const ids = topRows.map((r: { id: string }) => r.id);
+
+        // Étape 2 : Chargement des relations uniquement pour les poèmes sélectionnés
+        const { data: poems } = await supabase
+            .from('poems')
+            .select(`
+                id, title, slug, publication_year, average_review, reviews_count, reads_count,
+                authors:poem_authors(authors(id, name, slug)),
+                rothko_params ( seed, palette_id, shape_type, layout_bias, complexity, texture_profile, blend_mode, density, opacity_style )
+            `)
+            .in('id', ids)
+            .throwOnError();
+
+        // Préserver l'ordre du classement issu de l'étape 1
+        const poemMap = new Map((poems || []).map((poem: any) => [poem.id, poem]));
+
+        return ids
+            .map((id: string) => poemMap.get(id))
+            .filter(Boolean)
+            .map((poem: any) => {
+                const rothko = Array.isArray(poem.rothko_params) ? poem.rothko_params[0] : poem.rothko_params;
+                const authors = (poem.authors || []).map((a: any) => a.authors).filter(Boolean);
+                return {
+                    ...poem,
+                    authors,
+                    rothko_params: rothko || undefined,
+                };
+            });
     }
 );
 
