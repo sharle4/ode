@@ -214,7 +214,7 @@ ode/
 - [ ] Vérifier longueur extrait poème du jour
 - [ ] Titre header accueil défilant
 - [ ] Faut-il aligner le haut du panneau d'informations du poème du jour avec le titre "poème du jour" ?
-- [ ] Faut-il aligner le haut de la lettrine avec le haut du premier vers ?
+- [x] Faut-il aligner le haut de la lettrine avec le haut du premier vers ?
 - [ ] Récupérer photos auteurs et signatures
 - [ ] Réfléchir à l'impact du choix de la couleur de surlignage
 - [ ] Ajouter bannière utilisateur ?

@@ -53,25 +53,32 @@ export default function PoemReader({ content }: PoemReaderProps) {
             animate="visible"
             variants={containerVariants}
         >
-            {stanzas.map((stanza, stanzaIndex) => (
-                <motion.div
-                    key={`stanza-${stanzaIndex}`}
-                    variants={stanzaVariants}
-                    className="mb-10 md:mb-14"
-                >
-                    {stanza.map((line, lineIndex) => {
-                        const isFirstLine = stanzaIndex === 0 && lineIndex === 0 && line.length > 0;
-                        return (
-                            <p
-                                key={`line-${stanzaIndex}-${lineIndex}`}
-                                className={`text-lg md:text-2xl leading-loose md:leading-[2.5] text-charcoal min-h-[1.5em] ${isFirstLine ? 'drop-cap' : ''}`}
-                            >
-                                {line}
-                            </p>
-                        );
-                    })}
-                </motion.div>
-            ))}
+            {stanzas.map((stanza, stanzaIndex) => {
+                const isFirstStanza = stanzaIndex === 0 && stanza.length > 0 && stanza[0].trim().length > 0;
+                const hasDropCap = isFirstStanza && stanza.length >= 2;
+
+                return (
+                    <motion.div
+                        key={`stanza-${stanzaIndex}`}
+                        variants={stanzaVariants}
+                        className="mb-10 md:mb-14"
+                    >
+                        <p
+                            className={`text-lg md:text-2xl leading-loose md:leading-[2.5] text-charcoal min-h-[1.5em] ${hasDropCap ? 'drop-cap' : ''}`}
+                        >
+                            {stanza.map((line, lineIndex) => {
+                                const formattedLine = isFirstStanza && lineIndex === 0 ? line.trimStart() : line;
+                                return (
+                                    <React.Fragment key={`line-${stanzaIndex}-${lineIndex}`}>
+                                        {lineIndex > 0 && <br />}
+                                        <span className="poem-verse">{formattedLine}</span>
+                                    </React.Fragment>
+                                );
+                            })}
+                        </p>
+                    </motion.div>
+                );
+            })}
         </motion.article>
     );
 }

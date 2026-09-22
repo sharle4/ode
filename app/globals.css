@@ -303,21 +303,24 @@ body {
   text-wrap: balance;
 }
 
+/* ── POEM DROP CAP (LETTRINE) ── */
 .drop-cap::first-letter {
   font-family: var(--font-serif), Georgia, serif;
-  float: left;
-  font-size: 4.5rem;
-  line-height: 0.8;
-  padding-right: 0.75rem;
-  padding-top: 0.25rem;
-  color: inherit;
   font-weight: 700;
+  color: inherit;
+  float: left;
+  font-size: 3.9rem;
+  line-height: 0.82;
+  margin-top: 0.65rem;
+  margin-right: 0.75rem;
 }
 
 @media (min-width: 768px) {
   .drop-cap::first-letter {
-    font-size: 6rem;
-    padding-right: 1rem;
+    font-size: 4.5rem;
+    line-height: 0.82;
+    margin-top: 1.375rem;
+    margin-right: 1.1rem;
   }
 }
 
