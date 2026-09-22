@@ -309,18 +309,18 @@ body {
   font-weight: 700;
   color: inherit;
   float: left;
-  font-size: 3.9rem;
+  font-size: 3.85rem;
   line-height: 0.82;
-  margin-top: 0.65rem;
+  margin-top: 0.58rem;
   margin-right: 0.75rem;
 }
 
 @media (min-width: 768px) {
   .drop-cap::first-letter {
-    font-size: 4.5rem;
-    line-height: 0.82;
-    margin-top: 1.375rem;
-    margin-right: 1.1rem;
+    font-size: 6.15rem;
+    line-height: 0.8;
+    margin-top: 1.15rem;
+    margin-right: 1.25rem;
   }
 }
 
