@@ -27,10 +27,20 @@ export const metadata: Metadata = {
 // ── Skeleton Components ──
 function SectionSkeleton() {
     return (
-        <div className="w-full animate-pulse mt-4 mb-4">
-            <div className="h-8 bg-zinc-200/50 dark:bg-zinc-800/50 rounded w-48 mb-6"></div>
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-6">
-                {[1, 2, 3, 4].map(i => <div key={i} className="aspect-[4/3] sm:aspect-square bg-zinc-200/50 dark:bg-zinc-800/50 rounded-xl"></div>)}
+        <div className="w-full animate-pulse mt-2 sm:mt-4 mb-6">
+            <div className="flex items-baseline justify-between mb-3.5 px-1 sm:px-2">
+                <div className="h-7 bg-zinc-200/50 dark:bg-zinc-800/50 rounded w-36"></div>
+                <div className="h-4 bg-zinc-200/30 dark:bg-zinc-800/30 rounded w-20"></div>
+            </div>
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3 sm:gap-4">
+                {[1, 2, 3, 4, 5, 6].map(i => (
+                    <div
+                        key={i}
+                        className={`aspect-[4/3] sm:aspect-square bg-zinc-200/50 dark:bg-zinc-800/50 rounded-xl ${
+                            i === 2 ? 'hidden sm:block' : ''
+                        } ${i === 3 ? 'hidden md:block' : ''} ${i >= 4 ? 'hidden lg:block' : ''}`}
+                    ></div>
+                ))}
             </div>
         </div>
     );
