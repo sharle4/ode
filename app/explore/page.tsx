@@ -2,9 +2,10 @@ import { Metadata } from "next";
 import { Suspense } from "react";
 import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
-import PoemCard from "@/components/ui/PoemCard";
 import CategoryGrid from "@/components/explore/CategoryGrid";
-import CollectionCard from "@/components/author/CollectionCard";
+import ExplorePoems from "@/components/explore/ExplorePoems";
+import ExploreAuthors from "@/components/explore/ExploreAuthors";
+import ExploreCollections from "@/components/explore/ExploreCollections";
 import ExploreSearchResults from "@/components/explore/ExploreSearchResults";
 import {
     getTrendingPoems,
@@ -13,10 +14,7 @@ import {
     getCategories,
     searchCatalog
 } from "@/utils/supabase/queries";
-import Link from "next/link";
-import Image from "next/image";
 import FadeIn from "@/components/ui/FadeIn";
-import { getInitials } from "@/utils/gradient";
 import { Category } from "@/types";
 
 export const metadata: Metadata = {
@@ -24,22 +22,94 @@ export const metadata: Metadata = {
     description: "Parcourez les poèmes, auteurs, recueils et catégories du catalogue de poésie ode.",
 };
 
-// ── Skeleton Components ──
-function SectionSkeleton() {
+// ── Skeleton Components (Strictement 1 ligne max pour préserver le layout) ──
+function CategorySkeleton() {
     return (
         <div className="w-full animate-pulse mt-2 sm:mt-4 mb-6">
             <div className="flex items-baseline justify-between mb-3.5 px-1 sm:px-2">
-                <div className="h-7 bg-zinc-200/50 dark:bg-zinc-800/50 rounded w-36"></div>
-                <div className="h-4 bg-zinc-200/30 dark:bg-zinc-800/30 rounded w-20"></div>
+                <div className="h-7 bg-soft-border/50 rounded w-36"></div>
+                <div className="h-4 bg-soft-border/30 rounded w-20"></div>
             </div>
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3 sm:gap-4">
                 {[1, 2, 3, 4, 5, 6].map(i => (
                     <div
                         key={i}
-                        className={`aspect-[4/3] sm:aspect-square bg-zinc-200/50 dark:bg-zinc-800/50 rounded-xl ${
-                            i === 2 ? 'hidden sm:block' : ''
-                        } ${i === 3 ? 'hidden md:block' : ''} ${i >= 4 ? 'hidden lg:block' : ''}`}
+                        className={`aspect-[4/3] sm:aspect-square bg-soft-border/40 rounded-xl ${
+                            i === 3 ? 'hidden sm:block' : ''
+                        } ${i === 4 ? 'hidden md:block' : ''} ${i >= 5 ? 'hidden lg:block' : ''}`}
                     ></div>
+                ))}
+            </div>
+        </div>
+    );
+}
+
+function PoemsSkeleton() {
+    return (
+        <div className="w-full animate-pulse mt-2 sm:mt-4 mb-6">
+            <div className="flex items-baseline justify-between mb-3.5 px-1 sm:px-2">
+                <div className="h-7 bg-soft-border/50 rounded w-44"></div>
+                <div className="h-4 bg-soft-border/30 rounded w-20"></div>
+            </div>
+            <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-6">
+                {[1, 2, 3, 4].map(i => (
+                    <div
+                        key={i}
+                        className={`aspect-[4/5] bg-soft-border/40 rounded-xl ${
+                            i === 3 ? 'hidden md:block' : ''
+                        } ${i === 4 ? 'hidden lg:block' : ''}`}
+                    ></div>
+                ))}
+            </div>
+        </div>
+    );
+}
+
+function AuthorsSkeleton() {
+    return (
+        <div className="w-full animate-pulse mt-2 sm:mt-4 mb-6">
+            <div className="flex items-baseline justify-between mb-3.5 px-1 sm:px-2">
+                <div className="h-7 bg-soft-border/50 rounded w-48"></div>
+                <div className="h-4 bg-soft-border/30 rounded w-20"></div>
+            </div>
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4 sm:gap-6 md:gap-8">
+                {[1, 2, 3, 4, 5, 6].map(i => (
+                    <div
+                        key={i}
+                        className={`flex flex-col items-center ${
+                            i === 3 ? 'hidden sm:flex' : ''
+                        } ${i === 4 ? 'hidden md:flex' : ''} ${i >= 5 ? 'hidden lg:flex' : ''}`}
+                    >
+                        <div className="w-24 h-24 sm:w-28 sm:h-28 md:w-32 md:h-32 rounded-full bg-soft-border/40 mb-3" />
+                        <div className="h-4 bg-soft-border/30 rounded w-20" />
+                    </div>
+                ))}
+            </div>
+        </div>
+    );
+}
+
+function CollectionsSkeleton() {
+    return (
+        <div className="w-full animate-pulse mt-2 sm:mt-4 mb-6">
+            <div className="flex items-baseline justify-between mb-3.5 px-1 sm:px-2">
+                <div className="h-7 bg-soft-border/50 rounded w-44"></div>
+                <div className="h-4 bg-soft-border/30 rounded w-20"></div>
+            </div>
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-6">
+                {[1, 2, 3, 4].map(i => (
+                    <div
+                        key={i}
+                        className={`flex flex-col ${
+                            i === 3 ? 'hidden sm:flex' : ''
+                            } ${i === 4 ? 'hidden lg:flex' : ''}`}
+                    >
+                        <div className="aspect-[2/3] w-full bg-soft-border/40 rounded-r-lg rounded-l-sm" />
+                        <div className="mt-4 flex justify-between px-1">
+                            <div className="h-3 bg-soft-border/30 rounded w-10" />
+                            <div className="h-3 bg-soft-border/30 rounded w-16" />
+                        </div>
+                    </div>
                 ))}
             </div>
         </div>
@@ -69,75 +139,21 @@ async function CategorySections() {
 }
 
 async function TrendingPoemsSection() {
-    const trendingPoems = await getTrendingPoems(8);
+    const trendingPoems = await getTrendingPoems(16);
     if (!trendingPoems?.length) return null;
-    return (
-        <div className="w-full">
-            <h2 className="font-serif text-2xl text-charcoal mb-6 border-b border-soft-border pb-2">Poèmes tendances</h2>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-                {trendingPoems.slice(0, 8).map((poem: any, i: number) => (
-                    <PoemCard key={poem.id} poem={poem} index={i} layout="grid" />
-                ))}
-            </div>
-        </div>
-    );
+    return <ExplorePoems poems={trendingPoems} />;
 }
 
 async function FeaturedAuthorsSection() {
     const featuredAuthors = await getFeaturedAuthors();
     if (!featuredAuthors?.length) return null;
-    return (
-        <div className="w-full">
-            <h2 className="font-serif text-2xl text-charcoal mb-6 border-b border-soft-border pb-2">Auteurs à l&apos;honneur</h2>
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 md:gap-8">
-                {featuredAuthors.map((author: any, idx: number) => (
-                    <Link href={`/author/${author.slug}`} key={author.id || idx} className="flex flex-col items-center group cursor-pointer text-center">
-                        <div className="w-24 h-24 sm:w-32 sm:h-32 rounded-full overflow-hidden mb-4 shadow-lg group-hover:shadow-xl transition-all duration-300 ease-out md:group-hover:-translate-y-2 border-2 border-transparent group-hover:border-accent/20">
-                            {author.image_url ? (
-                                <Image
-                                    src={author.image_url}
-                                    alt={author.name}
-                                    width={128}
-                                    height={128}
-                                    className="w-full h-full object-cover grayscale opacity-90 group-hover:grayscale-0 group-hover:opacity-100 transition-all duration-500"
-                                />
-                            ) : (
-                                <div className="w-full h-full bg-charcoal/10 flex items-center justify-center font-serif text-2xl text-charcoal">
-                                    {getInitials(author.name)}
-                                </div>
-                            )}
-                        </div>
-                        <span className="font-serif text-charcoal group-hover:text-accent transition-colors">
-                            {author.name}
-                        </span>
-                    </Link>
-                ))}
-            </div>
-        </div>
-    );
+    return <ExploreAuthors authors={featuredAuthors} />;
 }
 
 async function PopularCollectionsSection() {
     const featuredCollections = await getFeaturedCollections();
     if (!featuredCollections?.length) return null;
-    return (
-        <div className="w-full">
-            <h2 className="font-serif text-2xl text-charcoal mb-6 border-b border-soft-border pb-2">Recueils populaires</h2>
-            <div className="grid grid-cols-1 sm:grid-cols-3 lg:grid-cols-4 gap-6">
-                {featuredCollections.slice(0, 4).map((collection: any, index: number) => {
-                     const cardCollection = {
-                         title: collection.title,
-                         slug: collection.slug,
-                         year: collection.publication_year,
-                         poemCount: collection.poems_count || 0
-                     };
-                     return (
-                         <CollectionCard key={collection.id || index} collection={cardCollection} index={index} />
-                     );
-                })}
-            </div>
-        </div>
-    );
+    return <ExploreCollections collections={featuredCollections} />;
 }
 
 interface ExplorePageProps {
@@ -179,25 +195,25 @@ export default async function ExplorePage({ searchParams }: ExplorePageProps) {
 
                             <div className="flex flex-col gap-12 mt-4">
                                 <FadeIn delay={0.2}>
-                                    <Suspense fallback={<SectionSkeleton />}>
+                                    <Suspense fallback={<CategorySkeleton />}>
                                         <CategorySections />
                                     </Suspense>
                                 </FadeIn>
 
                                 <FadeIn delay={0.3}>
-                                    <Suspense fallback={<SectionSkeleton />}>
+                                    <Suspense fallback={<PoemsSkeleton />}>
                                         <TrendingPoemsSection />
                                     </Suspense>
                                 </FadeIn>
 
                                 <FadeIn delay={0.4}>
-                                    <Suspense fallback={<SectionSkeleton />}>
+                                    <Suspense fallback={<AuthorsSkeleton />}>
                                         <FeaturedAuthorsSection />
                                     </Suspense>
                                 </FadeIn>
 
                                 <FadeIn delay={0.5}>
-                                    <Suspense fallback={<SectionSkeleton />}>
+                                    <Suspense fallback={<CollectionsSkeleton />}>
                                         <PopularCollectionsSection />
                                     </Suspense>
                                 </FadeIn>
