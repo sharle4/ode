@@ -215,33 +215,32 @@ ode/
 - [ ] Titre header accueil défilant
 - [ ] Faut-il aligner le haut du panneau d'informations du poème du jour avec le titre "poème du jour" ?
 - [x] Faut-il aligner le haut de la lettrine avec le haut du premier vers ?
-- [ ] Récupérer photos auteurs et signatures
+- [x] Récupérer photos auteurs et signatures
 - [ ] Réfléchir à l'impact du choix de la couleur de surlignage
 - [ ] Ajouter bannière utilisateur ?
 - [ ] Ajouter description / infobulles aux badges
 - [ ] Ajouter une barre de recherche sur onglet page profile (arg de recherche profile:username)
 - [ ] Supprimer animation navbar si changement d'onglet uniquement
-- [ ] onglets page profile doivent prendre toute la largeur
+- [ ] onglets page profile doivent prendre toute la largeur / être centrés N
 - [ ] marquer poeme comme lu
 - [ ] page poème / recueil : ajouter note émotion et date
-- [ ] centrer les onglets de la page profile ?
 - [ ] rendre graphique de note interactif
-- [ ] scrap wikipedia date naissance/mort auteur + lieu 
+- [x] scrap wikipedia date naissance/mort auteur + lieu 
 - [ ] utiliser llm local résumé bio auteur et recueil (dans toutes les langues), et attribution catégories
-- [ ] remplacer lien copié partage poème par vrai partage
-- [ ] changer titre onglet
-- [ ] ajouter inspiration / inspiré
+- [x] remplacer lien copié partage poème par vrai partage
+- [x] changer titre onglet
+- [x] ajouter inspiration
+- [ ] ajouter inspiré
 - [ ] ajouter carte et frise
-- [ ] ajouter proposition modification 
-- [ ] ajouter infos enrich authors
+- [x] ajouter infos enrich authors
 - [ ] ajouter lien clicable pour date et lieu => lien vers frise et carte
 - [ ] ajouter onboarding utilisateur (poète, poèmes, recueils, mouvements favoris + performances style (couleur, taille, journuit, police))
 - [ ] remplacer section à propos auteur par metadata (dates, lieux, période, ...)
 - [ ] ajouter bouton suggestion modification visiteur
 - [ ] appliquer settings onboarding utilisateur
-- [ ] ajouter différent style (inclus ddiférent style illustration poème (bauhaus))
+- [ ] ajouter différents styles (inclus diférents styles illustration poème (ex bauhaus))
 - [ ] ajouter skeleton loading
 - [ ] corriger bug stanzas (ligne seule avec "&#160;<br />" ou "<br />" pas reconnue comme saut de ligne) (<i> reconnu comme saut de ligne alors que ca ne devrait pas être le cas)
-- [ ] réduire une ligne par catégories page explore + bouton étendre ou voir plus
+- [x] réduire une ligne par catégories page explore + bouton étendre ou voir plus
 - [ ] ajouter fonctionnalité ajouter ses propres poèmes (ex poèmes non public ou poèmes persos)
 - [ ] ajouter badges nombre onglets profil
