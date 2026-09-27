@@ -80,7 +80,7 @@ export const signupAction = actionClient
         }
 
         revalidatePath('/', 'layout')
-        return { success: 'Vérifiez votre boîte mail pour valider votre compte.' }
+        return { success: 'Un email de confirmation vient de vous être envoyé. Cliquez sur le lien pour finaliser votre inscription.' }
     })
 
 export async function signout() {

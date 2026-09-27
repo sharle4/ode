@@ -7,7 +7,7 @@ import Link from "next/link";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-    title: "Connexion — ode",
+    title: "Connexion - ode",
     description: "Connectez-vous à ode pour retrouver votre bibliothèque de poèmes, vos notes et votre communauté.",
 };
 

@@ -7,7 +7,7 @@ import Link from "next/link";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-    title: "Inscription — ode",
+    title: "Inscription - ode",
     description: "Créez un compte ode pour rejoindre la plus grande communauté francophone de poésie. Découvrez, notez et partagez des milliers de poèmes.",
 };
 
