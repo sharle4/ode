@@ -97,3 +97,45 @@ export interface SearchResults {
   categories: Category[];
   total: number;
 }
+
+export interface UserList {
+  id: string;
+  user_id: string;
+  title: string;
+  slug: string;
+  description?: string | null;
+  is_public: boolean;
+  is_ranked: boolean;
+  likes_count: number;
+  poems_count: number;
+  cover_url?: string | null;
+  created_at: string;
+  updated_at: string;
+  user?: {
+    id: string;
+    username: string;
+    avatar_url?: string | null;
+  };
+  preview_poems?: Array<{
+    id: string;
+    title: string;
+    slug: string;
+    rothko_params?: import("@/types/generative").RothkoParams | null;
+  }>;
+}
+
+export interface UserListItem {
+  list_id: string;
+  poem_id: string;
+  item_order: number;
+  notes?: string | null;
+  created_at: string;
+  poem?: Poem & {
+    slug: string;
+    publication_year?: number;
+    authors?: { id: string; name: string; slug: string }[];
+    collections?: { id: string; title: string; slug: string };
+    rothko_params?: import("@/types/generative").RothkoParams | null;
+  };
+}
+

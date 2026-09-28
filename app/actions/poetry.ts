@@ -191,64 +191,6 @@ export const highlightPoem = authActionClient
         return { success: true }
     })
 
-export const createList = authActionClient
-    .schema(z.object({
-        title: z.string().min(1).max(100),
-        description: z.string().max(500).optional(),
-        isPublic: z.boolean().default(true)
-    }))
-    .action(async ({ parsedInput: { title, description, isPublic }, ctx: { supabase, user } }) => {
-        const { data, error } = await supabase
-            .from('lists')
-            .insert({
-                user_id: user.id,
-                title,
-                description,
-                is_public: isPublic
-            })
-            .select('id')
-            .single()
-
-        if (error) {
-            console.error('Failed to create list:', error.message)
-            return { failure: 'Impossible de créer la liste.' }
-        }
-
-        revalidateTag('public-lists', undefined as never)
-        // Invalidate the creator's profile using the safe dynamic tag, assuming their username relies on user_metadata
-        const { data: currentUser } = await supabase.from('users').select('username').eq('id', user.id).maybeSingle();
-        if (currentUser?.username) {
-            revalidateTag(CACHE_TAGS.profile(currentUser.username), undefined as never)
-        }
-        return { success: true, listId: data.id }
-    })
-
-export const addToList = authActionClient
-    .schema(z.object({
-        listId: z.string().uuid(),
-        poemId: z.string().uuid(),
-        itemOrder: z.number().int().min(0),
-        notes: z.string().max(1000).optional()
-    }))
-    .action(async ({ parsedInput: { listId, poemId, itemOrder, notes }, ctx: { supabase, user } }) => {
-        const { error } = await supabase
-            .from('list_items')
-            .insert({
-                list_id: listId,
-                poem_id: poemId,
-                item_order: itemOrder,
-                notes: notes || null
-            })
-
-        if (error) {
-            console.error('Failed to add to list:', error.message)
-            return { failure: "Impossible d'ajouter le poème à la liste." }
-        }
-
-        revalidateTag(CACHE_TAGS.list(listId), undefined as never)
-        return { success: true }
-    })
-
 export const toggleFollow = authActionClient
     .schema(z.object({
         followingId: z.string().uuid()

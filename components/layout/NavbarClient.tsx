@@ -157,14 +157,14 @@ const NavbarClient = React.memo(function NavbarClient({
           </div>
 
           <div className="hidden md:flex items-center gap-1.5">
-            <a
+            <Link
               href="/explore"
               className="p-2 rounded-full text-charcoal/80 hover:bg-charcoal/5 hover:text-charcoal transition-colors relative flex items-center justify-center w-9 h-9"
               aria-label="Explorer le catalogue"
               title="Explorer"
             >
               <Compass size={19} weight="regular" />
-            </a>
+            </Link>
 
             <button
                 onClick={handleThemeToggle}

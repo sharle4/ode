@@ -3,9 +3,10 @@ import PoemActions from "./PoemActions";
 
 interface PoemActionsWrapperProps {
     poemId: string;
+    poemTitle?: string;
 }
 
-export default async function PoemActionsWrapper({ poemId }: PoemActionsWrapperProps) {
+export default async function PoemActionsWrapper({ poemId, poemTitle }: PoemActionsWrapperProps) {
     const supabase = await createClient();
     const { data: userData } = await supabase.auth.getUser();
 
@@ -22,5 +23,5 @@ export default async function PoemActionsWrapper({ poemId }: PoemActionsWrapperP
         if (likeData) hasLiked = true;
     }
 
-    return <PoemActions poemId={poemId} initialIsLiked={hasLiked} />;
+    return <PoemActions poemId={poemId} poemTitle={poemTitle} initialIsLiked={hasLiked} />;
 }

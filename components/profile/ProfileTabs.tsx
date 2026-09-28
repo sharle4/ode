@@ -6,6 +6,8 @@ import { useQueryState } from "nuqs";
 import PoemCard from "@/components/ui/PoemCard";
 import ProfileHome from "@/components/profile/ProfileHome";
 import ProfileLikes from "@/components/profile/ProfileLikes";
+import ProfileLists from "@/components/profile/ProfileLists";
+import { UserList } from "@/types";
 
 interface ProfileTabsProps {
     username: string;
@@ -19,6 +21,7 @@ interface ProfileTabsProps {
     likedCollections?: any[];
     likedAuthors?: any[];
     likesCount?: { poems: number; collections: number; authors: number; total: number };
+    lists?: UserList[];
 }
 
 const TABS = [
@@ -69,6 +72,7 @@ export default function ProfileTabs({
     likedCollections = [],
     likedAuthors = [],
     likesCount,
+    lists = [],
 }: ProfileTabsProps) {
     // ⚡ Hook nuqs avec shallow: true, history: "replace", scroll: false
     // Évite tout rechargement serveur (0 ms de latence, zéro freeze)
@@ -230,9 +234,12 @@ export default function ProfileTabs({
                             animate={{ opacity: 1, y: 0 }}
                             exit={{ opacity: 0, y: -10 }}
                             transition={{ duration: 0.2 }}
-                            className="text-center py-20 text-warm-gray italic font-serif"
                         >
-                            Collections et listes créées par {username}.
+                            <ProfileLists
+                                username={username}
+                                isOwner={isOwner}
+                                initialLists={lists}
+                            />
                         </motion.div>
                     )}
 

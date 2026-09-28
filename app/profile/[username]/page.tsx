@@ -1,6 +1,6 @@
 import { notFound } from "next/navigation";
 import Link from "next/link";
-import { getUserProfileByUsername, getUserLikesByUsername, getTrendingPoems } from "@/utils/supabase/queries";
+import { getUserProfileByUsername, getUserLikesByUsername, getUserLists } from "@/utils/supabase/queries";
 import { createClient } from "@/utils/supabase/server";
 import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
@@ -32,16 +32,18 @@ export default async function ProfilePage({ params, searchParams }: ProfilePageP
     ]);
     const decodedUsername = decodeURIComponent(resolvedParams.username);
     const isLikesTab = resolvedSearchParams?.tab === "likes";
+    const isListsTab = resolvedSearchParams?.tab === "lists";
 
-    // Fetch profile, auth state, and optionally likes (if directly accessing tab=likes) in parallel
-    const [userProfile, authUser, directLikes] = await Promise.all([
+    // Fetch profile, auth state, and optionally likes/lists in parallel
+    const [userProfile, authUser, directLikes, directLists] = await Promise.all([
         getUserProfileByUsername(decodedUsername),
         (async () => {
             const supabase = await createClient();
             const { data: { user } } = await supabase.auth.getUser();
             return user;
         })(),
-        isLikesTab ? getUserLikesByUsername(decodedUsername) : Promise.resolve(null)
+        isLikesTab ? getUserLikesByUsername(decodedUsername) : Promise.resolve(null),
+        isListsTab ? getUserLists(decodedUsername) : Promise.resolve([])
     ]);
 
     if (!userProfile) {
@@ -139,6 +141,7 @@ export default async function ProfilePage({ params, searchParams }: ProfilePageP
                             likedCollections={directLikes?.likedCollections || userProfile.likedCollections}
                             likedAuthors={directLikes?.likedAuthors || userProfile.likedAuthors}
                             likesCount={userProfile.likesCount}
+                            lists={directLists || []}
                         />
                     </FadeIn>
                 </div>

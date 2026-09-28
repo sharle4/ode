@@ -196,7 +196,7 @@ export default async function PoemPage({ params }: PoemPageProps) {
                 </main>
 
                 <Suspense fallback={null}>
-                    <PoemActionsWrapper poemId={poem.id} />
+                    <PoemActionsWrapper poemId={poem.id} poemTitle={poem.title} />
                 </Suspense>
 
                 <Footer />

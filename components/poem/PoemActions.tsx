@@ -18,19 +18,22 @@ import { ratePoem, toggleLike } from "@/app/actions/poetry";
 import { useAction } from "next-safe-action/hooks";
 import { useDebouncedCallback } from "use-debounce";
 import { usePoemShare } from "@/components/share/PoemShareContext";
+import AddToListModal from "@/components/lists/AddToListModal";
 
 interface PoemActionsProps {
     poemId: string;
+    poemTitle?: string;
     initialIsLiked?: boolean;
 }
 
-export default function PoemActions({ poemId, initialIsLiked = false }: PoemActionsProps) {
+export default function PoemActions({ poemId, poemTitle, initialIsLiked = false }: PoemActionsProps) {
     const pathname = usePathname();
     const slug = pathname?.split('/').pop() || "";
 
     const [isRead, setIsRead] = useState(false);
     const [showShareTooltip, setShowShareTooltip] = useState(false);
     const [likeNotice, setLikeNotice] = useState<string | null>(null);
+    const [isAddToListOpen, setIsAddToListOpen] = useState(false);
 
     // True Instant Optimistic Like State (0ms visual feedback)
     const [isLiked, setIsLiked] = useState(initialIsLiked);
@@ -101,7 +104,7 @@ export default function PoemActions({ poemId, initialIsLiked = false }: PoemActi
             id: "list",
             icon: <ListPlus size={22} weight="regular" className="text-charcoal" />,
             label: "Ajouter",
-            onClick: () => console.log("Open List Modal"),
+            onClick: () => setIsAddToListOpen(true),
         },
         {
             id: "emotion",
@@ -211,6 +214,13 @@ export default function PoemActions({ poemId, initialIsLiked = false }: PoemActi
                 </AnimatePresence>
 
             </motion.div>
+
+            <AddToListModal
+                poemId={poemId}
+                poemTitle={poemTitle || "Poème"}
+                isOpen={isAddToListOpen}
+                onClose={() => setIsAddToListOpen(false)}
+            />
         </div>
     );
 }
