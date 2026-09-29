@@ -3,7 +3,7 @@
 import React from "react";
 import Link from "next/link";
 import { motion } from "framer-motion";
-import { Heart, BookOpen, Lock, Sparkle } from "@phosphor-icons/react";
+import { Heart, BookOpen, Lock, Globe } from "@phosphor-icons/react";
 import { UserList } from "@/types";
 import ListCover from "./ListCover";
 
@@ -39,26 +39,31 @@ export function ListCard({ list, showOwner = false }: ListCardProps) {
                 {/* Content */}
                 <div className="flex flex-col justify-between flex-grow min-w-0">
                     <div>
-                        {/* Badges */}
-                        <div className="flex flex-wrap items-center gap-2 mb-1.5">
-                            {list.is_ranked && (
-                                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-serif tracking-wide bg-accent/10 text-accent border border-accent/20">
-                                    <Sparkle size={10} weight="fill" />
-                                    Top Classé
-                                </span>
-                            )}
-                            {!list.is_public && (
-                                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] bg-charcoal/10 text-charcoal/80 border border-charcoal/15">
-                                    <Lock size={10} weight="fill" />
-                                    Privée
-                                </span>
-                            )}
+                        {/* Title & Visibility */}
+                        <div className="flex items-center justify-between gap-2 mb-1 min-w-0">
+                            <h3 className="font-serif text-lg sm:text-xl font-medium text-charcoal group-hover:text-accent transition-colors line-clamp-1 min-w-0">
+                                {list.title}
+                            </h3>
+                            <div className="flex items-center flex-shrink-0">
+                                {list.is_public ? (
+                                    <span
+                                        className="text-warm-gray/45 group-hover:text-accent/70 transition-colors p-0.5"
+                                        title="Liste publique"
+                                        aria-label="Liste publique"
+                                    >
+                                        <Globe size={15} weight="regular" />
+                                    </span>
+                                ) : (
+                                    <span
+                                        className="text-warm-gray/45 group-hover:text-warm-gray/80 transition-colors p-0.5"
+                                        title="Liste privée"
+                                        aria-label="Liste privée"
+                                    >
+                                        <Lock size={14} weight="regular" />
+                                    </span>
+                                )}
+                            </div>
                         </div>
-
-                        {/* Title */}
-                        <h3 className="font-serif text-lg sm:text-xl font-medium text-charcoal group-hover:text-accent transition-colors line-clamp-1 mb-1">
-                            {list.title}
-                        </h3>
 
                         {/* Description */}
                         {list.description ? (
