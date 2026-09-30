@@ -1,6 +1,6 @@
 import { notFound } from "next/navigation";
 import Link from "next/link";
-import { getUserProfileByUsername, getUserLikesByUsername, getUserLists } from "@/utils/supabase/queries";
+import { getUserProfileByUsername, getUserLikesByUsername, getUserLists, getOwnerLists } from "@/utils/supabase/queries";
 import { createClient } from "@/utils/supabase/server";
 import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
@@ -34,16 +34,12 @@ export default async function ProfilePage({ params, searchParams }: ProfilePageP
     const isLikesTab = resolvedSearchParams?.tab === "likes";
     const isListsTab = resolvedSearchParams?.tab === "lists";
 
-    // Fetch profile, auth state, and optionally likes/lists in parallel
-    const [userProfile, authUser, directLikes, directLists] = await Promise.all([
+    const supabase = await createClient();
+
+    // Fetch profile and auth state concurrently
+    const [userProfile, { data: { user: authUser } }] = await Promise.all([
         getUserProfileByUsername(decodedUsername),
-        (async () => {
-            const supabase = await createClient();
-            const { data: { user } } = await supabase.auth.getUser();
-            return user;
-        })(),
-        isLikesTab ? getUserLikesByUsername(decodedUsername) : Promise.resolve(null),
-        isListsTab ? getUserLists(decodedUsername) : Promise.resolve([])
+        supabase.auth.getUser()
     ]);
 
     if (!userProfile) {
@@ -52,7 +48,29 @@ export default async function ProfilePage({ params, searchParams }: ProfilePageP
 
     const isOwner = authUser?.id === userProfile.id;
 
-    const stats = userProfile.stats;
+    // Fetch tab-specific data (likes or lists) and owner lists count in parallel
+    const [directLikes, directLists, ownerListsCount] = await Promise.all([
+        isLikesTab ? getUserLikesByUsername(decodedUsername) : Promise.resolve(null),
+        isListsTab
+            ? (isOwner
+                ? getOwnerLists(supabase, { id: userProfile.id, username: userProfile.username, avatar_url: userProfile.avatar_url })
+                : getUserLists(decodedUsername))
+            : Promise.resolve(undefined),
+        isOwner
+            ? (async () => {
+                const { count } = await supabase
+                    .from('lists')
+                    .select('id', { count: 'exact', head: true })
+                    .eq('user_id', userProfile.id);
+                return count;
+            })()
+            : Promise.resolve(null)
+    ]);
+
+    const stats = {
+        ...userProfile.stats,
+        lists: isOwner && typeof ownerListsCount === 'number' ? ownerListsCount : userProfile.stats.lists
+    };
     const topPoems = userProfile.topPoems;
     const topAuthors = userProfile.topAuthors;
     const recentReviews = userProfile.recentReviews;
@@ -141,7 +159,7 @@ export default async function ProfilePage({ params, searchParams }: ProfilePageP
                             likedCollections={directLikes?.likedCollections || userProfile.likedCollections}
                             likedAuthors={directLikes?.likedAuthors || userProfile.likedAuthors}
                             likesCount={userProfile.likesCount}
-                            lists={directLists || []}
+                            lists={directLists}
                         />
                     </FadeIn>
                 </div>

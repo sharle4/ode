@@ -1,6 +1,6 @@
 import { notFound } from "next/navigation";
 import { Metadata } from "next";
-import { getListByUsernameAndSlug } from "@/utils/supabase/queries";
+import { getListByUsernameAndSlug, getListByUsernameAndSlugDirect } from "@/utils/supabase/queries";
 import { createClient } from "@/utils/supabase/server";
 import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
@@ -15,7 +15,15 @@ export async function generateMetadata({ params }: ListPageProps): Promise<Metad
     const { username, slug } = await params;
     const decodedUsername = decodeURIComponent(username);
     const decodedSlug = decodeURIComponent(slug);
-    const list = await getListByUsernameAndSlug(decodedUsername, decodedSlug);
+    let list = await getListByUsernameAndSlug(decodedUsername, decodedSlug);
+
+    if (!list) {
+        const supabase = await createClient();
+        const { data: { user } } = await supabase.auth.getUser();
+        if (user) {
+            list = await getListByUsernameAndSlugDirect(supabase, decodedUsername, decodedSlug);
+        }
+    }
 
     if (!list) {
         return { title: "Liste introuvable - ode" };
@@ -47,16 +55,16 @@ export default async function ListPage({ params }: ListPageProps) {
     const decodedUsername = decodeURIComponent(username);
     const decodedSlug = decodeURIComponent(slug);
 
-    const [list, authUser] = await Promise.all([
+    const supabase = await createClient();
+    const [cachedList, { data: { user: authUser } }] = await Promise.all([
         getListByUsernameAndSlug(decodedUsername, decodedSlug),
-        (async () => {
-            const supabase = await createClient();
-            const {
-                data: { user },
-            } = await supabase.auth.getUser();
-            return user;
-        })(),
+        supabase.auth.getUser()
     ]);
+
+    let list = cachedList;
+    if (!list && authUser) {
+        list = await getListByUsernameAndSlugDirect(supabase, decodedUsername, decodedSlug);
+    }
 
     if (!list) {
         notFound();
@@ -72,7 +80,6 @@ export default async function ListPage({ params }: ListPageProps) {
     // Check if authenticated user has liked this list
     let initialHasLiked = false;
     if (authUser) {
-        const supabase = await createClient();
         const { data: likeData } = await supabase
             .from("list_likes")
             .select("user_id")
@@ -90,7 +97,7 @@ export default async function ListPage({ params }: ListPageProps) {
         name: list.title,
         description: list.description || undefined,
         numberOfItems: list.items?.length || 0,
-        itemListElement: (list.items || []).filter(Boolean).map((item, index) => ({
+        itemListElement: (list.items || []).filter(Boolean).map((item: any, index: number) => ({
             "@type": "ListItem",
             position: index + 1,
             name: item?.poem?.title || "Poème",

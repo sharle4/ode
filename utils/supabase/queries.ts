@@ -2,6 +2,7 @@ import { createClient as createSupabaseClient } from '@supabase/supabase-js';
 import { unstable_cache } from 'next/cache';
 import { cache } from 'react';
 import { CACHE_TAGS } from '@/lib/cache-keys';
+import { UserList } from '@/types';
 
 // Create a single public client for cached queries to avoid cookie parsing dynamically 
 // (which would opt routes into dynamic rendering and break unstable_cache).
@@ -1040,6 +1041,146 @@ export const searchCatalog = async (
     );
 };
 
+export function formatUserLists(lists: any[], user: { id: string; username: string; avatar_url: string | null }): UserList[] {
+    return lists.map((list: any) => {
+        const sortedItems = (list.list_items || [])
+            .sort((a: any, b: any) => (a.item_order ?? 0) - (b.item_order ?? 0));
+        const previewPoems = sortedItems
+            .map((item: any) => {
+                const p = item.poems;
+                if (!p) return null;
+                return {
+                    id: p.id,
+                    title: p.title,
+                    slug: p.slug,
+                    rothko_params: Array.isArray(p.rothko_params) ? p.rothko_params[0] : p.rothko_params,
+                };
+            })
+            .filter(Boolean)
+            .slice(0, 4);
+
+        return {
+            id: list.id,
+            user_id: list.user_id,
+            title: list.title,
+            slug: list.slug,
+            description: list.description,
+            is_public: list.is_public,
+            is_ranked: list.is_ranked,
+            likes_count: list.likes_count ?? 0,
+            poems_count: list.poems_count ?? 0,
+            cover_url: list.cover_url,
+            created_at: list.created_at,
+            updated_at: list.updated_at,
+            user: {
+                id: user.id,
+                username: user.username,
+                avatar_url: user.avatar_url
+            },
+            preview_poems: previewPoems
+        };
+    });
+}
+
+export function formatListDetail(list: any, user: { id: string; username: string; avatar_url?: string | null; description?: string | null }) {
+    const sortedItems = (list.list_items || [])
+        .sort((a: any, b: any) => (a.item_order ?? 0) - (b.item_order ?? 0))
+        .map((item: any) => {
+            const p = item.poems;
+            if (!p) return null;
+            const formattedAuthors = (p.authors || []).map((a: any) => a.authors).filter(Boolean);
+            const rothko = Array.isArray(p.rothko_params) ? p.rothko_params[0] : p.rothko_params;
+            return {
+                list_id: list.id,
+                poem_id: p.id,
+                item_order: item.item_order,
+                notes: item.notes,
+                created_at: item.created_at,
+                poem: {
+                    ...p,
+                    authors: formattedAuthors,
+                    rothko_params: rothko
+                }
+            };
+        })
+        .filter(Boolean);
+
+    return {
+        id: list.id,
+        user_id: list.user_id,
+        title: list.title,
+        slug: list.slug,
+        description: list.description,
+        is_public: list.is_public,
+        is_ranked: list.is_ranked,
+        likes_count: list.likes_count ?? 0,
+        poems_count: list.poems_count ?? 0,
+        cover_url: list.cover_url,
+        created_at: list.created_at,
+        updated_at: list.updated_at,
+        user: {
+            id: user.id,
+            username: user.username,
+            avatar_url: user.avatar_url,
+            description: user.description
+        },
+        items: sortedItems
+    };
+}
+
+export async function getOwnerLists(supabase: any, user: { id: string; username: string; avatar_url: string | null }): Promise<UserList[]> {
+    const { data: lists, error } = await supabase
+        .from('lists')
+        .select(`
+            id, user_id, title, slug, description, is_public, is_ranked, likes_count, poems_count, cover_url, created_at, updated_at,
+            list_items (
+                item_order,
+                poems (
+                    id, title, slug,
+                    rothko_params (seed, palette_id, shape_type, layout_bias, complexity, texture_profile, blend_mode, density, opacity_style)
+                )
+            )
+        `)
+        .eq('user_id', user.id)
+        .order('created_at', { ascending: false });
+
+    if (error || !lists) return [];
+
+    return formatUserLists(lists, user);
+}
+
+export async function getListByUsernameAndSlugDirect(supabase: any, username: string, slug: string) {
+    const { data: user } = await supabase
+        .from('users')
+        .select('id, username, avatar_url, description')
+        .eq('username', username)
+        .maybeSingle();
+
+    if (!user) return null;
+
+    const { data: list, error } = await supabase
+        .from('lists')
+        .select(`
+            id, user_id, title, slug, description, is_public, is_ranked, likes_count, poems_count, cover_url, created_at, updated_at,
+            list_items (
+                item_order, notes, created_at,
+                poems (
+                    id, title, slug, publication_year, average_review, reviews_count, reads_count, likes_count,
+                    authors:poem_authors (authors (id, name, slug)),
+                    collections (id, title, slug),
+                    rothko_params (seed, palette_id, shape_type, layout_bias, complexity, texture_profile, blend_mode, density, opacity_style)
+                )
+            )
+        `)
+        .eq('user_id', user.id)
+        .eq('slug', slug)
+        .maybeSingle();
+
+    if (error || !list) return null;
+
+    return formatListDetail(list, user);
+}
+
 export const getUserLists = (username: string) => executeCachedQuery(
     {
         keyParts: ['user-lists', username.toLowerCase()],
@@ -1073,44 +1214,7 @@ export const getUserLists = (username: string) => executeCachedQuery(
 
         if (error || !lists) return [];
 
-        return lists.map((list: any) => {
-            const sortedItems = (list.list_items || [])
-                .sort((a: any, b: any) => (a.item_order ?? 0) - (b.item_order ?? 0));
-            const previewPoems = sortedItems
-                .map((item: any) => {
-                    const p = item.poems;
-                    if (!p) return null;
-                    return {
-                        id: p.id,
-                        title: p.title,
-                        slug: p.slug,
-                        rothko_params: Array.isArray(p.rothko_params) ? p.rothko_params[0] : p.rothko_params,
-                    };
-                })
-                .filter(Boolean)
-                .slice(0, 4);
-
-            return {
-                id: list.id,
-                user_id: list.user_id,
-                title: list.title,
-                slug: list.slug,
-                description: list.description,
-                is_public: list.is_public,
-                is_ranked: list.is_ranked,
-                likes_count: list.likes_count,
-                poems_count: list.poems_count,
-                cover_url: list.cover_url,
-                created_at: list.created_at,
-                updated_at: list.updated_at,
-                user: {
-                    id: user.id,
-                    username: user.username,
-                    avatar_url: user.avatar_url
-                },
-                preview_poems: previewPoems
-            };
-        });
+        return formatUserLists(lists, user);
     }
 );
 
@@ -1150,49 +1254,7 @@ export const getListByUsernameAndSlug = (username: string, slug: string) => exec
 
         if (error || !list) return null;
 
-        const sortedItems = (list.list_items || [])
-            .sort((a: any, b: any) => (a.item_order ?? 0) - (b.item_order ?? 0))
-            .map((item: any) => {
-                const p = item.poems;
-                if (!p) return null;
-                const formattedAuthors = (p.authors || []).map((a: any) => a.authors).filter(Boolean);
-                const rothko = Array.isArray(p.rothko_params) ? p.rothko_params[0] : p.rothko_params;
-                return {
-                    list_id: list.id,
-                    poem_id: p.id,
-                    item_order: item.item_order,
-                    notes: item.notes,
-                    created_at: item.created_at,
-                    poem: {
-                        ...p,
-                        authors: formattedAuthors,
-                        rothko_params: rothko
-                    }
-                };
-            })
-            .filter(Boolean);
-
-        return {
-            id: list.id,
-            user_id: list.user_id,
-            title: list.title,
-            slug: list.slug,
-            description: list.description,
-            is_public: list.is_public,
-            is_ranked: list.is_ranked,
-            likes_count: list.likes_count,
-            poems_count: list.poems_count,
-            cover_url: list.cover_url,
-            created_at: list.created_at,
-            updated_at: list.updated_at,
-            user: {
-                id: user.id,
-                username: user.username,
-                avatar_url: user.avatar_url,
-                description: user.description
-            },
-            items: sortedItems
-        };
+        return formatListDetail(list, user);
     }
 );
 

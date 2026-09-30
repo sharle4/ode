@@ -30,7 +30,7 @@ export const createListAction = authActionClient
                 is_public: isPublic,
                 is_ranked: isRanked,
             })
-            .select('id, slug, title')
+            .select('id, slug, title, is_public')
             .single()
 
         if (error) {
@@ -45,7 +45,7 @@ export const createListAction = authActionClient
         }
         revalidateTag('public-lists', undefined as never)
 
-        return { success: true, listId: data.id, slug: data.slug, title: data.title }
+        return { success: true, listId: data.id, slug: data.slug, title: data.title, isPublic: data.is_public }
     })
 
 export const updateListAction = authActionClient
@@ -332,6 +332,28 @@ export const fetchUserListsAction = actionClient
         username: z.string().min(1),
     }))
     .action(async ({ parsedInput: { username } }) => {
+        const { createClient } = await import('@/utils/supabase/server');
+        const supabase = await createClient();
+        const { data: { user } } = await supabase.auth.getUser();
+
+        const { data: profileUser } = await supabase
+            .from('users')
+            .select('id, username, avatar_url')
+            .eq('username', username)
+            .maybeSingle();
+
+        if (!profileUser) {
+            return { lists: [] };
+        }
+
+        const isOwner = user?.id === profileUser.id;
+
+        if (isOwner) {
+            const { getOwnerLists } = await import('@/utils/supabase/queries');
+            const lists = await getOwnerLists(supabase, profileUser);
+            return { lists: lists || [] };
+        }
+
         const { getUserLists } = await import('@/utils/supabase/queries');
         const lists = await getUserLists(username);
         return { lists: lists || [] };

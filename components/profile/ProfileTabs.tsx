@@ -72,7 +72,7 @@ export default function ProfileTabs({
     likedCollections = [],
     likedAuthors = [],
     likesCount,
-    lists = [],
+    lists,
 }: ProfileTabsProps) {
     // ⚡ Hook nuqs avec shallow: true, history: "replace", scroll: false
     // Évite tout rechargement serveur (0 ms de latence, zéro freeze)

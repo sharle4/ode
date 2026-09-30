@@ -24,24 +24,26 @@ interface ProfileListsProps {
 export function ProfileLists({
     username,
     isOwner = false,
-    initialLists = [],
+    initialLists,
 }: ProfileListsProps) {
-    const [lists, setLists] = useState<UserList[]>(initialLists);
+    const hasInitialLists = initialLists !== undefined;
+    const [lists, setLists] = useState<UserList[]>(initialLists || []);
     const [searchQuery, setSearchQuery] = useState("");
     const [isCreateOpen, setIsCreateOpen] = useState(false);
-    const [isLoading, setIsLoading] = useState(initialLists.length === 0);
+    const [isLoading, setIsLoading] = useState(!hasInitialLists);
 
     const { executeAsync: fetchLists } = useAction(fetchUserListsAction);
 
-    // If initialLists was empty, fetch client-side once
+    // If initialLists was undefined (e.g. client tab switch), fetch client-side once
     useEffect(() => {
-        if (initialLists.length > 0) {
+        if (initialLists !== undefined) {
             setLists(initialLists);
             setIsLoading(false);
             return;
         }
 
         let isMounted = true;
+        setIsLoading(true);
         fetchLists({ username })
             .then((res) => {
                 if (isMounted && res?.data?.lists) {
@@ -69,14 +71,14 @@ export function ProfileLists({
         );
     }, [lists, searchQuery]);
 
-    const handleListCreated = (created: { listId: string; slug: string; title: string }) => {
+    const handleListCreated = (created: { listId: string; slug: string; title: string; isPublic?: boolean }) => {
         const dummyNewList: UserList = {
             id: created.listId,
             user_id: "",
             title: created.title,
             slug: created.slug,
             description: null,
-            is_public: true,
+            is_public: created.isPublic ?? true,
             is_ranked: false,
             likes_count: 0,
             poems_count: 0,

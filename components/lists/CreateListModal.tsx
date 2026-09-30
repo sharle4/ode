@@ -9,7 +9,7 @@ import { createListAction } from "@/app/actions/lists";
 interface CreateListModalProps {
     isOpen: boolean;
     onClose: () => void;
-    onSuccess?: (result: { listId: string; slug: string; title: string }) => void;
+    onSuccess?: (result: { listId: string; slug: string; title: string; isPublic?: boolean }) => void;
 }
 
 export function CreateListModal({ isOpen, onClose, onSuccess }: CreateListModalProps) {
@@ -48,6 +48,7 @@ export function CreateListModal({ isOpen, onClose, onSuccess }: CreateListModalP
                     listId: res.data.listId,
                     slug: res.data.slug,
                     title: res.data.title || title,
+                    isPublic: res.data.isPublic ?? isPublic,
                 });
                 onClose();
             } else if (res?.data?.failure) {
