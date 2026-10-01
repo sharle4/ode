@@ -313,16 +313,20 @@ export const fetchUserListsWithPoemStatusAction = authActionClient
         const listIds = lists.map(l => l.id);
         const { data: memberships } = await supabase
             .from('list_items')
-            .select('list_id')
+            .select('list_id, notes')
             .eq('poem_id', poemId)
             .in('list_id', listIds);
 
-        const memberSet = new Set((memberships || []).map(m => m.list_id));
+        const notesMap = new Map<string, string | null>();
+        (memberships || []).forEach(m => {
+            notesMap.set(m.list_id, m.notes ?? null);
+        });
 
         return {
             lists: lists.map(l => ({
                 ...l,
-                containsPoem: memberSet.has(l.id)
+                containsPoem: notesMap.has(l.id),
+                notes: notesMap.get(l.id) || null
             }))
         };
     })

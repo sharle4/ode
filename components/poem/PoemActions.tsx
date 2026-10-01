@@ -102,7 +102,7 @@ export default function PoemActions({ poemId, poemTitle, initialIsLiked = false 
         },
         {
             id: "list",
-            icon: <ListPlus size={22} weight="regular" className="text-charcoal" />,
+            icon: <ListPlus size={22} weight={isAddToListOpen ? "fill" : "regular"} className={isAddToListOpen ? "text-accent fill-accent" : "text-charcoal"} />,
             label: "Ajouter",
             onClick: () => setIsAddToListOpen(true),
         },
@@ -127,93 +127,95 @@ export default function PoemActions({ poemId, poemTitle, initialIsLiked = false 
     ];
 
     return (
-        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-40">
-            <motion.div
-                className="flex items-center gap-1 md:gap-3 p-2 bg-paper/90 backdrop-blur-md border border-soft-border rounded-full shadow-lg"
-                initial={{ y: 100, opacity: 0 }}
-                animate={{ y: 0, opacity: 1 }}
-                transition={{
-                    type: "spring",
-                    stiffness: 260,
-                    damping: 20,
-                    delay: 0.5,
-                }}
-            >
-                {actionButtons.map((btn) => (
-                    <motion.button
-                        key={btn.id}
-                        type="button"
-                        onClick={btn.onClick}
-                        className="group relative flex items-center justify-center w-12 h-12 rounded-full hover:bg-charcoal/5 transition-colors"
-                        whileTap={{ scale: 0.9 }}
-                    >
-                        {btn.icon}
+        <>
+            <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-40">
+                <motion.div
+                    className="flex items-center gap-1 md:gap-3 p-2 bg-paper/90 backdrop-blur-md border border-soft-border rounded-full shadow-lg"
+                    initial={{ y: 100, opacity: 0 }}
+                    animate={{ y: 0, opacity: 1 }}
+                    transition={{
+                        type: "spring",
+                        stiffness: 260,
+                        damping: 20,
+                        delay: 0.5,
+                    }}
+                >
+                    {actionButtons.map((btn) => (
+                        <motion.button
+                            key={btn.id}
+                            type="button"
+                            onClick={btn.onClick}
+                            className="group relative flex items-center justify-center w-12 h-12 rounded-full hover:bg-charcoal/5 transition-colors"
+                            whileTap={{ scale: 0.9 }}
+                        >
+                            {btn.icon}
 
-                        <div className="absolute -top-11 left-1/2 -translate-x-1/2 px-2.5 py-1.5 bg-paper border border-soft-border text-charcoal text-[10px] uppercase tracking-widest rounded shadow-md opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none flex flex-col items-center">
-                            {btn.label}
-                            {/* Flèche Tooltip */}
-                            <div className="absolute -bottom-[5px] w-2 h-2 bg-paper border-b border-r border-soft-border rotate-45" />
+                            <div className="absolute -top-11 left-1/2 -translate-x-1/2 px-2.5 py-1.5 bg-paper border border-soft-border text-charcoal text-[10px] uppercase tracking-widest rounded shadow-md opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none flex flex-col items-center">
+                                {btn.label}
+                                {/* Flèche Tooltip */}
+                                <div className="absolute -bottom-[5px] w-2 h-2 bg-paper border-b border-r border-soft-border rotate-45" />
+                            </div>
+                        </motion.button>
+                    ))}
+
+                    <div className="w-px h-6 bg-soft-border mx-2" />
+
+                    <div className="relative group">
+                        <motion.button
+                            onClick={handleShare}
+                            className="flex items-center justify-center w-12 h-12 rounded-full hover:bg-charcoal/5 transition-colors"
+                            whileTap={{ scale: 0.9 }}
+                        >
+                            <ShareNetwork size={22} weight="regular" className="text-charcoal" />
+                        </motion.button>
+
+                        {/* Infobulle standard au hover (masquée si showShareTooltip est vrai) */}
+                        <div
+                            className={`absolute bottom-full mb-2.5 left-1/2 -translate-x-1/2 px-2.5 py-1.5 bg-paper border border-soft-border text-charcoal text-[10px] uppercase tracking-widest rounded shadow-md transition-opacity whitespace-nowrap pointer-events-none flex items-center justify-center z-20 ${showShareTooltip ? "opacity-0" : "opacity-0 group-hover:opacity-100"
+                                }`}
+                        >
+                            Partager
+                            <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-2 h-2 bg-paper border-b border-r border-soft-border rotate-45" />
                         </div>
-                    </motion.button>
-                ))}
 
-                <div className="w-px h-6 bg-soft-border mx-2" />
-
-                <div className="relative group">
-                    <motion.button
-                        onClick={handleShare}
-                        className="flex items-center justify-center w-12 h-12 rounded-full hover:bg-charcoal/5 transition-colors"
-                        whileTap={{ scale: 0.9 }}
-                    >
-                        <ShareNetwork size={22} weight="regular" className="text-charcoal" />
-                    </motion.button>
-
-                    {/* Infobulle standard au hover (masquée si showShareTooltip est vrai) */}
-                    <div
-                        className={`absolute bottom-full mb-2.5 left-1/2 -translate-x-1/2 px-2.5 py-1.5 bg-paper border border-soft-border text-charcoal text-[10px] uppercase tracking-widest rounded shadow-md transition-opacity whitespace-nowrap pointer-events-none flex items-center justify-center z-20 ${showShareTooltip ? "opacity-0" : "opacity-0 group-hover:opacity-100"
-                            }`}
-                    >
-                        Partager
-                        <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-2 h-2 bg-paper border-b border-r border-soft-border rotate-45" />
+                        <AnimatePresence>
+                            {showShareTooltip && (
+                                <div className="absolute bottom-full mb-2.5 left-1/2 -translate-x-1/2 pointer-events-none z-30">
+                                    <motion.div
+                                        initial={{ opacity: 0, scale: 0.9, y: 3 }}
+                                        animate={{ opacity: 1, scale: 1, y: 0 }}
+                                        exit={{ opacity: 0, scale: 0.9, y: 3 }}
+                                        transition={{ duration: 0.18, ease: "easeOut" }}
+                                        className="relative px-2.5 py-1.5 bg-accent text-white text-[10px] uppercase tracking-widest rounded whitespace-nowrap shadow-md flex items-center justify-center font-medium"
+                                    >
+                                        Lien copié !
+                                        <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-2 h-2 bg-accent rotate-45" />
+                                    </motion.div>
+                                </div>
+                            )}
+                        </AnimatePresence>
                     </div>
 
+                    {/* Like Notice (Auth/Error) Toast */}
                     <AnimatePresence>
-                        {showShareTooltip && (
-                            <div className="absolute bottom-full mb-2.5 left-1/2 -translate-x-1/2 pointer-events-none z-30">
+                        {likeNotice && (
+                            <div className="absolute bottom-full mb-3 left-1/2 -translate-x-1/2 pointer-events-none z-50">
                                 <motion.div
-                                    initial={{ opacity: 0, scale: 0.9, y: 3 }}
+                                    initial={{ opacity: 0, scale: 0.9, y: 6 }}
                                     animate={{ opacity: 1, scale: 1, y: 0 }}
-                                    exit={{ opacity: 0, scale: 0.9, y: 3 }}
+                                    exit={{ opacity: 0, scale: 0.9, y: 6 }}
                                     transition={{ duration: 0.18, ease: "easeOut" }}
-                                    className="relative px-2.5 py-1.5 bg-accent text-white text-[10px] uppercase tracking-widest rounded whitespace-nowrap shadow-md flex items-center justify-center font-medium"
+                                    className="relative px-3.5 py-1.5 bg-paper dark:bg-zinc-900 border border-soft-border text-charcoal text-xs font-medium rounded-full shadow-xl whitespace-nowrap flex items-center justify-center font-sans"
                                 >
-                                    Lien copié !
-                                    <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-2 h-2 bg-accent rotate-45" />
+                                    {likeNotice}
+                                    <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-2 h-2 bg-paper dark:bg-zinc-900 border-b border-r border-soft-border rotate-45" />
                                 </motion.div>
                             </div>
                         )}
                     </AnimatePresence>
-                </div>
 
-                {/* Like Notice (Auth/Error) Toast */}
-                <AnimatePresence>
-                    {likeNotice && (
-                        <div className="absolute bottom-full mb-3 left-1/2 -translate-x-1/2 pointer-events-none z-50">
-                            <motion.div
-                                initial={{ opacity: 0, scale: 0.9, y: 6 }}
-                                animate={{ opacity: 1, scale: 1, y: 0 }}
-                                exit={{ opacity: 0, scale: 0.9, y: 6 }}
-                                transition={{ duration: 0.18, ease: "easeOut" }}
-                                className="relative px-3.5 py-1.5 bg-paper dark:bg-zinc-900 border border-soft-border text-charcoal text-xs font-medium rounded-full shadow-xl whitespace-nowrap flex items-center justify-center font-sans"
-                            >
-                                {likeNotice}
-                                <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-2 h-2 bg-paper dark:bg-zinc-900 border-b border-r border-soft-border rotate-45" />
-                            </motion.div>
-                        </div>
-                    )}
-                </AnimatePresence>
-
-            </motion.div>
+                </motion.div>
+            </div>
 
             <AddToListModal
                 poemId={poemId}
@@ -221,6 +223,6 @@ export default function PoemActions({ poemId, poemTitle, initialIsLiked = false 
                 isOpen={isAddToListOpen}
                 onClose={() => setIsAddToListOpen(false)}
             />
-        </div>
+        </>
     );
 }
