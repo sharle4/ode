@@ -670,18 +670,7 @@ export function AddToListModal({
 
                                 {/* Footer */}
                                 {!isNotAuthenticated && lists.length > 0 && (
-                                    <div className="px-5 py-3 border-t border-soft-border/60 dark:border-zinc-800 flex items-center justify-between flex-shrink-0 bg-cream/70 dark:bg-[#18181b]/70">
-                                        <button
-                                            type="button"
-                                            onClick={() => {
-                                                setNewListTitle("");
-                                                setView("create");
-                                            }}
-                                            className="inline-flex items-center gap-1.5 text-xs text-accent hover:text-accent-hover font-serif font-medium transition-colors"
-                                        >
-                                            <Plus size={13} weight="bold" />
-                                            Créer une nouvelle liste
-                                        </button>
+                                    <div className="px-5 py-3 border-t border-soft-border/60 dark:border-zinc-800 flex items-center justify-end flex-shrink-0 bg-cream/70 dark:bg-[#18181b]/70">
                                         <button
                                             type="button"
                                             onClick={onClose}
