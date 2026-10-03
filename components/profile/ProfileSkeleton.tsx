@@ -1,5 +1,4 @@
 import React from "react";
-import OdeLogoStatic from "@/components/ui/OdeLogoStatic";
 import Footer from "@/components/layout/Footer";
 
 export default function ProfileSkeleton() {
@@ -8,8 +7,8 @@ export default function ProfileSkeleton() {
             {/* Header / Navbar Placeholder */}
             <header className="fixed top-0 left-0 right-0 z-40 bg-cream/80 backdrop-blur-xl border-b border-soft-border/40 shadow-xs">
                 <nav className="mx-auto flex max-w-5xl items-center justify-between px-4 sm:px-6 lg:px-8 py-4">
-                    <div className="flex-shrink-0 w-[90px] md:w-[110px] text-charcoal opacity-90">
-                        <OdeLogoStatic width="100%" height="auto" />
+                    <div className="flex-shrink-0 font-serif font-bold text-2xl md:text-3xl tracking-tight leading-none text-charcoal opacity-90 select-none">
+                        ode<span className="text-accent">.</span>
                     </div>
                     <div className="hidden md:flex flex-1 max-w-lg mx-6 h-9 rounded-full bg-paper/70 border border-soft-border/50 skeleton-shimmer" />
                     <div className="flex items-center gap-3">

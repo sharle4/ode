@@ -17,7 +17,6 @@ import {
   UserPlus,
 } from "@phosphor-icons/react";
 import { signout } from "@/app/auth/actions";
-import OdeLogoStatic from "@/components/ui/OdeLogoStatic";
 import NavbarSearch from "./NavbarSearch";
 import ProfileDropdown from "./ProfileDropdown";
 import { useTheme } from "next-themes";
@@ -142,8 +141,12 @@ const NavbarClient = React.memo(function NavbarClient({
         }}
       >
         <nav className="mx-auto flex max-w-5xl items-center justify-between px-4 sm:px-6 lg:px-8 py-4">
-          <Link href="/" className="flex-shrink-0 w-[90px] md:w-[110px] text-charcoal" aria-label="ode homepage">
-            <OdeLogoStatic width="100%" height="auto" />
+          <Link
+            href="/"
+            className="flex-shrink-0 font-serif font-bold text-2xl md:text-3xl tracking-tight leading-none text-charcoal hover:opacity-90 transition-opacity select-none"
+            aria-label="ode homepage"
+          >
+            ode<span className="text-accent">.</span>
           </Link>
 
           <div className="hidden md:flex flex-1 max-w-lg mx-6">

@@ -34,8 +34,8 @@ export default async function LoginPage({
             <div className="flex flex-col justify-center px-6 sm:px-12 lg:px-16 py-12 pb-32 md:pb-12 bg-cream">
                 {/* Mobile logo */}
                 <div className="md:hidden mb-10">
-                    <Link href="/" className="font-serif text-3xl tracking-tight text-charcoal">
-                        ode.
+                    <Link href="/" className="font-serif font-bold text-3xl tracking-tight text-charcoal">
+                        ode<span className="text-accent">.</span>
                     </Link>
                 </div>
 
